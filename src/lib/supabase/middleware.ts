@@ -34,10 +34,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes - redirect to login if not authenticated
-  const protectedPaths = ["/dashboard", "/courses/"];
+  // Course catalog and detail pages are public; only lesson pages and dashboard require auth
+  const protectedPaths = ["/dashboard"];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
-  );
+  ) || request.nextUrl.pathname.includes("/lessons/");
 
   if (isProtectedPath && !user) {
     const url = request.nextUrl.clone();
