@@ -16,6 +16,7 @@ import {
   FileText,
   Zap,
   HelpCircle,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
@@ -137,6 +138,33 @@ export default async function LessonPage({ params }: LessonPageProps) {
     isCurrentLessonComplete = completedLessonIds.has(currentLesson.id);
   }
 
+  // Fetch all module quizzes for sidebar display
+  const allModuleIds = typedCourse.modules.map((m) => m.id);
+  const { data: allModuleQuizzes } = await supabase
+    .from("module_quizzes")
+    .select("id, module_id")
+    .in("module_id", allModuleIds);
+
+  const sidebarQuizByModule = new Map<string, string>();
+  const sidebarPassedQuizIds = new Set<string>();
+  if (allModuleQuizzes) {
+    for (const q of allModuleQuizzes) {
+      sidebarQuizByModule.set(q.module_id, q.id);
+    }
+    const quizIds = allModuleQuizzes.map((q) => q.id);
+    const { data: quizResults } = await supabase
+      .from("module_quiz_results")
+      .select("module_quiz_id")
+      .eq("user_id", user.id)
+      .eq("passed", true)
+      .in("module_quiz_id", quizIds);
+    if (quizResults) {
+      for (const r of quizResults) {
+        sidebarPassedQuizIds.add(r.module_quiz_id);
+      }
+    }
+  }
+
   // Fetch module quiz if this is the last lesson in the module
   let moduleQuiz = null;
   let quizAlreadyPassed = false;
@@ -204,6 +232,26 @@ export default async function LessonPage({ params }: LessonPageProps) {
                     </li>
                   );
                 })}
+                {sidebarQuizByModule.has(mod.id) && (() => {
+                  const quizId = sidebarQuizByModule.get(mod.id)!;
+                  const isPassed = sidebarPassedQuizIds.has(quizId);
+                  const lastLesson = mod.lessons[mod.lessons.length - 1];
+                  return (
+                    <li>
+                      <Link
+                        href={`/courses/${slug}/lessons/${lastLesson?.slug || ""}`}
+                        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {isPassed ? (
+                          <Trophy className="size-3.5 shrink-0 text-amber-500" />
+                        ) : (
+                          <Zap className="size-3.5 shrink-0 text-emerald-accent" />
+                        )}
+                        <span className="truncate font-medium">Quiz</span>
+                      </Link>
+                    </li>
+                  );
+                })()}
               </ul>
             </div>
           ))}

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CourseProgress } from "@/components/courses/course-progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
 import { PaywallBanner } from "@/components/courses/paywall-banner";
-import { BookOpen, CheckCircle2, ChevronRight, PlayCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight, PlayCircle, Zap, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CourseWithModules, UserProgress } from "@/lib/types/database";
 
@@ -115,6 +115,37 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
   const completedCount = completedLessonIds.size;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  // Fetch module quizzes and results for this course
+  const moduleIds = typedCourse.modules.map((m) => m.id);
+  const { data: moduleQuizzes } = await supabase
+    .from("module_quizzes")
+    .select("id, module_id, xp_reward")
+    .in("module_id", moduleIds);
+
+  const quizByModule = new Map<string, { id: string; xp_reward: number }>();
+  if (moduleQuizzes) {
+    for (const q of moduleQuizzes) {
+      quizByModule.set(q.module_id, { id: q.id, xp_reward: q.xp_reward });
+    }
+  }
+
+  const passedQuizIds = new Set<string>();
+  if (user && moduleQuizzes && moduleQuizzes.length > 0) {
+    const quizIds = moduleQuizzes.map((q) => q.id);
+    const { data: quizResults } = await supabase
+      .from("module_quiz_results")
+      .select("module_quiz_id, passed")
+      .eq("user_id", user.id)
+      .eq("passed", true)
+      .in("module_quiz_id", quizIds);
+
+    if (quizResults) {
+      for (const r of quizResults) {
+        passedQuizIds.add(r.module_quiz_id);
+      }
+    }
+  }
 
   // Show paywall for paid courses when user has no active pro/team subscription
   const showPaywall = !typedCourse.is_free && !hasActiveSubscription;
@@ -255,6 +286,49 @@ export default async function CoursePage({ params }: CoursePageProps) {
                       </li>
                     );
                   })}
+
+                  {/* Module quiz row */}
+                  {quizByModule.has(mod.id) && (() => {
+                    const quiz = quizByModule.get(mod.id)!;
+                    const isPassed = passedQuizIds.has(quiz.id);
+                    const lastLesson = mod.lessons[mod.lessons.length - 1];
+                    return (
+                      <li>
+                        {isEnrolled ? (
+                          <Link
+                            href={`/courses/${slug}/lessons/${lastLesson?.slug || ""}`}
+                            className={cn(
+                              "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted",
+                              isPassed && "text-muted-foreground"
+                            )}
+                          >
+                            {isPassed ? (
+                              <Trophy className="size-4 shrink-0 text-amber-500" />
+                            ) : (
+                              <Zap className="size-4 shrink-0 text-emerald-accent" />
+                            )}
+                            <span className="flex-1 font-medium">Module Quiz</span>
+                            <Badge variant="outline" className="text-[10px] border-emerald-accent/30 text-emerald-accent">
+                              +{quiz.xp_reward} XP
+                            </Badge>
+                            {isPassed ? (
+                              <CheckCircle2 className="size-4 text-green-600" />
+                            ) : (
+                              <ChevronRight className="size-4 text-muted-foreground" />
+                            )}
+                          </Link>
+                        ) : (
+                          <div className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
+                            <Zap className="size-4 shrink-0" />
+                            <span className="flex-1 font-medium">Module Quiz</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              +{quiz.xp_reward} XP
+                            </Badge>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })()}
                 </ul>
               </CardContent>
             </Card>
