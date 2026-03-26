@@ -3,7 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { ModuleQuiz } from "@/components/gamification/module-quiz";
-import { ChevronLeft, Trophy } from "lucide-react";
+import { ChevronLeft, Trophy, Lock, BookOpen } from "lucide-react";
+import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import type { ModuleQuiz as ModuleQuizType, CourseWithModules } from "@/lib/types/database";
 
 interface QuizPageProps {
@@ -66,13 +67,8 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .in("lesson_id", lessonIds);
 
   const completedIds = new Set((progress ?? []).map((p) => p.lesson_id));
-  const allLessonsComplete = lessonIds.every((id) => completedIds.has(id));
-
-  if (!allLessonsComplete) {
-    // Find first incomplete lesson and redirect there
-    const firstIncomplete = currentModule.lessons.find((l) => !completedIds.has(l.id));
-    redirect(`/courses/${slug}/lessons/${firstIncomplete?.slug || currentModule.lessons[0]?.slug}`);
-  }
+  const completedCount = lessonIds.filter((id) => completedIds.has(id)).length;
+  const allLessonsComplete = completedCount === lessonIds.length;
 
   // Fetch the quiz
   const { data: quiz } = await supabase
@@ -111,14 +107,47 @@ export default async function QuizPage({ params }: QuizPageProps) {
         Back to {typedCourse.title}
       </Link>
 
-      {alreadyPassed ? (
+      {!allLessonsComplete ? (
+        <div className="text-center">
+          <Lock className="mx-auto size-12 text-muted-foreground" />
+          <h1 className="mt-4 font-heading text-2xl font-bold">Complete the lessons first</h1>
+          <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+            Finish all lessons in <strong>{currentModule.title}</strong> to unlock this quiz.
+          </p>
+          <div className="mx-auto mt-6 max-w-xs">
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-muted-foreground">{completedCount} of {lessonIds.length} lessons</span>
+              <span className="font-medium">{Math.round((completedCount / lessonIds.length) * 100)}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-emerald-accent transition-all"
+                style={{ width: `${(completedCount / lessonIds.length) * 100}%` }}
+              />
+            </div>
+          </div>
+          {(() => {
+            const firstIncomplete = currentModule.lessons.find((l) => !completedIds.has(l.id));
+            return firstIncomplete ? (
+              <div className="mt-8">
+                <Link href={`/courses/${slug}/lessons/${firstIncomplete.slug}`}>
+                  <Button size="lg">
+                    <BookOpen className="size-4" />
+                    Continue Learning
+                  </Button>
+                </Link>
+              </div>
+            ) : null;
+          })()}
+        </div>
+      ) : alreadyPassed ? (
         <div className="text-center">
           <Trophy className="mx-auto size-16 text-amber-500" />
           <h1 className="mt-4 font-heading text-3xl font-bold">Quiz Complete!</h1>
           <p className="mt-2 text-lg text-muted-foreground">
             You scored {result?.score}/{result?.total} on the {currentModule.title} quiz
           </p>
-          <p className="mt-1 text-emerald-accent font-semibold">+{result?.xp_earned || quiz.xp_reward} XP earned</p>
+          <p className="mt-1 font-semibold text-emerald-accent">+{result?.xp_earned || quiz.xp_reward} XP earned</p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link href={nextLessonUrl}>

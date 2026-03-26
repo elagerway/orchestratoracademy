@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CourseProgress } from "@/components/courses/course-progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
 import { PaywallBanner } from "@/components/courses/paywall-banner";
-import { BookOpen, CheckCircle2, ChevronRight, PlayCircle, Zap, Trophy } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight, PlayCircle, Zap, Trophy, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CourseWithModules, UserProgress } from "@/lib/types/database";
 
@@ -291,9 +291,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
                   {quizByModule.has(mod.id) && (() => {
                     const quiz = quizByModule.get(mod.id)!;
                     const isPassed = passedQuizIds.has(quiz.id);
+                    const allModLessonsComplete = modCompleted === mod.lessons.length;
                     return (
                       <li>
-                        {isEnrolled ? (
+                        {isEnrolled && allModLessonsComplete ? (
                           <Link
                             href={`/courses/${slug}/quiz/${mod.slug}`}
                             className={cn(
@@ -317,10 +318,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
                             )}
                           </Link>
                         ) : (
-                          <div className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
-                            <Zap className="size-4 shrink-0" />
+                          <div className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground/50">
+                            <Lock className="size-4 shrink-0" />
                             <span className="flex-1 font-medium">Module Quiz</span>
-                            <Badge variant="outline" className="text-[10px]">
+                            <Badge variant="outline" className="text-[10px] opacity-50">
                               +{quiz.xp_reward} XP
                             </Badge>
                           </div>
