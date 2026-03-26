@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
+import { PaywallBanner } from "@/components/courses/paywall-banner";
 import { BookOpen, CheckCircle2, ChevronRight, PlayCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CourseWithModules, UserProgress } from "@/lib/types/database";
@@ -52,6 +53,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
   let firstLessonSlug: string | null = null;
   let nextLessonSlug: string | null = null;
   let nextLessonCourseSlug: string = slug;
+  let hasActiveSubscription = false;
 
   // Find first lesson
   if (typedCourse.modules.length > 0 && typedCourse.modules[0].lessons.length > 0) {
@@ -59,6 +61,17 @@ export default async function CoursePage({ params }: CoursePageProps) {
   }
 
   if (user) {
+    // Check subscription status for paid courses
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .in("plan", ["pro", "team"])
+      .eq("status", "active")
+      .maybeSingle();
+
+    hasActiveSubscription = !!subscription;
+
     const { data: enrollment } = await supabase
       .from("user_enrollments")
       .select("*")
@@ -102,6 +115,31 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
   const completedCount = completedLessonIds.size;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  // Show paywall for paid courses when user has no active pro/team subscription
+  const showPaywall = !typedCourse.is_free && !hasActiveSubscription;
+
+  if (showPaywall) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        {/* Course header (visible even behind paywall) */}
+        <div className="mb-4 max-w-3xl">
+          <div className="mb-3 flex items-center gap-2">
+            <Badge variant="default">
+              {`$${typedCourse.price ?? ""}`}
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">{typedCourse.title}</h1>
+          <p className="mt-3 text-lg text-muted-foreground">{typedCourse.description}</p>
+        </div>
+
+        <PaywallBanner courseName={typedCourse.title} />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">

@@ -72,3 +72,25 @@ export interface CourseWithProgress extends Course {
   completed_lessons: number;
   progress_percentage: number;
 }
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  stripe_customer_id: string;
+  stripe_subscription_id: string | null;
+  plan: "free" | "pro" | "team";
+  status: "active" | "canceled" | "past_due" | "incomplete" | "trialing";
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Payment {
+  id: string;
+  user_id: string;
+  stripe_payment_id: string;
+  amount: number;
+  currency: string;
+  status: "succeeded" | "pending" | "failed" | "refunded";
+  created_at: string;
+}

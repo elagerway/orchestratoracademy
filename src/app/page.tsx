@@ -167,7 +167,8 @@ export default function LandingPage() {
           </div>
 
           <h1 className="animate-fade-up-delay-1 mt-8 max-w-3xl font-heading text-5xl font-bold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
-            Become an{" "}
+            Become an
+            <br />
             <span className="text-emerald-accent">AI Orchestrator</span>
           </h1>
 

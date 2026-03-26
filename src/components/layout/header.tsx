@@ -8,6 +8,7 @@ import { AuthButton } from "@/components/auth/auth-button"
 
 const navLinks = [
   { href: "/courses", label: "Courses" },
+  { href: "/for-companies", label: "For Companies" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ]

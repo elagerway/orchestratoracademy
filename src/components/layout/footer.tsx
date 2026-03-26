@@ -2,6 +2,7 @@ import Link from "next/link"
 
 const footerLinks = [
   { href: "/courses", label: "Courses" },
+  { href: "/for-companies", label: "For Companies" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
   { href: "/auth/login", label: "Sign In" },
