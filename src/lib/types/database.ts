@@ -131,3 +131,39 @@ export interface Certificate {
   assessment_score: number;
   issued_at: string;
 }
+
+export interface ModuleQuiz {
+  id: string;
+  module_id: string;
+  questions: AssessmentQuestion[];
+  xp_reward: number;
+  created_at: string;
+}
+
+export interface ModuleQuizResult {
+  id: string;
+  user_id: string;
+  module_quiz_id: string;
+  score: number;
+  total: number;
+  passed: boolean;
+  xp_earned: number;
+  completed_at: string;
+}
+
+export interface Achievement {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  xp_reward: number;
+  created_at: string;
+}
+
+export interface UserAchievement {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  unlocked_at: string;
+}

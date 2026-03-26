@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LessonCompleteButton } from "@/components/courses/lesson-complete-button";
 import { LessonContent } from "@/components/courses/lesson-content";
+import { ModuleQuiz } from "@/components/gamification/module-quiz";
+import type { ModuleQuiz as ModuleQuizType } from "@/lib/types/database";
 import {
   BookOpen,
   CheckCircle2,
@@ -64,14 +66,19 @@ export default async function LessonPage({ params }: LessonPageProps) {
       lessons: mod.lessons.sort((a, b) => a.order - b.order),
     }));
 
-  // Find current lesson
+  // Find current lesson and its module
   let currentLesson: Lesson | null = null;
   let currentModuleTitle: string = "";
+  let currentModuleId: string = "";
+  let isLastLessonInModule = false;
   for (const mod of typedCourse.modules) {
     const found = mod.lessons.find((l) => l.slug === lessonSlug);
     if (found) {
       currentLesson = found;
       currentModuleTitle = mod.title;
+      currentModuleId = mod.id;
+      const lastLesson = mod.lessons[mod.lessons.length - 1];
+      isLastLessonInModule = lastLesson?.id === found.id;
       break;
     }
   }
@@ -128,6 +135,28 @@ export default async function LessonPage({ params }: LessonPageProps) {
     }
 
     isCurrentLessonComplete = completedLessonIds.has(currentLesson.id);
+  }
+
+  // Fetch module quiz if this is the last lesson in the module
+  let moduleQuiz = null;
+  let quizAlreadyPassed = false;
+  if (isLastLessonInModule) {
+    const { data: quiz } = await supabase
+      .from("module_quizzes")
+      .select("*")
+      .eq("module_id", currentModuleId)
+      .maybeSingle();
+
+    if (quiz) {
+      moduleQuiz = quiz;
+      const { data: result } = await supabase
+        .from("module_quiz_results")
+        .select("passed")
+        .eq("module_quiz_id", quiz.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      quizAlreadyPassed = result?.passed ?? false;
+    }
   }
 
   return (
@@ -216,6 +245,23 @@ export default async function LessonPage({ params }: LessonPageProps) {
             lessonSlug={currentLesson.slug}
             lessonTitle={currentLesson.title}
           />
+
+          {/* Module quiz — shows after last lesson in module */}
+          {moduleQuiz && !quizAlreadyPassed && (
+            <div className="mb-10">
+              <ModuleQuiz
+                quiz={moduleQuiz as ModuleQuizType}
+                moduleTitle={currentModuleTitle}
+                courseSlug={slug}
+              />
+            </div>
+          )}
+          {moduleQuiz && quizAlreadyPassed && (
+            <div className="mb-10 rounded-xl border border-emerald-accent/30 bg-emerald-accent/5 p-6 text-center">
+              <p className="text-lg font-medium">🏆 You already aced this module quiz!</p>
+              <p className="mt-1 text-sm text-muted-foreground">+{moduleQuiz.xp_reward} XP earned</p>
+            </div>
+          )}
 
           {/* Mark complete + navigation */}
           <div className="border-t pt-6">
