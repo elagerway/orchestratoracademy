@@ -13,68 +13,68 @@ interface LessonContentProps {
   lessonTitle: string;
 }
 
-// 64 unique Unsplash photos — laptops with code, clean workspaces, tech screens
-// No robots, no humanoids, no papers, no nature
+// 64 unique Unsplash photos — laptops/monitors showing actual CODE (Python, JS, etc)
+// No robots, no analytics dashboards, no charts, no nature
 const PHOTO_POOL = [
-  "photo-1517694712202-14dd9538aa97",  // Laptop open with code
-  "photo-1498050108023-c5249f4df085",  // Laptop code bright room
-  "photo-1531297484001-80022131f5a1",  // Laptop on clean desk
-  "photo-1488590528505-98d2b5aba04b",  // Laptop colorful code
-  "photo-1461749280684-dccba630e2f6",  // Laptop code from above
-  "photo-1555066931-4365d14bab8c",    // Laptop code side angle
-  "photo-1504639725590-34d0984388bd",  // Laptop terminal
-  "photo-1516116216624-53e697fedbea",  // Dual monitor code setup
-  "photo-1607799279861-4dd421887fc5",  // Multi-monitor dev setup
-  "photo-1610563166150-b34df4f0bcd6",  // VS Code on laptop
-  "photo-1605379399642-870262d3d051",  // Code editor on screen
-  "photo-1562813733-b31f71025d54",    // Clean terminal on laptop
-  "photo-1544197150-b99a580bb7a8",    // Laptop with coffee
-  "photo-1629654297299-c8506221ca97",  // GitHub UI on screen
-  "photo-1551434678-e076c223a692",    // Developer typing on laptop
-  "photo-1454165804606-c3d57bc86b40",  // Laptop clean desk bright
-  "photo-1496065187959-7f07c4e546b2",  // Laptop workspace overhead
-  "photo-1542744173-8e7e91415657",    // Hands typing laptop
-  "photo-1487058792275-0ad4aaf24ca7",  // Laptop IDE code
-  "photo-1633356122102-3fe601e05bd2",  // Laptop terminal prompt
-  "photo-1551288049-bebda4e38f71",    // Dashboard on laptop
-  "photo-1573164713988-8665fc963095",  // Data viz on screen
-  "photo-1460925895917-afdab827c52f",  // Charts on monitor
-  "photo-1581091226825-a6a2a5aee158",  // Tablet with dashboard
-  "photo-1581092795360-fd1ca04f0952",  // Screen with data
-  "photo-1526374965328-7f61d4dc18c5",  // Circuit board close
-  "photo-1518770660439-4636190af475",  // Microchip detail
+  "photo-1517694712202-14dd9538aa97",  // MacBook with Python code
+  "photo-1498050108023-c5249f4df085",  // Laptop open with code lines
+  "photo-1488590528505-98d2b5aba04b",  // Screen with colorful syntax
+  "photo-1461749280684-dccba630e2f6",  // Monitor showing code overhead
+  "photo-1555066931-4365d14bab8c",    // Laptop with code side view
+  "photo-1504639725590-34d0984388bd",  // Screen with terminal code
+  "photo-1516116216624-53e697fedbea",  // Dual screens with code
+  "photo-1607799279861-4dd421887fc5",  // Multi-monitor code setup
+  "photo-1610563166150-b34df4f0bcd6",  // VS Code editor open
+  "photo-1605379399642-870262d3d051",  // Code editor purple theme
+  "photo-1562813733-b31f71025d54",    // Terminal with commands
+  "photo-1629654297299-c8506221ca97",  // GitHub code interface
+  "photo-1487058792275-0ad4aaf24ca7",  // IDE with syntax highlighting
+  "photo-1633356122102-3fe601e05bd2",  // Terminal prompt cursor
+  "photo-1542903660-eedba2cda473",    // Laptop code close up
+  "photo-1580927752452-89d86da3fa0a",  // Screen code reflection
+  "photo-1607705703571-c5a8695f18f6",  // Code on laptop bright
+  "photo-1534972195531-d756b9bfa9f2",  // Laptop code on table
+  "photo-1515879218367-8466d910aeb9",  // Code screen macro
+  "photo-1544256718-3bcf237f3974",    // Laptop coding session
+  "photo-1537498425277-c283d32ef9db",  // Monitor code workspace
+  "photo-1509718443690-d8e2fb3474b7",  // Screen code bright room
+  "photo-1587620962725-abab7fe55159",  // Laptop with JS code
+  "photo-1542831371-29b0f74f9713",    // HTML CSS code screen
+  "photo-1579468118864-1b9ea3c0db4a",  // Code on dark laptop
+  "photo-1522199710521-72d69614c702",  // Programming on laptop
+  "photo-1484417894907-623942c8ee29",  // Code on screen bright
+  "photo-1483817101829-339b08e8d83f",  // Typing code laptop
+  "photo-1550063873-ab792950096b",    // Code text on display
+  "photo-1544197150-b99a580bb7a8",    // Laptop code with coffee
+  "photo-1531297484001-80022131f5a1",  // Clean laptop desk
+  "photo-1551434678-e076c223a692",    // Dev typing on laptop
+  "photo-1526374965328-7f61d4dc18c5",  // Circuit board macro
+  "photo-1518770660439-4636190af475",  // Chip detail
   "photo-1550745165-9bc0b252726f",    // PCB traces
   "photo-1558494949-ef010cbdcc31",    // Server room
   "photo-1581291518857-4e27b48ff24e",  // Server rack
-  "photo-1535378917042-10a22c95931a",  // Abstract cloud
+  "photo-1535378917042-10a22c95931a",  // Cloud abstract
   "photo-1451187580459-43490279c0fa",  // Earth from space
   "photo-1526628953301-3e589a6a8b74",  // Globe connections
   "photo-1523961131990-5ea7c61b2107",  // Network mesh
-  "photo-1485827404703-89b55fcc595e",  // Network nodes abstract
+  "photo-1485827404703-89b55fcc595e",  // Network nodes
   "photo-1537432376149-e84978a29e4b",  // Gradient abstract
   "photo-1504868584819-f8e8b4b6d7e3",  // Light abstract
-  "photo-1509966756634-9c23dd6e6815",  // Tunnel light
-  "photo-1550751827-4bd374c3f58b",    // Lock on keyboard
+  "photo-1550751827-4bd374c3f58b",    // Lock keyboard
   "photo-1563013544-824ae1b704d3",    // Digital padlock
   "photo-1573164574572-cb89e39749b4",  // Chat interface
-  "photo-1580894894513-541e068a3e2b",  // Holographic display
   "photo-1614064641938-3bbee52942c7",  // RGB keyboard
   "photo-1535223289827-42f1e9919769",  // City lights
-  "photo-1522071820081-009f0129c71c",  // Team at screen
-  "photo-1519389950473-47ba0277781c",  // Modern meeting room
-  "photo-1552664730-d307ca884978",    // Team looking at screen
+  "photo-1580894894513-541e068a3e2b",  // Holographic display
+  "photo-1509966756634-9c23dd6e6815",  // Light tunnel
   "photo-1542744094-3a31f272c490",    // Tech stage
   "photo-1559028012-481c04fa702d",    // Flowchart screen
-  "photo-1557804506-669a67965ba0",    // Glass conference room
-  "photo-1553877522-43269d4ea984",    // Whiteboard strategy
-  "photo-1512756290469-ec264b7fbf87",  // Email interface
-  "photo-1434494878577-86c23bcb06b9",  // Phone screen
-  "photo-1485856407642-7f9ba0f24571",  // Audio waveform
-  "photo-1551808525-51a94da548ce",    // Rocket launch
-  "photo-1527474305487-b87b222841cc",  // Aerial tech view
+  "photo-1522071820081-009f0129c71c",  // Team at screen
+  "photo-1552664730-d307ca884978",    // Team looking at code
+  "photo-1519389950473-47ba0277781c",  // Modern meeting glass
+  "photo-1553877522-43269d4ea984",    // Whiteboard code
   "photo-1618401471353-b98afee0b2eb",  // Abstract colorful
-  "photo-1558591710-4b4a1ae0f04d",    // Matrix style
-  "photo-1504384764586-bb4cdc1707b0",  // Satellite view
+  "photo-1558591710-4b4a1ae0f04d",    // Matrix code
   "photo-1611532736597-de2d4265fba3",  // Blockchain visual
   "photo-1639762681057-408e52192e55",  // Neural abstract
   "photo-1636690513351-0af1363a6b0e",  // Digital tunnel
