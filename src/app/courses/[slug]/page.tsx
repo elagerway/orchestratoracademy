@@ -291,12 +291,11 @@ export default async function CoursePage({ params }: CoursePageProps) {
                   {quizByModule.has(mod.id) && (() => {
                     const quiz = quizByModule.get(mod.id)!;
                     const isPassed = passedQuizIds.has(quiz.id);
-                    const lastLesson = mod.lessons[mod.lessons.length - 1];
                     return (
                       <li>
                         {isEnrolled ? (
                           <Link
-                            href={`/courses/${slug}/lessons/${lastLesson?.slug || ""}`}
+                            href={`/courses/${slug}/quiz/${mod.slug}`}
                             className={cn(
                               "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted",
                               isPassed && "text-muted-foreground"

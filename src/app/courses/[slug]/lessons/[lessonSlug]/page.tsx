@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LessonCompleteButton } from "@/components/courses/lesson-complete-button";
 import { LessonContent } from "@/components/courses/lesson-content";
-import { ModuleQuiz } from "@/components/gamification/module-quiz";
-import type { ModuleQuiz as ModuleQuizType } from "@/lib/types/database";
 import {
   BookOpen,
   CheckCircle2,
@@ -71,6 +69,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   let currentLesson: Lesson | null = null;
   let currentModuleTitle: string = "";
   let currentModuleId: string = "";
+  let currentModuleSlug: string = "";
   let isLastLessonInModule = false;
   for (const mod of typedCourse.modules) {
     const found = mod.lessons.find((l) => l.slug === lessonSlug);
@@ -78,6 +77,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
       currentLesson = found;
       currentModuleTitle = mod.title;
       currentModuleId = mod.id;
+      currentModuleSlug = mod.slug;
       const lastLesson = mod.lessons[mod.lessons.length - 1];
       isLastLessonInModule = lastLesson?.id === found.id;
       break;
@@ -235,11 +235,10 @@ export default async function LessonPage({ params }: LessonPageProps) {
                 {sidebarQuizByModule.has(mod.id) && (() => {
                   const quizId = sidebarQuizByModule.get(mod.id)!;
                   const isPassed = sidebarPassedQuizIds.has(quizId);
-                  const lastLesson = mod.lessons[mod.lessons.length - 1];
                   return (
                     <li>
                       <Link
-                        href={`/courses/${slug}/lessons/${lastLesson?.slug || ""}`}
+                        href={`/courses/${slug}/quiz/${mod.slug}`}
                         className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
                         {isPassed ? (
@@ -303,60 +302,47 @@ export default async function LessonPage({ params }: LessonPageProps) {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              {prevLesson ? (
-                <Link href={`/courses/${slug}/lessons/${prevLesson.slug}`}>
-                  <Button variant="outline" size="lg">
-                    <ChevronLeft className="size-4" />
-                    Previous
-                  </Button>
-                </Link>
-              ) : (
-                <div />
-              )}
-              {nextLesson ? (
-                <Link href={`/courses/${slug}/lessons/${nextLesson.slug}`}>
-                  <Button size="lg">
-                    Next
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href={`/courses/${slug}`}>
-                  <Button size="lg">
-                    Back to Course
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </Link>
-              )}
-            </div>
+            {!isCurrentLessonComplete ? (
+              <p className="text-sm text-muted-foreground">
+                Mark this lesson as complete to continue.
+              </p>
+            ) : (
+              <div className="flex items-center justify-between">
+                {prevLesson ? (
+                  <Link href={`/courses/${slug}/lessons/${prevLesson.slug}`}>
+                    <Button variant="outline" size="lg">
+                      <ChevronLeft className="size-4" />
+                      Previous
+                    </Button>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+                {isLastLessonInModule && moduleQuiz && !quizAlreadyPassed ? (
+                  <Link href={`/courses/${slug}/quiz/${currentModuleSlug}`}>
+                    <Button size="lg" className="bg-emerald-accent text-emerald-accent-foreground hover:bg-emerald-accent/90">
+                      <Zap className="size-4" />
+                      Take Module Quiz
+                    </Button>
+                  </Link>
+                ) : nextLesson ? (
+                  <Link href={`/courses/${slug}/lessons/${nextLesson.slug}`}>
+                    <Button size="lg">
+                      Next
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href={`/courses/${slug}`}>
+                    <Button size="lg">
+                      Back to Course
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
-
-          {/* Module quiz — full-width separate section after lesson */}
-          {moduleQuiz && isLastLessonInModule && (
-            <div className="mt-12 border-t-2 border-emerald-accent/20 pt-12">
-              {quizAlreadyPassed ? (
-                <div className="rounded-xl border border-emerald-accent/30 bg-emerald-accent/5 p-8 text-center">
-                  <Trophy className="mx-auto size-10 text-amber-500" />
-                  <p className="mt-3 text-xl font-semibold">Module Quiz Complete!</p>
-                  <p className="mt-1 text-muted-foreground">You earned +{moduleQuiz.xp_reward} XP for this quiz</p>
-                </div>
-              ) : (
-                <div>
-                  <div className="mb-6 text-center">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-emerald-accent">Up Next</p>
-                    <h2 className="mt-1 font-heading text-2xl font-bold">Module Quiz</h2>
-                    <p className="mt-2 text-muted-foreground">Test what you learned — 3 quick questions</p>
-                  </div>
-                  <ModuleQuiz
-                    quiz={moduleQuiz as ModuleQuizType}
-                    moduleTitle={currentModuleTitle}
-                    courseSlug={slug}
-                  />
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </main>
     </div>
