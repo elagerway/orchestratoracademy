@@ -9,7 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
+import { CourseProgress } from "@/components/courses/course-progress";
 import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
@@ -214,12 +214,11 @@ export default async function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="mt-auto space-y-4">
-                  <Progress value={progressPercent}>
-                    <ProgressLabel className="text-xs">Progress</ProgressLabel>
-                    <ProgressValue>
-                      {() => `${completedLessons}/${totalLessons}`}
-                    </ProgressValue>
-                  </Progress>
+                  <CourseProgress
+                    value={progressPercent}
+                    label="Progress"
+                    display={`${completedLessons}/${totalLessons}`}
+                  />
 
                   {nextLessonSlug ? (
                     <Link

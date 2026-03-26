@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
+import { CourseProgress } from "@/components/courses/course-progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
 import { PaywallBanner } from "@/components/courses/paywall-banner";
 import { BookOpen, CheckCircle2, ChevronRight, PlayCircle } from "lucide-react";
@@ -159,12 +159,11 @@ export default async function CoursePage({ params }: CoursePageProps) {
         <div className="mt-6">
           {isEnrolled ? (
             <div className="space-y-4">
-              <Progress value={progressPercent}>
-                <ProgressLabel>Course Progress</ProgressLabel>
-                <ProgressValue>
-                  {() => `${completedCount}/${totalLessons} lessons`}
-                </ProgressValue>
-              </Progress>
+              <CourseProgress
+                value={progressPercent}
+                label="Course Progress"
+                display={`${completedCount}/${totalLessons} lessons`}
+              />
               {nextLessonSlug ? (
                 <Link
                   href={`/courses/${slug}/lessons/${nextLessonSlug}`}
