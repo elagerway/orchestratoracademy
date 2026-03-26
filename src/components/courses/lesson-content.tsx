@@ -13,73 +13,73 @@ interface LessonContentProps {
   lessonTitle: string;
 }
 
-// 64 unique Unsplash photos — laptops/monitors showing actual CODE (Python, JS, etc)
-// No robots, no analytics dashboards, no charts, no nature
+// 64 unique Unsplash photos — code on screens, clean abstracts
+// No people, no robots, no motherboards, no charts, no nature
 const PHOTO_POOL = [
-  "photo-1517694712202-14dd9538aa97",  // MacBook with Python code
-  "photo-1498050108023-c5249f4df085",  // Laptop open with code lines
-  "photo-1488590528505-98d2b5aba04b",  // Screen with colorful syntax
-  "photo-1461749280684-dccba630e2f6",  // Monitor showing code overhead
-  "photo-1555066931-4365d14bab8c",    // Laptop with code side view
-  "photo-1504639725590-34d0984388bd",  // Screen with terminal code
-  "photo-1516116216624-53e697fedbea",  // Dual screens with code
-  "photo-1607799279861-4dd421887fc5",  // Multi-monitor code setup
-  "photo-1610563166150-b34df4f0bcd6",  // VS Code editor open
-  "photo-1605379399642-870262d3d051",  // Code editor purple theme
-  "photo-1562813733-b31f71025d54",    // Terminal with commands
-  "photo-1629654297299-c8506221ca97",  // GitHub code interface
-  "photo-1487058792275-0ad4aaf24ca7",  // IDE with syntax highlighting
-  "photo-1633356122102-3fe601e05bd2",  // Terminal prompt cursor
-  "photo-1542903660-eedba2cda473",    // Laptop code close up
-  "photo-1580927752452-89d86da3fa0a",  // Screen code reflection
-  "photo-1607705703571-c5a8695f18f6",  // Code on laptop bright
-  "photo-1534972195531-d756b9bfa9f2",  // Laptop code on table
-  "photo-1515879218367-8466d910aeb9",  // Code screen macro
-  "photo-1544256718-3bcf237f3974",    // Laptop coding session
-  "photo-1537498425277-c283d32ef9db",  // Monitor code workspace
-  "photo-1509718443690-d8e2fb3474b7",  // Screen code bright room
-  "photo-1587620962725-abab7fe55159",  // Laptop with JS code
-  "photo-1542831371-29b0f74f9713",    // HTML CSS code screen
-  "photo-1579468118864-1b9ea3c0db4a",  // Code on dark laptop
-  "photo-1522199710521-72d69614c702",  // Programming on laptop
-  "photo-1484417894907-623942c8ee29",  // Code on screen bright
-  "photo-1483817101829-339b08e8d83f",  // Typing code laptop
-  "photo-1550063873-ab792950096b",    // Code text on display
-  "photo-1544197150-b99a580bb7a8",    // Laptop code with coffee
-  "photo-1531297484001-80022131f5a1",  // Clean laptop desk
-  "photo-1551434678-e076c223a692",    // Dev typing on laptop
-  "photo-1596003906949-67221c37965c",  // Laptop code coffee shop
-  "photo-1603468620905-8de7d86b781e",  // Code on wide monitor
-  "photo-1619410283995-43d9134e7656",  // Laptop Python script
-  "photo-1526498460520-4c246339dccb",  // Screen with code lines
-  "photo-1571171637578-41bc2dd41cd2",  // Laptop code window
-  "photo-1535378917042-10a22c95931a",  // Cloud abstract
-  "photo-1451187580459-43490279c0fa",  // Earth from space
-  "photo-1526628953301-3e589a6a8b74",  // Globe connections
-  "photo-1523961131990-5ea7c61b2107",  // Network mesh
-  "photo-1485827404703-89b55fcc595e",  // Network nodes
-  "photo-1537432376149-e84978a29e4b",  // Gradient abstract
-  "photo-1504868584819-f8e8b4b6d7e3",  // Light abstract
-  "photo-1550751827-4bd374c3f58b",    // Lock keyboard
-  "photo-1563013544-824ae1b704d3",    // Digital padlock
-  "photo-1573164574572-cb89e39749b4",  // Chat interface
-  "photo-1614064641938-3bbee52942c7",  // RGB keyboard
-  "photo-1535223289827-42f1e9919769",  // City lights
-  "photo-1580894894513-541e068a3e2b",  // Holographic display
-  "photo-1509966756634-9c23dd6e6815",  // Light tunnel
-  "photo-1542744094-3a31f272c490",    // Tech stage
-  "photo-1559028012-481c04fa702d",    // Flowchart screen
-  "photo-1522071820081-009f0129c71c",  // Team at screen
-  "photo-1552664730-d307ca884978",    // Team looking at code
-  "photo-1519389950473-47ba0277781c",  // Modern meeting glass
-  "photo-1553877522-43269d4ea984",    // Whiteboard code
-  "photo-1618401471353-b98afee0b2eb",  // Abstract colorful
-  "photo-1558591710-4b4a1ae0f04d",    // Matrix code
-  "photo-1611532736597-de2d4265fba3",  // Blockchain visual
-  "photo-1639762681057-408e52192e55",  // Neural abstract
-  "photo-1636690513351-0af1363a6b0e",  // Digital tunnel
-  "photo-1581092160607-ee22621dd758",  // Fiber optic
-  "photo-1576091160550-2173dba999ef",  // Data helix
+  "photo-1517694712202-14dd9538aa97",  // 1  MacBook with Python code
+  "photo-1498050108023-c5249f4df085",  // 2  Laptop code lines
+  "photo-1488590528505-98d2b5aba04b",  // 3  Colorful syntax screen
+  "photo-1461749280684-dccba630e2f6",  // 4  Monitor code overhead
+  "photo-1555066931-4365d14bab8c",    // 5  Laptop code side angle
+  "photo-1504639725590-34d0984388bd",  // 6  Terminal code screen
+  "photo-1516116216624-53e697fedbea",  // 7  Dual screens code
+  "photo-1607799279861-4dd421887fc5",  // 8  Multi-monitor setup
+  "photo-1610563166150-b34df4f0bcd6",  // 9  VS Code editor
+  "photo-1605379399642-870262d3d051",  // 10 Code editor purple
+  "photo-1562813733-b31f71025d54",    // 11 Terminal commands
+  "photo-1629654297299-c8506221ca97",  // 12 GitHub interface
+  "photo-1487058792275-0ad4aaf24ca7",  // 13 IDE syntax highlighting
+  "photo-1633356122102-3fe601e05bd2",  // 14 Terminal cursor
+  "photo-1542903660-eedba2cda473",    // 15 Laptop code macro
+  "photo-1580927752452-89d86da3fa0a",  // 16 Code reflection
+  "photo-1607705703571-c5a8695f18f6",  // 17 Code on bright laptop
+  "photo-1534972195531-d756b9bfa9f2",  // 18 Laptop code table
+  "photo-1555949963-ff9fe0c870eb",    // 19 Code closeup
+  "photo-1544256718-3bcf237f3974",    // 20 Coding session
+  "photo-1537498425277-c283d32ef9db",  // 21 Monitor workspace
+  "photo-1509718443690-d8e2fb3474b7",  // 22 Screen code bright
+  "photo-1587620962725-abab7fe55159",  // 23 JS code laptop
+  "photo-1542831371-29b0f74f9713",    // 24 HTML CSS code
+  "photo-1579468118864-1b9ea3c0db4a",  // 25 Code dark laptop
+  "photo-1585079542156-2755d9c8a094",  // 26 MacBook code screen
+  "photo-1484417894907-623942c8ee29",  // 27 Code screen bright
+  "photo-1566837945700-30057527ade0",  // 28 Code syntax monitor
+  "photo-1550063873-ab792950096b",    // 29 Code text display
+  "photo-1544197150-b99a580bb7a8",    // 30 Laptop with coffee
+  "photo-1531297484001-80022131f5a1",  // 31 Clean laptop desk
+  "photo-1603468620905-8de7d86b781e",  // 32 Wide monitor code
+  "photo-1619410283995-43d9134e7656",  // 33 Python script laptop
+  "photo-1526498460520-4c246339dccb",  // 34 Code lines screen
+  "photo-1571171637578-41bc2dd41cd2",  // 35 Laptop code window
+  "photo-1558494949-ef010cbdcc31",    // 36 Server room
+  "photo-1581291518857-4e27b48ff24e",  // 37 Server rack
+  "photo-1535378917042-10a22c95931a",  // 38 Cloud abstract
+  "photo-1451187580459-43490279c0fa",  // 39 Earth from space
+  "photo-1526628953301-3e589a6a8b74",  // 40 Globe connections
+  "photo-1523961131990-5ea7c61b2107",  // 41 Network mesh
+  "photo-1485827404703-89b55fcc595e",  // 42 Network nodes
+  "photo-1537432376149-e84978a29e4b",  // 43 Gradient abstract
+  "photo-1504868584819-f8e8b4b6d7e3",  // 44 Light abstract
+  "photo-1550751827-4bd374c3f58b",    // 45 Lock on keyboard
+  "photo-1563013544-824ae1b704d3",    // 46 Digital padlock
+  "photo-1573164574572-cb89e39749b4",  // 47 Chat interface
+  "photo-1614064641938-3bbee52942c7",  // 48 RGB keyboard
+  "photo-1535223289827-42f1e9919769",  // 49 City lights
+  "photo-1580894894513-541e068a3e2b",  // 50 Holographic display
+  "photo-1509966756634-9c23dd6e6815",  // 51 Light tunnel
+  "photo-1618401471353-b98afee0b2eb",  // 52 Abstract colorful
+  "photo-1558591710-4b4a1ae0f04d",    // 53 Matrix code
+  "photo-1611532736597-de2d4265fba3",  // 54 Blockchain visual
+  "photo-1639762681057-408e52192e55",  // 55 Neural abstract
+  "photo-1581092160607-ee22621dd758",  // 56 Fiber optic
+  "photo-1576091160550-2173dba999ef",  // 57 Data helix
+  "photo-1551808525-51a94da548ce",    // 58 Rocket launch
+  "photo-1527474305487-b87b222841cc",  // 59 Aerial view
+  "photo-1559028012-481c04fa702d",    // 60 Flowchart screen
+  "photo-1573164713988-8665fc963095",  // 61 Data viz screen
+  "photo-1512756290469-ec264b7fbf87",  // 62 Inbox interface
+  "photo-1434494878577-86c23bcb06b9",  // 63 Phone screen
+  "photo-1485856407642-7f9ba0f24571",  // 64 Audio waveform
 ];
 
 // Simple hash function to get a consistent index from a string
