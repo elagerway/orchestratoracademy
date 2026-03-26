@@ -72,10 +72,10 @@ export function AuthButton() {
     return (
       <div className="flex items-center gap-2">
         <Link href="/auth/login">
-          <Button variant="ghost" size="default">Sign In</Button>
+          <Button variant="ghost" size="sm" className="text-sm">Sign In</Button>
         </Link>
         <Link href="/auth/signup">
-          <Button size="default">Start Free Course</Button>
+          <Button size="sm" className="bg-emerald-accent text-sm text-emerald-accent-foreground hover:bg-emerald-accent/90">Start Free Course</Button>
         </Link>
       </div>
     );

@@ -19,10 +19,8 @@ import {
   Trophy,
 } from "lucide-react";
 import type {
-  Course,
-  UserEnrollment,
-  UserProgress,
   CourseWithModules,
+  UserProgress,
 } from "@/lib/types/database";
 
 export default async function DashboardPage() {
@@ -35,27 +33,28 @@ export default async function DashboardPage() {
     redirect("/auth/login");
   }
 
-  // Fetch enrollments with course data
+  // Single query: enrollments with full course → modules → lessons
   const { data: enrollments } = await supabase
     .from("user_enrollments")
-    .select("*, courses(*)")
+    .select("*, courses(*, modules(*, lessons(*)))")
     .eq("user_id", user.id);
 
-  // Fetch all completed progress
+  // Fetch all completed progress for this user
   const { data: completedProgress } = await supabase
     .from("user_progress")
-    .select("*")
+    .select("lesson_id")
     .eq("user_id", user.id)
     .eq("completed", true);
 
   const completedLessonIds = new Set(
-    ((completedProgress as UserProgress[] | null) ?? []).map((p) => p.lesson_id)
+    ((completedProgress as Pick<UserProgress, "lesson_id">[] | null) ?? []).map(
+      (p) => p.lesson_id
+    )
   );
 
-  // For each enrolled course, fetch modules/lessons to compute progress
+  // Process enrollments — no additional queries needed
   const enrolledCourses: Array<{
-    enrollment: UserEnrollment;
-    course: Course;
+    course: CourseWithModules;
     totalLessons: number;
     completedLessons: number;
     progressPercent: number;
@@ -64,27 +63,19 @@ export default async function DashboardPage() {
 
   if (enrollments) {
     for (const enrollment of enrollments) {
-      const course = (enrollment as any).courses as Course;
+      const course = (enrollment as Record<string, unknown>)
+        .courses as CourseWithModules | null;
       if (!course) continue;
 
-      // Fetch modules and lessons for this course
-      const { data: courseWithModules } = await supabase
-        .from("courses")
-        .select("*, modules(*, lessons(*))")
-        .eq("id", course.id)
-        .single();
-
-      if (!courseWithModules) continue;
-
-      const typed = courseWithModules as CourseWithModules;
-      typed.modules = typed.modules
+      // Sort modules and lessons
+      course.modules = (course.modules ?? [])
         .sort((a, b) => a.order - b.order)
         .map((mod) => ({
           ...mod,
-          lessons: mod.lessons.sort((a, b) => a.order - b.order),
+          lessons: (mod.lessons ?? []).sort((a, b) => a.order - b.order),
         }));
 
-      const allLessons = typed.modules.flatMap((mod) => mod.lessons);
+      const allLessons = course.modules.flatMap((mod) => mod.lessons);
       const totalLessons = allLessons.length;
       const completedLessons = allLessons.filter((l) =>
         completedLessonIds.has(l.id)
@@ -100,7 +91,6 @@ export default async function DashboardPage() {
       }
 
       enrolledCourses.push({
-        enrollment: enrollment as UserEnrollment,
         course,
         totalLessons,
         completedLessons,
@@ -113,11 +103,14 @@ export default async function DashboardPage() {
     }
   }
 
-  // Overall stats
+  // Overall stats — scoped to enrolled courses only
   const totalCoursesEnrolled = enrolledCourses.length;
-  const totalLessonsCompleted = completedLessonIds.size;
   const totalLessonsOverall = enrolledCourses.reduce(
     (sum, c) => sum + c.totalLessons,
+    0
+  );
+  const totalLessonsCompleted = enrolledCourses.reduce(
+    (sum, c) => sum + c.completedLessons,
     0
   );
   const overallPercent =

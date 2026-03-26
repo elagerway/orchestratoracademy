@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,15 +86,31 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const nextLesson =
     currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
 
-  // Check auth and progress
+  // Check auth and enrollment
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    redirect(`/auth/login?redirect=/courses/${slug}/lessons/${lessonSlug}`);
+  }
+
+  // Verify user is enrolled in this course
+  const { data: enrollment } = await supabase
+    .from("user_enrollments")
+    .select("id")
+    .eq("course_id", typedCourse.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!enrollment) {
+    redirect(`/courses/${slug}`);
+  }
+
   let completedLessonIds: Set<string> = new Set();
   let isCurrentLessonComplete = false;
 
-  if (user) {
+  {
     const allLessonIds = allLessons.map((l) => l.id);
 
     const { data: progress } = await supabase
@@ -216,14 +232,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
           {/* Mark complete + navigation */}
           <div className="border-t pt-6">
-            {user && (
-              <div className="mb-6">
-                <LessonCompleteButton
-                  lessonId={currentLesson.id}
-                  isCompleted={isCurrentLessonComplete}
-                />
-              </div>
-            )}
+            <div className="mb-6">
+              <LessonCompleteButton
+                lessonId={currentLesson.id}
+                isCompleted={isCurrentLessonComplete}
+              />
+            </div>
 
             <div className="flex items-center justify-between">
               {prevLesson ? (

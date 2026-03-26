@@ -129,7 +129,9 @@ create policy "Users can insert their own progress"
   on public.user_progress for insert with check (auth.uid() = user_id);
 
 create policy "Users can update their own progress"
-  on public.user_progress for update using (auth.uid() = user_id);
+  on public.user_progress for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 -- Auto-create profile on user signup
 create or replace function public.handle_new_user()

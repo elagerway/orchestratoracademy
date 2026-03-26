@@ -32,16 +32,17 @@ export function LessonCompleteButton({
 
       if (isCompleted) {
         // Mark as incomplete
-        await supabase
+        const { error } = await supabase
           .from("user_progress")
           .update({ completed: false, completed_at: null })
           .eq("user_id", user.id)
           .eq("lesson_id", lessonId);
 
+        if (error) throw error;
         setIsCompleted(false);
       } else {
         // Mark as complete - upsert
-        await supabase.from("user_progress").upsert(
+        const { error } = await supabase.from("user_progress").upsert(
           {
             user_id: user.id,
             lesson_id: lessonId,
@@ -51,6 +52,7 @@ export function LessonCompleteButton({
           { onConflict: "user_id,lesson_id" }
         );
 
+        if (error) throw error;
         setIsCompleted(true);
       }
 

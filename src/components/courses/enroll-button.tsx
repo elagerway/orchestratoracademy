@@ -13,11 +13,13 @@ interface EnrollButtonProps {
 
 export function EnrollButton({ courseId, firstLessonUrl }: EnrollButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   async function handleEnroll() {
     setIsLoading(true);
+    setError(null);
 
     try {
       const {
@@ -25,47 +27,51 @@ export function EnrollButton({ courseId, firstLessonUrl }: EnrollButtonProps) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        // Redirect to login if not authenticated
         router.push("/auth/login");
         return;
       }
 
-      const { error } = await supabase.from("user_enrollments").insert({
+      const { error: insertError } = await supabase.from("user_enrollments").insert({
         user_id: user.id,
         course_id: courseId,
       });
 
-      if (error) {
+      if (insertError) {
         // If already enrolled (unique constraint), just navigate
-        if (error.code === "23505") {
+        if (insertError.code === "23505") {
           router.push(firstLessonUrl);
           return;
         }
-        console.error("Error enrolling:", error);
+        setError("Failed to enroll. Please try again.");
         return;
       }
 
       router.push(firstLessonUrl);
-    } catch (error) {
-      console.error("Error enrolling:", error);
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <Button onClick={handleEnroll} disabled={isLoading} size="lg">
-      {isLoading ? (
-        <>
-          <Loader2 className="size-4 animate-spin" />
-          Enrolling...
-        </>
-      ) : (
-        <>
-          <PlayCircle className="size-4" />
-          Start Course
-        </>
+    <div>
+      <Button onClick={handleEnroll} disabled={isLoading} size="lg">
+        {isLoading ? (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            Enrolling...
+          </>
+        ) : (
+          <>
+            <PlayCircle className="size-4" />
+            Start Course
+          </>
+        )}
+      </Button>
+      {error && (
+        <p className="mt-2 text-sm text-destructive">{error}</p>
       )}
-    </Button>
+    </div>
   );
 }

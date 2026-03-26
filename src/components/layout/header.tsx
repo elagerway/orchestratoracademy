@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Menu, X, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AuthButton } from "@/components/auth/auth-button"
 
 const navLinks = [
   { href: "/courses", label: "Courses" },
@@ -74,19 +75,7 @@ export function Header() {
         {/* Desktop CTAs */}
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
-          <Link href="/auth/login">
-            <Button variant="ghost" size="sm" className="text-sm">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/auth/signup">
-            <Button
-              size="sm"
-              className="bg-emerald-accent text-sm text-emerald-accent-foreground hover:bg-emerald-accent/90"
-            >
-              Start Free Course
-            </Button>
-          </Link>
+          <AuthButton />
         </div>
 
         {/* Mobile right side */}
@@ -115,17 +104,8 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-5">
-              <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" className="w-full text-sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/signup" onClick={() => setMobileOpen(false)}>
-                <Button className="w-full bg-emerald-accent text-sm text-emerald-accent-foreground hover:bg-emerald-accent/90">
-                  Start Free Course
-                </Button>
-              </Link>
+            <div className="mt-3 border-t border-border/60 pt-5">
+              <AuthButton />
             </div>
           </nav>
         </div>
