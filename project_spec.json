@@ -1,0 +1,283 @@
+{
+  "project": {
+    "name": "AI Orchestrator Academy",
+    "domain": "orchestratoracademy.com",
+    "description": "A freemium elearning platform that teaches students how to become AI Orchestrators, pitches companies on how AI Orchestration can elevate their offer, drive productivity, and reduce expenses. Graduates are listed on a Job Board where they can offer coaching and consulting services.",
+    "type": "Web Application & PWA",
+    "target_audiences": [
+      {
+        "segment": "Individuals",
+        "description": "Professionals looking to upskill in AI orchestration, career changers, freelancers wanting to offer AI consulting"
+      },
+      {
+        "segment": "Companies",
+        "description": "Businesses looking to adopt AI orchestration to improve productivity, reduce costs, and enhance their offerings"
+      },
+      {
+        "segment": "Graduates",
+        "description": "Certified AI Orchestrators offering coaching and consulting through the Job Board"
+      }
+    ]
+  },
+
+  "tech_stack": {
+    "framework": "Next.js 15 (App Router, Single Page App with dynamic routes)",
+    "hosting": "Vercel",
+    "database": "Supabase (PostgreSQL + Auth + Storage + Edge Functions)",
+    "auth": "Supabase Auth (Email, Google, GitHub providers)",
+    "payments": "Stripe (subscriptions + one-time purchases)",
+    "ai_communications": "Magpipe (AI agents for course lessons, tutoring, onboarding)",
+    "styling": "Tailwind CSS 4 + shadcn/ui",
+    "testing": "Playwright (E2E), Vitest (unit)",
+    "domains": {
+      "app": "orchestratoracademy.com",
+      "api": "Vercel serverless + Supabase Edge Functions"
+    }
+  },
+
+  "external_apis": [
+    {
+      "name": "Supabase",
+      "purpose": "Database, auth, file storage, edge functions"
+    },
+    {
+      "name": "Stripe",
+      "purpose": "Payment processing, subscription management, checkout"
+    },
+    {
+      "name": "Magpipe",
+      "purpose": "AI voice/chat agents integrated into AI communications course modules"
+    },
+    {
+      "name": "Vercel",
+      "purpose": "Hosting, deployments, serverless functions, analytics"
+    }
+  ],
+
+  "milestones": {
+    "milestone_1_mvp": {
+      "name": "MVP — Core Platform & Free Course",
+      "description": "Launch the public-facing site with free course content, user auth, and progress tracking",
+      "features": [
+        {
+          "name": "Landing Page",
+          "description": "Hero section with value proposition, course overview, testimonials placeholder, CTA for sign-up. Sections: What is AI Orchestration, Course Preview, Pricing, FAQ",
+          "user_flow": "Visitor lands on page → reads value prop → clicks 'Start Free Course' → signs up"
+        },
+        {
+          "name": "Authentication",
+          "description": "Sign up / sign in with Email, Google, GitHub via Supabase Auth. Profile creation on first login with name, avatar, bio",
+          "user_flow": "User clicks sign up → chooses provider → completes profile → redirected to dashboard"
+        },
+        {
+          "name": "Course Catalog",
+          "description": "Browse available courses and modules. Free courses are accessible immediately, paid courses show lock icon with upgrade CTA",
+          "user_flow": "User browses catalog → clicks course → sees module list → starts free module or hits paywall"
+        },
+        {
+          "name": "Course Player",
+          "description": "Mixed content format: video lessons (embedded), text/markdown content, interactive exercises, quizzes. Progress auto-saved per lesson",
+          "user_flow": "User opens lesson → watches video / reads content / completes exercise → marks complete → next lesson unlocks"
+        },
+        {
+          "name": "Progress Tracking Dashboard",
+          "description": "User dashboard showing enrolled courses, completion percentage, current lesson, streak tracker, achievements",
+          "user_flow": "User logs in → sees dashboard with progress bars → clicks 'Continue' to resume where they left off"
+        },
+        {
+          "name": "Free Course: AI Orchestration Foundations",
+          "description": "Complete free course covering: What is AI Orchestration, Tools & Platforms Overview, Prompt Engineering Basics, Building Your First Workflow, AI Ethics & Best Practices",
+          "modules": [
+            "Welcome to AI Orchestration",
+            "The AI Orchestrator Role",
+            "Tools & Platforms Landscape",
+            "Prompt Engineering Fundamentals",
+            "Building Your First AI Workflow",
+            "AI Ethics & Responsible Use",
+            "Next Steps: Your Orchestration Journey"
+          ]
+        }
+      ],
+      "database_tables": [
+        "profiles (id, user_id, full_name, avatar_url, bio, role, created_at)",
+        "courses (id, title, slug, description, thumbnail_url, is_free, price, order, created_at)",
+        "modules (id, course_id, title, slug, description, order, created_at)",
+        "lessons (id, module_id, title, slug, content_type, content, video_url, order, created_at)",
+        "user_progress (id, user_id, lesson_id, completed, completed_at, created_at)",
+        "user_enrollments (id, user_id, course_id, enrolled_at)"
+      ],
+      "subagent_jobs": [
+        "Initialize Next.js project with App Router, Tailwind, shadcn/ui",
+        "Set up Supabase project, schema, RLS policies",
+        "Build landing page",
+        "Implement auth flow with Supabase",
+        "Build course catalog and course player components",
+        "Build progress tracking dashboard",
+        "Seed free course content"
+      ]
+    },
+
+    "milestone_2_monetization": {
+      "name": "Monetization — Paid Courses, Stripe, Certificates",
+      "description": "Add payment processing, premium course content, and certification system",
+      "features": [
+        {
+          "name": "For Companies Page",
+          "description": "Dedicated B2B landing page pitching AI Orchestration benefits: productivity gains, cost reduction, competitive advantage. Includes ROI calculator placeholder, case studies section, 'Contact Us' CTA",
+          "user_flow": "Company decision-maker lands on page → reads business benefits → submits contact form or signs up for team plan"
+        },
+        {
+          "name": "Stripe Integration",
+          "description": "Checkout for individual courses and subscription plans. Plans: Free, Pro ($29/mo), Team ($99/mo). Webhook handling for payment events",
+          "user_flow": "User clicks upgrade → selects plan → Stripe checkout → payment confirmed → premium content unlocked"
+        },
+        {
+          "name": "Premium Course: CrewAI Mastery",
+          "description": "Deep-dive into building multi-agent systems with CrewAI. Includes hands-on projects, code exercises, and a capstone project",
+          "modules": [
+            "Introduction to Multi-Agent Systems",
+            "CrewAI Architecture & Concepts",
+            "Building Your First Crew",
+            "Agent Roles & Task Design",
+            "Tool Integration & Custom Tools",
+            "Advanced Crew Patterns",
+            "Capstone: Build a Production Crew"
+          ]
+        },
+        {
+          "name": "Premium Course: LangGraph Advanced",
+          "description": "Master stateful, multi-step AI workflows with LangGraph. Covers graph design, state management, human-in-the-loop patterns",
+          "modules": [
+            "Graph-Based AI Workflows",
+            "LangGraph Fundamentals",
+            "State Management & Persistence",
+            "Branching & Conditional Logic",
+            "Human-in-the-Loop Patterns",
+            "Production Deployment",
+            "Capstone: Enterprise Workflow"
+          ]
+        },
+        {
+          "name": "Premium Course: AI Communications with Magpipe",
+          "description": "Learn to build AI-powered communication systems using Magpipe. Voice agents, chat agents, phone automation, SMS workflows. Students interact with live Magpipe agents during lessons",
+          "modules": [
+            "Introduction to AI Communications",
+            "Magpipe Platform Overview",
+            "Building Your First Voice Agent",
+            "Chat Agents & Conversational Design",
+            "Phone Automation & IVR Systems",
+            "SMS Workflows & Notifications",
+            "Knowledge Bases & Agent Intelligence",
+            "Live Practice: Talk to Your Agent",
+            "Capstone: Deploy a Production Agent"
+          ]
+        },
+        {
+          "name": "Certification System",
+          "description": "Upon completing all modules in a course + passing final assessment, user receives a verifiable certificate with unique ID. Shareable on LinkedIn",
+          "user_flow": "User completes all lessons → takes final assessment → passes → certificate generated → can share/download"
+        }
+      ],
+      "database_tables": [
+        "subscriptions (id, user_id, stripe_customer_id, stripe_subscription_id, plan, status, current_period_end, created_at)",
+        "payments (id, user_id, stripe_payment_id, amount, currency, status, created_at)",
+        "certificates (id, user_id, course_id, certificate_number, issued_at, assessment_score)",
+        "assessments (id, course_id, questions, passing_score, created_at)",
+        "assessment_attempts (id, user_id, assessment_id, score, passed, attempted_at)"
+      ],
+      "subagent_jobs": [
+        "Integrate Stripe checkout, webhooks, subscription management",
+        "Build premium course content and paywall logic",
+        "Build certification system with PDF generation",
+        "Build assessment/quiz engine",
+        "Integrate Magpipe agents into AI Communications course modules",
+        "Seed premium course content"
+      ]
+    },
+
+    "milestone_3_job_board": {
+      "name": "Job Board & Community",
+      "description": "Launch the graduate Job Board and community features",
+      "features": [
+        {
+          "name": "Graduate Job Board",
+          "description": "Certified graduates can create a public profile listing their skills, certifications, hourly rate, and availability. Companies can browse, filter, and contact graduates directly",
+          "user_flow": "Graduate completes certification → opts into Job Board → fills profile (skills, rate, bio, portfolio) → appears in public directory"
+        },
+        {
+          "name": "Company Directory Access",
+          "description": "Companies can browse the Job Board, filter by skills/certifications/rate, and send contact requests to graduates",
+          "user_flow": "Company signs up → browses Job Board → filters by skill → clicks 'Contact' → message sent to graduate"
+        },
+        {
+          "name": "Graduate Public Profile",
+          "description": "Each graduate gets a public profile page showing certifications, skills, bio, portfolio links, testimonials, and contact CTA",
+          "user_flow": "Visitor clicks graduate name → sees full profile → clicks 'Hire Me' or 'Contact'"
+        },
+        {
+          "name": "Contact & Messaging",
+          "description": "Simple contact request system. Companies send a message, graduate gets email notification, can respond via platform",
+          "user_flow": "Company sends message → graduate notified → responds → conversation continues in platform"
+        }
+      ],
+      "database_tables": [
+        "job_board_profiles (id, user_id, headline, bio, skills, hourly_rate, availability, portfolio_url, is_public, created_at)",
+        "contact_requests (id, from_user_id, to_user_id, message, status, created_at)",
+        "messages (id, contact_request_id, sender_id, body, read_at, created_at)"
+      ],
+      "subagent_jobs": [
+        "Build Job Board listing page with search and filters",
+        "Build graduate public profile pages",
+        "Build contact request and messaging system",
+        "Build company onboarding flow",
+        "Add Job Board opt-in to user settings"
+      ]
+    }
+  },
+
+  "course_curriculum": {
+    "free_tier": [
+      {
+        "course": "AI Orchestration Foundations",
+        "modules": 7,
+        "format": "Video + Text + Interactive Exercises",
+        "description": "Complete introduction to AI Orchestration — enough to understand the role and start building"
+      }
+    ],
+    "paid_tier": [
+      {
+        "course": "CrewAI Mastery",
+        "modules": 7,
+        "format": "Video + Text + Code Exercises + Capstone",
+        "description": "Build production multi-agent systems with CrewAI"
+      },
+      {
+        "course": "LangGraph Advanced",
+        "modules": 7,
+        "format": "Video + Text + Code Exercises + Capstone",
+        "description": "Master stateful AI workflows with LangGraph"
+      },
+      {
+        "course": "AI Communications with Magpipe",
+        "modules": 9,
+        "format": "Video + Text + Live AI Agent Interaction + Capstone",
+        "description": "Build AI voice and chat agents with Magpipe — students interact with live agents during lessons"
+      }
+    ]
+  },
+
+  "pricing": {
+    "free": {
+      "price": "$0",
+      "includes": ["AI Orchestration Foundations course", "Progress tracking", "Community access"]
+    },
+    "pro": {
+      "price": "$29/month",
+      "includes": ["All free features", "All premium courses", "Certification exams", "Job Board listing", "Priority support"]
+    },
+    "team": {
+      "price": "$99/month",
+      "includes": ["All Pro features", "Up to 10 team members", "Team progress dashboard", "Company Job Board access", "Dedicated onboarding"]
+    }
+  }
+}
