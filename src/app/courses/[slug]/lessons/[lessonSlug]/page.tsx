@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LessonCompleteButton } from "@/components/courses/lesson-complete-button";
+import { LessonContent } from "@/components/courses/lesson-content";
 import {
   BookOpen,
   CheckCircle2,
@@ -208,27 +209,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </div>
 
           {/* Lesson content */}
-          <div className="prose prose-neutral dark:prose-invert mb-12 max-w-none">
-            {currentLesson.content_type === "video" && currentLesson.video_url ? (
-              <div className="mb-6">
-                <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
-                  <iframe
-                    src={currentLesson.video_url}
-                    className="absolute inset-0 h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-                {currentLesson.content && (
-                  <div className="mt-6 whitespace-pre-wrap">
-                    {currentLesson.content}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="whitespace-pre-wrap">{currentLesson.content}</div>
-            )}
-          </div>
+          <LessonContent
+            content={currentLesson.content}
+            videoUrl={currentLesson.video_url}
+            contentType={currentLesson.content_type}
+          />
 
           {/* Mark complete + navigation */}
           <div className="border-t pt-6">
