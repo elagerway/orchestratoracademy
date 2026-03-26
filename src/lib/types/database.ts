@@ -94,3 +94,40 @@ export interface Payment {
   status: "succeeded" | "pending" | "failed" | "refunded";
   created_at: string;
 }
+
+export interface AssessmentQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correct: number;
+}
+
+export interface Assessment {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string;
+  questions: AssessmentQuestion[];
+  passing_score: number;
+  time_limit_minutes: number | null;
+  created_at: string;
+}
+
+export interface AssessmentAttempt {
+  id: string;
+  user_id: string;
+  assessment_id: string;
+  answers: number[];
+  score: number;
+  passed: boolean;
+  attempted_at: string;
+}
+
+export interface Certificate {
+  id: string;
+  user_id: string;
+  course_id: string;
+  certificate_number: string;
+  assessment_score: number;
+  issued_at: string;
+}

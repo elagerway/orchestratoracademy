@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { LayoutDashboard, BookOpen, User } from "lucide-react";
+import { LayoutDashboard, BookOpen, User, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/courses", label: "My Courses", icon: BookOpen },
+  { href: "/dashboard/certificates", label: "Certificates", icon: Award },
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
