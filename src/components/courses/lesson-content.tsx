@@ -48,11 +48,11 @@ const PHOTO_POOL = [
   "photo-1544197150-b99a580bb7a8",    // Laptop code with coffee
   "photo-1531297484001-80022131f5a1",  // Clean laptop desk
   "photo-1551434678-e076c223a692",    // Dev typing on laptop
-  "photo-1526374965328-7f61d4dc18c5",  // Circuit board macro
-  "photo-1518770660439-4636190af475",  // Chip detail
-  "photo-1550745165-9bc0b252726f",    // PCB traces
-  "photo-1558494949-ef010cbdcc31",    // Server room
-  "photo-1581291518857-4e27b48ff24e",  // Server rack
+  "photo-1596003906949-67221c37965c",  // Laptop code coffee shop
+  "photo-1603468620905-8de7d86b781e",  // Code on wide monitor
+  "photo-1619410283995-43d9134e7656",  // Laptop Python script
+  "photo-1526498460520-4c246339dccb",  // Screen with code lines
+  "photo-1571171637578-41bc2dd41cd2",  // Laptop code window
   "photo-1535378917042-10a22c95931a",  // Cloud abstract
   "photo-1451187580459-43490279c0fa",  // Earth from space
   "photo-1526628953301-3e589a6a8b74",  // Globe connections
