@@ -62,7 +62,13 @@ const courseModules = [
   "Prompt Engineering Fundamentals",
   "Building Your First AI Workflow",
   "AI Ethics & Responsible Use",
-  "Next Steps: Your Orchestration Journey",
+  "Understanding APIs & AI APIs",
+  "MCP (Model Context Protocol)",
+  "Claude Code Fundamentals",
+  "RAG & AI Tool Use",
+  "Next.js, Supabase & Vercel",
+  "TypeScript, Git & Deployment",
+  "Building Full-Stack AI Apps",
 ]
 
 const pricingPlans = [
@@ -72,7 +78,7 @@ const pricingPlans = [
     period: "",
     description: "Start with the foundations.",
     features: [
-      "AI Orchestration Foundations (7 modules)",
+      "AI Orchestration Foundations (28 modules)",
       "Community discussion access",
       "Course completion certificate",
       "Basic prompt templates",
@@ -197,7 +203,7 @@ export default function LandingPage() {
 
           {/* Social proof hint */}
           <p className="mt-12 text-sm tracking-wide text-muted-foreground">
-            4 courses &middot; 30+ lessons &middot; Free to start
+            4 courses &middot; 120+ lessons &middot; Free to start
           </p>
         </div>
       </section>
@@ -247,7 +253,7 @@ export default function LandingPage() {
               AI Orchestration Foundations
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Your free, 7-module introduction to the world of AI orchestration.
+              28 modules covering AI orchestration, MCP, Claude Code, APIs, and the full-stack infrastructure. Completely free.
             </p>
           </div>
 
