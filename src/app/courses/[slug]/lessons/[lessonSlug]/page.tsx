@@ -213,6 +213,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
             content={currentLesson.content}
             videoUrl={currentLesson.video_url}
             contentType={currentLesson.content_type}
+            lessonSlug={currentLesson.slug}
+            lessonTitle={currentLesson.title}
           />
 
           {/* Mark complete + navigation */}
