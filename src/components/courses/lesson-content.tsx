@@ -41,7 +41,7 @@ const PHOTO_POOL = [
   "photo-1587620962725-abab7fe55159",  // 23 JS code laptop
   "photo-1542831371-29b0f74f9713",    // 24 HTML CSS code
   "photo-1579468118864-1b9ea3c0db4a",  // 25 Code dark laptop
-  "photo-1585079542156-2755d9c8a094",  // 26 MacBook code screen
+  "photo-1547658719-da2b51169166",    // 26 Laptop screen code bright
   "photo-1484417894907-623942c8ee29",  // 27 Code screen bright
   "photo-1566837945700-30057527ade0",  // 28 Code syntax monitor
   "photo-1550063873-ab792950096b",    // 29 Code text display
