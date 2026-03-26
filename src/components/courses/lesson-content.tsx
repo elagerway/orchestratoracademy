@@ -23,8 +23,8 @@ const PHOTO_POOL = [
   "photo-1555066931-4365d14bab8c",    // 5  Laptop code side angle
   "photo-1504639725590-34d0984388bd",  // 6  Terminal code screen
   "photo-1516116216624-53e697fedbea",  // 7  Dual screens code
-  "photo-1607799279861-4dd421887fc5",  // 8  Multi-monitor setup
-  "photo-1610563166150-b34df4f0bcd6",  // 9  VS Code editor
+  "photo-1551288049-bebda4e38f71",    // 8  Dashboard screen
+  "photo-1460925895917-afdab827c52f",  // 9  Screen with data
   "photo-1605379399642-870262d3d051",  // 10 Code editor purple
   "photo-1562813733-b31f71025d54",    // 11 Terminal commands
   "photo-1629654297299-c8506221ca97",  // 12 GitHub interface
@@ -58,7 +58,7 @@ const PHOTO_POOL = [
   "photo-1526628953301-3e589a6a8b74",  // 40 Globe connections
   "photo-1523961131990-5ea7c61b2107",  // 41 Network mesh
   "photo-1485827404703-89b55fcc595e",  // 42 Network nodes
-  "photo-1537432376149-e84978a29e4b",  // 43 Gradient abstract
+  "photo-1519389950473-47ba0277781c",  // 43 Modern glass room
   "photo-1504868584819-f8e8b4b6d7e3",  // 44 Light abstract
   "photo-1550751827-4bd374c3f58b",    // 45 Lock on keyboard
   "photo-1563013544-824ae1b704d3",    // 46 Digital padlock
@@ -79,7 +79,7 @@ const PHOTO_POOL = [
   "photo-1573164713988-8665fc963095",  // 61 Data viz screen
   "photo-1512756290469-ec264b7fbf87",  // 62 Inbox interface
   "photo-1434494878577-86c23bcb06b9",  // 63 Phone screen
-  "photo-1485856407642-7f9ba0f24571",  // 64 Audio waveform
+  "photo-1454165804606-c3d57bc86b40",  // 64 Clean laptop desk
 ];
 
 // Simple hash function to get a consistent index from a string
