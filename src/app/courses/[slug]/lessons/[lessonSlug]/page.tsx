@@ -294,23 +294,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
             lessonTitle={currentLesson.title}
           />
 
-          {/* Module quiz — shows after last lesson in module */}
-          {moduleQuiz && !quizAlreadyPassed && (
-            <div className="mb-10">
-              <ModuleQuiz
-                quiz={moduleQuiz as ModuleQuizType}
-                moduleTitle={currentModuleTitle}
-                courseSlug={slug}
-              />
-            </div>
-          )}
-          {moduleQuiz && quizAlreadyPassed && (
-            <div className="mb-10 rounded-xl border border-emerald-accent/30 bg-emerald-accent/5 p-6 text-center">
-              <p className="text-lg font-medium">🏆 You already aced this module quiz!</p>
-              <p className="mt-1 text-sm text-muted-foreground">+{moduleQuiz.xp_reward} XP earned</p>
-            </div>
-          )}
-
           {/* Mark complete + navigation */}
           <div className="border-t pt-6">
             <div className="mb-6">
@@ -348,6 +331,32 @@ export default async function LessonPage({ params }: LessonPageProps) {
               )}
             </div>
           </div>
+
+          {/* Module quiz — full-width separate section after lesson */}
+          {moduleQuiz && isLastLessonInModule && (
+            <div className="mt-12 border-t-2 border-emerald-accent/20 pt-12">
+              {quizAlreadyPassed ? (
+                <div className="rounded-xl border border-emerald-accent/30 bg-emerald-accent/5 p-8 text-center">
+                  <Trophy className="mx-auto size-10 text-amber-500" />
+                  <p className="mt-3 text-xl font-semibold">Module Quiz Complete!</p>
+                  <p className="mt-1 text-muted-foreground">You earned +{moduleQuiz.xp_reward} XP for this quiz</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-6 text-center">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-emerald-accent">Up Next</p>
+                    <h2 className="mt-1 font-heading text-2xl font-bold">Module Quiz</h2>
+                    <p className="mt-2 text-muted-foreground">Test what you learned — 3 quick questions</p>
+                  </div>
+                  <ModuleQuiz
+                    quiz={moduleQuiz as ModuleQuizType}
+                    moduleTitle={currentModuleTitle}
+                    courseSlug={slug}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>
