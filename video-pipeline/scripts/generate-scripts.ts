@@ -1,28 +1,23 @@
 /**
  * generate-scripts.ts
  *
- * Takes module content and generates structured script data for:
- * - Talking head segments (intro, transitions, outro)
- * - Code screen segments (terminal animations)
+ * Takes module content (with lesson details) and generates structured script data for:
+ * - Talking head segments (intro per lesson, transitions, outro) — interweaved with code previews
+ * - Code screen segments (terminal animations showing real examples)
  *
- * Uses the Anthropic SDK to generate these from lesson content.
- *
- * NOTE: @anthropic-ai/sdk must be installed:
- *   npm install @anthropic-ai/sdk
+ * The intro covers ALL lessons in the module with code previews between each.
+ * Format: talking head → code preview → talking head → code preview → ... → talking head outro
  */
 
 import * as dotenv from "dotenv";
 import * as path from "path";
 import * as fs from "fs";
 
-// Load env from parent project
 const envPath = path.resolve(__dirname, "../../.env.local");
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-// Anthropic SDK — needs to be installed separately
-// npm install @anthropic-ai/sdk
 let Anthropic: any;
 try {
   Anthropic = require("@anthropic-ai/sdk").default;
@@ -37,13 +32,15 @@ export interface CodeLine {
 }
 
 export interface TalkingHeadScript {
-  purpose: "intro" | "transition" | "outro";
+  purpose: "intro" | "lesson-preview" | "transition" | "outro";
+  lessonTitle?: string;
   script: string;
   estimatedDurationSeconds: number;
 }
 
 export interface CodeSegmentScript {
   title: string;
+  lessonTitle?: string;
   lines: CodeLine[];
   estimatedDurationSeconds: number;
   voiceoverScript?: string;
@@ -52,83 +49,111 @@ export interface CodeSegmentScript {
 export interface ModuleScripts {
   moduleSlug: string;
   moduleTitle: string;
+  lessonTitles: string[];
   talkingHeadSegments: TalkingHeadScript[];
   codeSegments: CodeSegmentScript[];
-  /** Ordered sequence of segment types for final composition */
   sequence: Array<{ type: "talking-head" | "code-screen"; index: number }>;
 }
 
-const SYSTEM_PROMPT = `You are a script writer for AI Orchestrator Academy, an online course that teaches people how to build AI agents and orchestrators using Claude and other AI tools.
+export interface LessonInfo {
+  title: string;
+  slug: string;
+  content: string;
+}
+
+const SYSTEM_PROMPT = `You are a script writer for AI Orchestrator Academy, an online course that teaches people how to become AI Orchestrators — professionals who design, connect, and manage AI systems.
+
+The course instructor is Silas, a knowledgeable but approachable tech educator. He speaks in a calm, confident, conversational tone. Not hype-y, not boring. Think senior engineer explaining things to a smart colleague.
 
 You generate two types of content:
-1. **Talking head scripts**: Conversational, friendly, spoken by an on-screen avatar. Keep them natural and engaging. Use "you" to address the learner.
-2. **Code segments**: Terminal commands and output that demonstrate concepts. These will be animated as a typing terminal (like Claude Code).
+1. **Talking head scripts**: Conversational, spoken by Silas on camera. Natural pacing with pauses. Uses "you" to address the learner. Each word takes ~0.4 seconds.
+2. **Code segments**: Terminal commands and output shown on a dark screen (like Claude Code / VS Code terminal). These are animated as typing, so keep commands reasonable length.
 
-Important guidelines:
-- Keep talking head scripts SHORT and punchy. Intro: ~30 seconds. Transitions: ~15 seconds. Outro: ~20 seconds.
-- Code segments should be practical, real-world examples that students can follow along with.
-- Use Python as the primary language unless the content specifically requires JavaScript/bash.
-- Include comments in code to explain what's happening.
-- Terminal output should be realistic.
-- Each spoken word takes roughly 0.4 seconds, so a 30-second script is about 75 words.`;
+Guidelines:
+- The module intro should be substantial (60-90 seconds) — Silas welcomes learners, explains what the module covers, and previews each lesson
+- Between lesson previews, show a quick 15-30 second code snippet that gives a taste of what that lesson teaches
+- Transition scripts bridge from one lesson preview to the next (10-15 seconds each)
+- The outro summarizes key takeaways and teases the next module (30-45 seconds)
+- Code should be practical, real-world, and directly tied to the lesson content
+- Use Python as primary language unless content specifically requires JavaScript/TypeScript/bash
+- Include terminal prompts ($ for bash, >>> for Python REPL, claude> for Claude Code)`;
 
-const GENERATION_PROMPT = `Given the following module content, generate a complete video script structure.
+const GENERATION_PROMPT = `Generate a complete module intro video script. This video introduces the module and previews each lesson with interweaved code snippets.
 
-Module Title: {title}
-Module Content:
-{content}
+**Module Title**: {title}
 
-Generate a JSON response with this exact structure:
+**Lessons in this module**:
+{lessonList}
+
+**Lesson content summaries**:
+{lessonSummaries}
+
+Generate a JSON response with this structure. The video should flow like this:
+1. Silas introduces the module (what it's about, why it matters) — 60-90 seconds
+2. For each lesson: Silas previews what the lesson covers (15-20 sec) → quick code snippet showing a taste of that concept (15-30 sec)
+3. Silas wraps up with key takeaways and what's next (30-45 sec)
+
+The sequence should alternate: talking-head, code-screen, talking-head, code-screen, ..., talking-head (outro)
+
+JSON structure:
 {
   "talkingHeadSegments": [
     {
       "purpose": "intro",
-      "script": "The spoken script for the intro (conversational, ~30 seconds / ~75 words)",
-      "estimatedDurationSeconds": 30
+      "script": "Opening script — welcome, module overview, why this matters (60-90 sec, ~150-225 words)",
+      "estimatedDurationSeconds": 75
     },
     {
-      "purpose": "transition",
-      "script": "Bridge between code segments (~15 seconds / ~37 words)",
-      "estimatedDurationSeconds": 15
+      "purpose": "lesson-preview",
+      "lessonTitle": "Lesson 1 title",
+      "script": "Preview of what lesson 1 covers and why it's important (15-20 sec, ~40-50 words)",
+      "estimatedDurationSeconds": 18
     },
+    {
+      "purpose": "lesson-preview",
+      "lessonTitle": "Lesson 2 title",
+      "script": "Preview of lesson 2 (15-20 sec, ~40-50 words)",
+      "estimatedDurationSeconds": 18
+    },
+    ... one per lesson ...
     {
       "purpose": "outro",
-      "script": "Summary and next steps (~20 seconds / ~50 words)",
-      "estimatedDurationSeconds": 20
+      "script": "Wrap up — key takeaways, what you'll be able to do, tease next module (30-45 sec, ~75-110 words)",
+      "estimatedDurationSeconds": 35
     }
   ],
   "codeSegments": [
     {
-      "title": "Segment title",
+      "title": "Preview: Lesson 1 concept",
+      "lessonTitle": "Lesson 1 title",
       "lines": [
-        { "type": "comment", "text": "# Explanation comment" },
-        { "type": "command", "text": "the command to type" },
+        { "type": "comment", "text": "# Quick preview of the concept" },
+        { "type": "command", "text": "actual code example" },
         { "type": "output", "text": "expected output" }
       ],
-      "estimatedDurationSeconds": 90,
-      "voiceoverScript": "Optional narration for this code segment"
+      "estimatedDurationSeconds": 20,
+      "voiceoverScript": "Optional brief narration over the code"
     },
-    {
-      "title": "Second segment title",
-      "lines": [...],
-      "estimatedDurationSeconds": 60
-    }
+    ... one per lesson ...
   ],
   "sequence": [
     { "type": "talking-head", "index": 0 },
     { "type": "code-screen", "index": 0 },
     { "type": "talking-head", "index": 1 },
     { "type": "code-screen", "index": 1 },
-    { "type": "talking-head", "index": 2 }
+    ... alternating ...
+    { "type": "talking-head", "index": N }
   ]
 }
+
+The sequence MUST start and end with a talking-head segment. Each code segment should have a corresponding talking-head segment before it.
 
 Return ONLY valid JSON, no markdown code fences.`;
 
 export async function generateModuleScripts(
   moduleSlug: string,
   moduleTitle: string,
-  moduleContent: string
+  lessons: LessonInfo[]
 ): Promise<ModuleScripts> {
   if (!Anthropic) {
     throw new Error(
@@ -145,16 +170,32 @@ export async function generateModuleScripts(
 
   const client = new Anthropic({ apiKey });
 
-  const prompt = GENERATION_PROMPT.replace("{title}", moduleTitle).replace(
-    "{content}",
-    moduleContent
-  );
+  const lessonList = lessons
+    .map((l, i) => `${i + 1}. ${l.title}`)
+    .join("\n");
 
-  console.log(`[generate-scripts] Generating scripts for: ${moduleTitle}`);
+  const lessonSummaries = lessons
+    .map((l) => {
+      // Take first 500 chars of content as summary
+      const summary = l.content
+        .replace(/#{1,6}\s/g, "")
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/`{1,3}[^`]*`{1,3}/g, "")
+        .slice(0, 500);
+      return `**${l.title}**: ${summary}...`;
+    })
+    .join("\n\n");
+
+  const prompt = GENERATION_PROMPT
+    .replace("{title}", moduleTitle)
+    .replace("{lessonList}", lessonList)
+    .replace("{lessonSummaries}", lessonSummaries);
+
+  console.log(`[generate-scripts] Generating scripts for: ${moduleTitle} (${lessons.length} lessons)`);
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: prompt }],
   });
@@ -170,7 +211,6 @@ export async function generateModuleScripts(
   try {
     parsed = JSON.parse(textContent.text);
   } catch (e) {
-    // Try to extract JSON from the response if it has markdown fences
     const jsonMatch = textContent.text.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) {
       parsed = JSON.parse(jsonMatch[1]);
@@ -182,6 +222,7 @@ export async function generateModuleScripts(
   return {
     moduleSlug,
     moduleTitle,
+    lessonTitles: lessons.map((l) => l.title),
     talkingHeadSegments: parsed.talkingHeadSegments,
     codeSegments: parsed.codeSegments,
     sequence: parsed.sequence,
@@ -193,75 +234,68 @@ export async function generateModuleScripts(
  */
 export function generatePlaceholderScripts(
   moduleSlug: string,
-  moduleTitle: string
+  moduleTitle: string,
+  lessons: LessonInfo[] = []
 ): ModuleScripts {
+  const lessonTitles = lessons.length > 0
+    ? lessons.map((l) => l.title)
+    : ["Lesson 1", "Lesson 2", "Lesson 3"];
+
+  const talkingHeadSegments: TalkingHeadScript[] = [
+    {
+      purpose: "intro",
+      script: `Welcome to ${moduleTitle}. In this module, we are going to cover ${lessonTitles.length} key topics that will build your understanding of this subject. Each lesson builds on the last, so by the end of this module you will have a solid, practical grasp of the concepts. Let me walk you through what we will cover.`,
+      estimatedDurationSeconds: 30,
+    },
+  ];
+
+  const codeSegments: CodeSegmentScript[] = [];
+  const sequence: Array<{ type: "talking-head" | "code-screen"; index: number }> = [
+    { type: "talking-head", index: 0 },
+  ];
+
+  lessonTitles.forEach((title, i) => {
+    // Lesson preview talking head
+    talkingHeadSegments.push({
+      purpose: "lesson-preview",
+      lessonTitle: title,
+      script: `In ${title}, you will learn the core concepts and see them in action. Here is a quick preview of what that looks like.`,
+      estimatedDurationSeconds: 12,
+    });
+
+    // Code preview
+    codeSegments.push({
+      title: `Preview: ${title}`,
+      lessonTitle: title,
+      lines: [
+        { type: "comment", text: `# ${title} — quick preview` },
+        { type: "command", text: `$ claude "Show me an example of ${title.toLowerCase()}"` },
+        { type: "output", text: `Here's a practical example...` },
+        { type: "command", text: `print("Concept demonstrated")` },
+        { type: "output", text: `Concept demonstrated` },
+      ],
+      estimatedDurationSeconds: 20,
+    });
+
+    sequence.push({ type: "talking-head", index: i + 1 });
+    sequence.push({ type: "code-screen", index: i });
+  });
+
+  // Outro
+  talkingHeadSegments.push({
+    purpose: "outro",
+    script: `That is a wrap on the preview for ${moduleTitle}. Now let us dive into the first lesson and start building these skills hands on.`,
+    estimatedDurationSeconds: 15,
+  });
+  sequence.push({ type: "talking-head", index: talkingHeadSegments.length - 1 });
+
   return {
     moduleSlug,
     moduleTitle,
-    talkingHeadSegments: [
-      {
-        purpose: "intro",
-        script: `Welcome to ${moduleTitle}! In this module, you're going to learn some really powerful concepts that will level up your AI orchestration skills. Let's dive right in and see what we can build together.`,
-        estimatedDurationSeconds: 30,
-      },
-      {
-        purpose: "transition",
-        script:
-          "Great, now that you've seen the basics, let's take it a step further and build something more interesting.",
-        estimatedDurationSeconds: 15,
-      },
-      {
-        purpose: "outro",
-        script: `That's a wrap on ${moduleTitle}! You've learned some key concepts that you'll use throughout the rest of this course. In the next module, we'll build on these foundations.`,
-        estimatedDurationSeconds: 20,
-      },
-    ],
-    codeSegments: [
-      {
-        title: "Getting Started",
-        lines: [
-          { type: "comment", text: "# Setting up the environment" },
-          { type: "command", text: "pip install anthropic" },
-          { type: "output", text: "Successfully installed anthropic-0.40.0" },
-          { type: "command", text: "python" },
-          { type: "command", text: "from anthropic import Anthropic" },
-          { type: "command", text: "client = Anthropic()" },
-          { type: "comment", text: "# Send your first message" },
-          {
-            type: "command",
-            text: 'response = client.messages.create(\n    model="claude-sonnet-4-20250514",\n    max_tokens=1024,\n    messages=[{"role": "user", "content": "Hello!"}]\n)',
-          },
-          { type: "command", text: "print(response.content[0].text)" },
-          { type: "output", text: "Hello! How can I help you today?" },
-        ],
-        estimatedDurationSeconds: 90,
-      },
-      {
-        title: "Building the Orchestrator",
-        lines: [
-          { type: "comment", text: "# Define the orchestrator function" },
-          {
-            type: "command",
-            text: 'def orchestrate(task: str) -> str:\n    """Route tasks to specialized handlers."""\n    if "search" in task.lower():\n        return search_handler(task)\n    elif "code" in task.lower():\n        return code_handler(task)\n    return default_handler(task)',
-          },
-          { type: "comment", text: "# Test it out" },
-          {
-            type: "command",
-            text: 'result = orchestrate("search for Python tutorials")',
-          },
-          { type: "output", text: "Routing to search handler..." },
-          { type: "output", text: "Found 5 results for: Python tutorials" },
-        ],
-        estimatedDurationSeconds: 60,
-      },
-    ],
-    sequence: [
-      { type: "talking-head", index: 0 },
-      { type: "code-screen", index: 0 },
-      { type: "talking-head", index: 1 },
-      { type: "code-screen", index: 1 },
-      { type: "talking-head", index: 2 },
-    ],
+    lessonTitles,
+    talkingHeadSegments,
+    codeSegments,
+    sequence,
   };
 }
 
@@ -272,19 +306,17 @@ if (require.main === module) {
   const usePlaceholder = args.includes("--placeholder");
 
   (async () => {
-    let scripts: ModuleScripts;
+    const testLessons: LessonInfo[] = [
+      { title: "What is AI Orchestration?", slug: "what-is-ai-orchestration", content: "AI Orchestration is the practice of designing..." },
+      { title: "The AI Landscape in 2026", slug: "ai-landscape-2026", content: "The AI ecosystem has evolved dramatically..." },
+    ];
 
+    let scripts: ModuleScripts;
     if (usePlaceholder) {
-      scripts = generatePlaceholderScripts(moduleSlug, "Test Module");
-      console.log(JSON.stringify(scripts, null, 2));
+      scripts = generatePlaceholderScripts(moduleSlug, "Test Module", testLessons);
     } else {
-      // In a real scenario, you'd fetch module content from Supabase
-      scripts = await generateModuleScripts(
-        moduleSlug,
-        "Test Module",
-        "This is placeholder module content for testing."
-      );
-      console.log(JSON.stringify(scripts, null, 2));
+      scripts = await generateModuleScripts(moduleSlug, "Test Module", testLessons);
     }
+    console.log(JSON.stringify(scripts, null, 2));
   })();
 }

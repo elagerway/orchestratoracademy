@@ -31,6 +31,7 @@ import {
   generateModuleScripts,
   generatePlaceholderScripts,
   type ModuleScripts,
+  type LessonInfo,
 } from "./generate-scripts";
 
 // --- Supabase client (server-side, using service role or anon key) ---
@@ -64,29 +65,38 @@ async function heygenFetch(path: string, options: RequestInit = {}) {
   return res.json();
 }
 
-async function createHeyGenVideo(script: string): Promise<string> {
-  const avatarId = process.env.HEYGEN_AVATAR_ID || "default";
-  const voiceId = process.env.HEYGEN_VOICE_ID || "default";
+async function createHeyGenVideo(script: string, title?: string): Promise<string> {
+  const avatarId = process.env.HEYGEN_AVATAR_ID || "Silas_expressive_2024120201";
+  const voiceId = process.env.HEYGEN_VOICE_ID || "89732a2e3b0942a789588c084f2632a5";
+  // Warm blurred home office background
+  const backgroundUrl = "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1920&h=1080&fit=crop&q=80";
 
   const result = await heygenFetch("/v2/video/generate", {
     method: "POST",
     body: JSON.stringify({
-      title: "Module Video Segment",
+      title: title || "Module Video Segment",
       video_inputs: [
         {
           character: {
             type: "avatar",
             avatar_id: avatarId,
             avatar_style: "normal",
+            avatar_version: 4,
           },
           voice: {
             type: "text",
             input_text: script,
             voice_id: voiceId,
+            speed: 0.95,
+          },
+          background: {
+            type: "image",
+            url: backgroundUrl,
           },
         },
       ],
       dimension: { width: 1920, height: 1080 },
+      avatar_motion: "v4",
     }),
   });
 
@@ -187,20 +197,16 @@ async function main() {
     .from("lessons")
     .select("*")
     .eq("module_id", moduleData.id)
-    .order("order_index", { ascending: true });
+    .order("order", { ascending: true });
 
-  const moduleContent = [
-    `Title: ${moduleData.title}`,
-    `Description: ${moduleData.description || ""}`,
-    "",
-    ...(lessons || []).map(
-      (l: any, i: number) =>
-        `Lesson ${i + 1}: ${l.title}\n${l.content || l.description || ""}`
-    ),
-  ].join("\n");
+  const lessonInfos: LessonInfo[] = (lessons || []).map((l: any) => ({
+    title: l.title,
+    slug: l.slug,
+    content: l.content || "",
+  }));
 
   console.log(
-    `  Found module: ${moduleData.title} with ${lessons?.length || 0} lessons`
+    `  Found module: ${moduleData.title} with ${lessonInfos.length} lessons`
   );
 
   // 2. Generate scripts
@@ -210,13 +216,13 @@ async function main() {
     scripts = await generateModuleScripts(
       moduleSlug,
       moduleData.title,
-      moduleContent
+      lessonInfos
     );
   } catch (e: any) {
     console.warn(
       `  Warning: Could not generate scripts via Claude (${e.message}). Using placeholders.`
     );
-    scripts = generatePlaceholderScripts(moduleSlug, moduleData.title);
+    scripts = generatePlaceholderScripts(moduleSlug, moduleData.title, lessonInfos);
   }
 
   // Save scripts to disk for debugging
