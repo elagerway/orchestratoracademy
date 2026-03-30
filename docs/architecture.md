@@ -86,10 +86,32 @@ src/
 │   │   ├── server.ts                         # Server Stripe (lazy init)
 │   │   ├── config.ts                         # Plan/price configuration
 │   │   └── helpers.ts                        # getUserSubscription helper
+│   ├── heygen/
+│   │   └── client.ts                         # HeyGen API (avatars, video gen)
+│   ├── elevenlabs/
+│   │   └── client.ts                         # ElevenLabs TTS
 │   ├── types/
 │   │   └── database.ts                      # All TypeScript types
 │   └── utils.ts                              # cn() utility
 └── middleware.ts                              # Next.js middleware
+
+video-pipeline/                                # Video production (separate from app)
+├── remotion.config.ts                        # Remotion config
+├── public/                                    # Static assets (video clips, audio)
+├── src/
+│   ├── index.tsx                             # Remotion entry
+│   ├── Root.tsx                              # Composition registration
+│   ├── compositions/
+│   │   └── ModuleVideo.tsx                  # Main composition (TH + CS segments)
+│   └── components/
+│       ├── TalkingHead.tsx                  # HeyGen avatar video player
+│       ├── CodeScreen.tsx                   # Terminal typing animation
+│       └── CodeHighlighter.tsx             # Syntax highlighting
+├── scripts/
+│   ├── generate-scripts.ts                  # Claude API script generator
+│   ├── generate-module-video.ts            # Per-module orchestrator
+│   └── generate-all.ts                     # Batch runner
+└── output/                                   # Rendered videos
 
 supabase/
 ├── migrations/

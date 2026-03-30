@@ -42,3 +42,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .playwright-mcp/
+video-pipeline/output/
+video-pipeline/public/*.mp4
+video-pipeline/public/*.mp3

@@ -125,7 +125,7 @@ async function uploadAudioToHeyGen(audioPath: string): Promise<string> {
 
 async function createHeyGenVideo(script: string, title?: string, audioUrl?: string): Promise<string> {
   const avatarId = process.env.HEYGEN_AVATAR_ID || "Silas_expressive_2024120201";
-  const backgroundUrl = "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1920&h=1080&fit=crop&q=80";
+  const backgroundUrl = process.env.HEYGEN_BACKGROUND_URL || "https://resource2.heygen.ai/image/f73ae32125844bf3a1958140eac17409/original.png";
 
   // Voice config: use uploaded ElevenLabs audio if available, otherwise fall back to HeyGen TTS
   const voiceConfig = audioUrl

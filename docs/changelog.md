@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0] - 2026-03-30
+
+### Added
+- Video production pipeline (Remotion + HeyGen + ElevenLabs)
+- Remotion compositions: TalkingHead + CodeScreen with typing animation
+- CodeScreen: dark terminal, syntax highlighting, Claude Code style
+- ElevenLabs integration (Chad voice, American English)
+- HeyGen integration (Silas avatar, Avatar 4 motion, custom background)
+- Build-Instructions.md template for students (living document)
+- Forgot password + reset password auth flow
+- Postmark email integration (SDK installed)
+
+### Changed
+- Video approach: audio-first validation, then layer HeyGen video
+- Script generator now lesson-aware with per-lesson previews
+- Code screens show orchestrator workflow (human instructs agent) not code writing
+- Leo (avatar) addresses students as "you", not first person
+
 ## [0.3.0] - 2026-03-27
 
 ### Added
