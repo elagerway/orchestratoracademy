@@ -166,6 +166,15 @@ function LoginForm() {
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
+
+            <div className="text-center">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Forgot your password?
+              </Link>
+            </div>
           </form>
         </CardContent>
         <CardFooter className="justify-center">
