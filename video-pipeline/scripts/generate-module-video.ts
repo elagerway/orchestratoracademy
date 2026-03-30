@@ -65,11 +65,72 @@ async function heygenFetch(path: string, options: RequestInit = {}) {
   return res.json();
 }
 
-async function createHeyGenVideo(script: string, title?: string): Promise<string> {
+// --- ElevenLabs helpers ---
+async function generateElevenLabsAudio(script: string, outputPath: string): Promise<string> {
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || "WQcQveC0hbQNvI69FWyU";
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) throw new Error("Missing ELEVENLABS_API_KEY");
+
+  console.log(`    [elevenlabs] Generating audio (${script.length} chars)...`);
+
+  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    method: "POST",
+    headers: {
+      "xi-api-key": apiKey,
+      "Content-Type": "application/json",
+      Accept: "audio/mpeg",
+    },
+    body: JSON.stringify({
+      text: script,
+      model_id: "eleven_turbo_v2_5",
+      voice_settings: {
+        stability: 0.6,
+        similarity_boost: 0.8,
+        style: 0.3,
+        use_speaker_boost: true,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`ElevenLabs error (${res.status}): ${error}`);
+  }
+
+  const arrayBuffer = await res.arrayBuffer();
+  fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
+  console.log(`    [elevenlabs] Audio saved: ${outputPath}`);
+  return outputPath;
+}
+
+async function uploadAudioToHeyGen(audioPath: string): Promise<string> {
+  const apiKey = process.env.HEYGEN_API_KEY;
+  if (!apiKey) throw new Error("Missing HEYGEN_API_KEY");
+
+  const audioBuffer = fs.readFileSync(audioPath);
+  const blob = new Blob([audioBuffer], { type: "audio/mpeg" });
+  const formData = new FormData();
+  formData.append("file", blob, "voiceover.mp3");
+
+  const res = await fetch("https://upload.heygen.com/v1/asset", {
+    method: "POST",
+    headers: { "X-Api-Key": apiKey },
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(`HeyGen upload error: ${JSON.stringify(data.error)}`);
+  return data.data?.url || data.data?.asset_id || data.url;
+}
+
+async function createHeyGenVideo(script: string, title?: string, audioUrl?: string): Promise<string> {
   const avatarId = process.env.HEYGEN_AVATAR_ID || "Silas_expressive_2024120201";
-  const voiceId = process.env.HEYGEN_VOICE_ID || "89732a2e3b0942a789588c084f2632a5";
-  // Warm blurred home office background
   const backgroundUrl = "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1920&h=1080&fit=crop&q=80";
+
+  // Voice config: use uploaded ElevenLabs audio if available, otherwise fall back to HeyGen TTS
+  const voiceConfig = audioUrl
+    ? { type: "audio", audio_url: audioUrl }
+    : { type: "text", input_text: script, voice_id: process.env.HEYGEN_VOICE_ID || "f6e122316c2543bd891dd5e50044ff60", speed: 0.95 };
 
   const result = await heygenFetch("/v2/video/generate", {
     method: "POST",
@@ -83,12 +144,7 @@ async function createHeyGenVideo(script: string, title?: string): Promise<string
             avatar_style: "normal",
             avatar_version: 4,
           },
-          voice: {
-            type: "text",
-            input_text: script,
-            voice_id: voiceId,
-            speed: 0.95,
-          },
+          voice: voiceConfig,
           background: {
             type: "image",
             url: backgroundUrl,
@@ -230,9 +286,11 @@ async function main() {
   fs.writeFileSync(scriptsPath, JSON.stringify(scripts, null, 2));
   console.log(`  Scripts saved to: ${scriptsPath}`);
 
-  // 3. Generate talking head videos via HeyGen
-  console.log("[3/6] Generating talking head videos via HeyGen...");
+  // 3. Generate ElevenLabs audio + HeyGen talking head videos
+  console.log("[3/6] Generating audio (ElevenLabs) + talking head videos (HeyGen)...");
   const talkingHeadUrls: string[] = [];
+  const audioDir = path.join(outputDir, `${moduleSlug}-audio`);
+  if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
 
   if (skipHeyGen) {
     console.log("  Skipping HeyGen (--skip-heygen flag). Using placeholders.");
@@ -242,17 +300,28 @@ async function main() {
       );
     }
   } else {
-    for (const segment of scripts.talkingHeadSegments) {
-      console.log(`  Generating ${segment.purpose} video...`);
+    for (let i = 0; i < scripts.talkingHeadSegments.length; i++) {
+      const segment = scripts.talkingHeadSegments[i];
+      console.log(`  [${i + 1}/${scripts.talkingHeadSegments.length}] ${segment.purpose}...`);
       try {
-        const videoId = await createHeyGenVideo(segment.script);
-        console.log(`  Video ID: ${videoId}. Waiting for completion...`);
+        // Step 1: Generate ElevenLabs audio
+        const audioPath = path.join(audioDir, `${segment.purpose}-${i}.mp3`);
+        await generateElevenLabsAudio(segment.script, audioPath);
+
+        // Step 2: Upload audio to HeyGen
+        console.log(`    [heygen] Uploading audio...`);
+        const audioUrl = await uploadAudioToHeyGen(audioPath);
+        console.log(`    [heygen] Audio uploaded: ${audioUrl}`);
+
+        // Step 3: Create HeyGen video with ElevenLabs audio
+        const videoId = await createHeyGenVideo(segment.script, `${moduleSlug} - ${segment.purpose}`, audioUrl);
+        console.log(`    [heygen] Video ID: ${videoId}. Waiting...`);
         const videoUrl = await waitForHeyGenVideo(videoId);
         talkingHeadUrls.push(videoUrl);
-        console.log(`  ${segment.purpose} video ready: ${videoUrl}`);
+        console.log(`    Done: ${videoUrl}`);
       } catch (e: any) {
         console.warn(
-          `  Warning: HeyGen failed for ${segment.purpose}: ${e.message}. Using placeholder.`
+          `  Warning: Failed for ${segment.purpose}: ${e.message}. Using placeholder.`
         );
         talkingHeadUrls.push(
           `https://placeholder.heygen.com/${segment.purpose}.mp4`
