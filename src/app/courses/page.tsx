@@ -33,7 +33,7 @@ export default async function CourseCatalogPage() {
       {(!courses || courses.length === 0) ? (
         <p className="text-muted-foreground">No courses available yet. Check back soon!</p>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2">
           {(courses as Course[]).map((course) => (
             <Link key={course.id} href={`/courses/${course.slug}`} className="group">
               <Card className="h-full transition-shadow hover:shadow-lg">
