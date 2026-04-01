@@ -180,8 +180,8 @@ export function LessonContent({ content, videoUrl, contentType, lessonSlug, less
 
   return (
     <div className="mb-12 max-w-none">
-      {/* Hero illustration */}
-      {illustration && (
+      {/* Hero illustration — only show when there's no video */}
+      {!(contentType === "video" && videoUrl) && illustration && (
         <div className="mb-10 overflow-hidden rounded-xl border border-border/60">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -203,6 +203,10 @@ export function LessonContent({ content, videoUrl, contentType, lessonSlug, less
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+            {/* OA watermark */}
+            <div className="pointer-events-none absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-900/30 backdrop-blur-sm">
+              <span className="text-sm font-bold text-white/20">OA</span>
+            </div>
           </div>
         </div>
       ) : (
