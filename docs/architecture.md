@@ -97,21 +97,27 @@ src/
 
 video-pipeline/                                # Video production (separate from app)
 ├── remotion.config.ts                        # Remotion config
-├── public/                                    # Static assets (video clips, audio)
+├── video-pipeline.md → docs/video-pipeline.md # Full pipeline documentation
+├── public/
+│   └── Module {N}/Lesson {N}/               # HeyGen videos, voiceovers, Gemini images
 ├── src/
 │   ├── index.tsx                             # Remotion entry
 │   ├── Root.tsx                              # Composition registration
 │   ├── compositions/
-│   │   └── ModuleVideo.tsx                  # Main composition (TH + CS segments)
+│   │   ├── ModuleVideo.tsx                  # Main composition (TH + CS segments)
+│   │   ├── BrandIntro.tsx                  # 1.5s branded intro (OA icon fade)
+│   │   ├── ImageSlideshow.tsx              # Full-screen Gemini image slides
+│   │   ├── OutroCards.tsx                  # Transparent outro summary cards
+│   │   └── FrameworksGraphic.tsx           # Per-lesson graphic compositions
 │   └── components/
-│       ├── TalkingHead.tsx                  # HeyGen avatar video player
-│       ├── CodeScreen.tsx                   # Terminal typing animation
+│       ├── CodeScreen.tsx                   # Claude Code terminal UI
 │       └── CodeHighlighter.tsx             # Syntax highlighting
 ├── scripts/
 │   ├── generate-scripts.ts                  # Claude API script generator
 │   ├── generate-module-video.ts            # Per-module orchestrator
 │   └── generate-all.ts                     # Batch runner
-└── output/                                   # Rendered videos
+└── output/
+    └── Module {N}/Lesson {N}/               # Final videos, transcripts, thumbnails
 
 supabase/
 ├── migrations/
@@ -162,8 +168,25 @@ supabase/
 5. Complete all modules → Take Certification Exam
 6. Pass exam (70%) → Earn certificate + 100 XP
 
+## Video Pipeline
+- **Process**: Transcript → ElevenLabs audio → HeyGen avatar → Remotion graphics → ffmpeg stitch
+- **Segment types**: Talking head (raw HeyGen), Claude Code screen (Remotion), Full-screen graphic (Gemini images + Remotion)
+- **Outro**: PNG overlay composited via ffmpeg (avoids Remotion jitter)
+- **Brand intro**: 1.5s OA icon fade prepended to every video
+- **Watermark**: CSS overlay in web player (not burned into video)
+- **Hosting**: Vimeo (private, whitelist embed, hidden details)
+- **14 foundation lessons** produced (~35 min total)
+- Full pipeline documented in `docs/video-pipeline.md`
+
+## Email
+- **Provider**: Postmark (SMTP via Supabase Auth)
+- **Server**: Orchestrator Academy (519ab24f...)
+- **Sender**: help@OrchestratorAcademy.com (SPF + DKIM verified)
+- **Templates**: Supabase default (reset password, confirm signup, etc.)
+
 ## Milestones
 1. **MVP**: Landing page, auth, free course, progress tracking ✅
 2. **Monetization**: Stripe, paid courses, certifications, B2B page ✅
 3. **Gamification**: XP, quizzes, achievements, streaks ✅
-4. **Job Board**: Graduate profiles, company directory, messaging (next)
+4. **Video Production**: 14 foundation lesson videos, Vimeo hosting ✅
+5. **Job Board**: Graduate profiles, company directory, messaging (next)

@@ -6,7 +6,6 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { CodeHighlighter } from "./CodeHighlighter";
 
 export interface CodeLine {
   type: "command" | "output" | "comment";
@@ -22,34 +21,22 @@ export interface CodeScreenProps {
   transitionDurationInFrames?: number;
 }
 
-const TERMINAL_BG = "#1a1a2e";
-const TERMINAL_HEADER_BG = "#16213e";
-const TERMINAL_BORDER = "#0f3460";
-
-const LINE_COLORS: Record<CodeLine["type"], string> = {
-  command: "#c3e88d",
-  output: "#eeffff",
-  comment: "#546e7a",
-};
-
-const PROMPT_COLORS: Record<CodeLine["type"], string> = {
-  command: "#82aaff",
-  output: "#546e7a",
-  comment: "#546e7a",
-};
-
-const PROMPTS: Record<CodeLine["type"], string> = {
-  command: "$ ",
-  output: "  ",
-  comment: "  ",
-};
+// Claude Code actual colors
+const BG = "#0d1117";
+const USER_PROMPT_COLOR = "#7ee787"; // green for user input
+const CLAUDE_TEXT_COLOR = "#e6edf3"; // light gray for output
+const DIM_COLOR = "#484f58"; // dimmed text
+const ACCENT_COLOR = "#58a6ff"; // blue accent
+const SUCCESS_COLOR = "#3fb950"; // green checkmarks
+const WARNING_COLOR = "#d29922"; // yellow warnings
+const BORDER_COLOR = "#21262d";
 
 /** Characters typed per frame for commands */
-const CHARS_PER_FRAME = 1.5;
+const CHARS_PER_FRAME = 1.2;
 /** Output appears faster */
-const OUTPUT_CHARS_PER_FRAME = 8;
+const OUTPUT_CHARS_PER_FRAME = 6;
 /** Pause frames between lines */
-const LINE_PAUSE = 12;
+const LINE_PAUSE = 10;
 
 interface LineLayout {
   line: CodeLine;
@@ -63,13 +50,15 @@ function computeLineLayouts(
   durationInFrames: number
 ): LineLayout[] {
   const layouts: LineLayout[] = [];
-  let currentFrame = 30; // Start after a brief pause
+  let currentFrame = 25;
 
   for (const line of lines) {
     const delay = line.delay ?? 0;
     const startFrame = currentFrame + delay;
     const speed =
-      line.type === "output" ? OUTPUT_CHARS_PER_FRAME : CHARS_PER_FRAME;
+      line.type === "output" || line.type === "comment"
+        ? OUTPUT_CHARS_PER_FRAME
+        : CHARS_PER_FRAME;
     const totalChars = line.text.length;
     const typingDuration = Math.ceil(totalChars / speed);
 
@@ -80,22 +69,13 @@ function computeLineLayouts(
       totalChars,
     });
 
-    currentFrame = startFrame + typingDuration + LINE_PAUSE;
+    // Add extra pause after commands (thinking time)
+    const pause = line.type === "command" ? LINE_PAUSE * 3 : LINE_PAUSE;
+    currentFrame = startFrame + typingDuration + pause;
   }
 
   return layouts;
 }
-
-const TerminalDot: React.FC<{ color: string }> = ({ color }) => (
-  <div
-    style={{
-      width: 14,
-      height: 14,
-      borderRadius: "50%",
-      backgroundColor: color,
-    }}
-  />
-);
 
 const CursorBlink: React.FC = () => {
   const frame = useCurrentFrame();
@@ -105,13 +85,24 @@ const CursorBlink: React.FC = () => {
     <span
       style={{
         display: "inline-block",
-        width: 10,
-        height: 22,
-        backgroundColor: visible ? "#eeffff" : "transparent",
-        marginLeft: 2,
+        width: 9,
+        height: 20,
+        backgroundColor: visible ? "#e6edf3" : "transparent",
+        marginLeft: 1,
         verticalAlign: "text-bottom",
       }}
     />
+  );
+};
+
+/** Thinking dots animation that shows after a command before output */
+const ThinkingDots: React.FC = () => {
+  const frame = useCurrentFrame();
+  const dotCount = (Math.floor(frame / 8) % 3) + 1;
+  return (
+    <span style={{ color: DIM_COLOR, fontSize: 18 }}>
+      {"  "}thinking{".".repeat(dotCount)}
+    </span>
   );
 };
 
@@ -142,7 +133,7 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
   );
   const opacity = Math.min(fadeIn, fadeOut);
 
-  // Find the last active line (where cursor should be)
+  // Find the last active line
   let lastActiveLine = -1;
   for (let i = 0; i < lineLayouts.length; i++) {
     if (frame >= lineLayouts[i].startFrame) {
@@ -150,60 +141,102 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
     }
   }
 
-  // Auto-scroll: if content would overflow, scroll down
+  // Auto-scroll
   const visibleLineCount = lineLayouts.filter(
     (l) => frame >= l.startFrame
   ).length;
-  const maxVisibleLines = 18;
+  const maxVisibleLines = 20;
   const scrollOffset = Math.max(0, visibleLineCount - maxVisibleLines);
 
+  // Check if we're in the "thinking" phase after a command
+  const isThinking = (() => {
+    if (lastActiveLine < 0) return false;
+    const current = lineLayouts[lastActiveLine];
+    if (current.line.type !== "command") return false;
+    const elapsed = frame - current.startFrame;
+    const isCommandDone = elapsed * CHARS_PER_FRAME >= current.totalChars;
+    const next = lineLayouts[lastActiveLine + 1];
+    const nextStarted = next && frame >= next.startFrame;
+    return isCommandDone && !nextStarted;
+  })();
+
   return (
-    <AbsoluteFill style={{ opacity, backgroundColor: "#0d0d1a" }}>
+    <AbsoluteFill style={{ opacity, backgroundColor: BG }}>
       {voiceoverUrl && <Audio src={voiceoverUrl} />}
 
-      {/* Terminal window */}
+      {/* Terminal window — full screen with padding */}
       <div
         style={{
           position: "absolute",
-          top: 60,
-          left: 80,
-          right: 80,
-          bottom: 60,
-          borderRadius: 16,
-          overflow: "hidden",
-          border: `1px solid ${TERMINAL_BORDER}`,
-          boxShadow: "0 25px 60px rgba(0, 0, 0, 0.5)",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {/* Terminal header */}
+        {/* Title bar */}
         <div
           style={{
-            backgroundColor: TERMINAL_HEADER_BG,
-            padding: "14px 20px",
+            backgroundColor: "#161b22",
+            padding: "12px 20px",
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            borderBottom: `1px solid ${TERMINAL_BORDER}`,
+            gap: 8,
+            borderBottom: `1px solid ${BORDER_COLOR}`,
           }}
         >
-          <TerminalDot color="#ff5f57" />
-          <TerminalDot color="#febc2e" />
-          <TerminalDot color="#28c840" />
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#ff5f57" }} />
+            <div style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#febc2e" }} />
+            <div style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#28c840" }} />
+          </div>
           <div
             style={{
               flex: 1,
               textAlign: "center",
-              color: "#8892b0",
-              fontSize: 16,
-              fontFamily:
-                "'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace",
-              fontWeight: 500,
-              letterSpacing: 0.5,
+              color: DIM_COLOR,
+              fontSize: 14,
+              fontFamily: "'SF Mono', 'Menlo', 'Consolas', monospace",
             }}
           >
-            Claude Code — orchestrator-academy
+            ~/projects/orchestrator-academy
+          </div>
+        </div>
+
+        {/* Claude Code header */}
+        <div
+          style={{
+            backgroundColor: BG,
+            padding: "16px 32px 8px",
+            borderBottom: `1px solid ${BORDER_COLOR}`,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: "#e6edf3",
+              fontFamily: "'SF Mono', 'Menlo', 'Consolas', monospace",
+            }}
+          >
+            <span style={{ color: "#f0883e" }}>{">"}</span>
+            {" "}
+            <span style={{ color: ACCENT_COLOR }}>claude</span>
+          </div>
+          <div style={{ flex: 1 }} />
+          <div
+            style={{
+              fontSize: 13,
+              color: DIM_COLOR,
+              fontFamily: "'SF Mono', 'Menlo', 'Consolas', monospace",
+            }}
+          >
+            opus &bull; auto
           </div>
         </div>
 
@@ -211,24 +244,21 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
         <div
           style={{
             flex: 1,
-            backgroundColor: TERMINAL_BG,
-            padding: "24px 28px",
+            backgroundColor: BG,
+            padding: "20px 32px",
             overflow: "hidden",
-            fontFamily:
-              "'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', monospace",
-            fontSize: 20,
-            lineHeight: 1.7,
+            fontFamily: "'SF Mono', 'Menlo', 'Consolas', monospace",
+            fontSize: 18,
+            lineHeight: 1.8,
           }}
         >
           {lineLayouts.map((layout, idx) => {
-            // Skip lines that are scrolled out of view
             if (idx < scrollOffset) return null;
-
             if (frame < layout.startFrame) return null;
 
             const elapsed = frame - layout.startFrame;
             const speed =
-              layout.line.type === "output"
+              layout.line.type === "output" || layout.line.type === "comment"
                 ? OUTPUT_CHARS_PER_FRAME
                 : CHARS_PER_FRAME;
             const visibleChars = Math.min(
@@ -240,37 +270,95 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
             const isLastActive = idx === lastActiveLine;
             const showCursor = isLastActive && !isComplete;
 
-            const promptText = PROMPTS[layout.line.type];
-            const promptColor = PROMPT_COLORS[layout.line.type];
+            if (layout.line.type === "command") {
+              // User input line — green > prompt
+              const displayText = layout.line.text.replace(/^\$ /, "").replace(/^\$ claude /, "");
+              const isClaudeCommand = layout.line.text.startsWith("$ claude");
+              const promptText = isClaudeCommand
+                ? layout.line.text.replace(/^\$ claude /, "")
+                : layout.line.text.replace(/^\$ /, "");
 
-            return (
-              <div key={idx} style={{ whiteSpace: "pre-wrap", minHeight: 34 }}>
-                <span style={{ color: promptColor }}>{promptText}</span>
-                {layout.line.type === "command" ? (
-                  <CodeHighlighter
-                    code={layout.line.text}
-                    visibleChars={visibleChars}
-                  />
-                ) : (
-                  <span style={{ color: LINE_COLORS[layout.line.type] }}>
+              return (
+                <div key={idx} style={{ whiteSpace: "pre-wrap", minHeight: 32, marginBottom: 4 }}>
+                  <span style={{ color: USER_PROMPT_COLOR, fontWeight: 600 }}>{">"} </span>
+                  <span style={{ color: "#e6edf3" }}>
+                    {promptText.slice(0, visibleChars)}
+                  </span>
+                  {showCursor && <CursorBlink />}
+                </div>
+              );
+            }
+
+            if (layout.line.type === "comment") {
+              return (
+                <div key={idx} style={{ whiteSpace: "pre-wrap", minHeight: 32, marginBottom: 2 }}>
+                  <span style={{ color: DIM_COLOR }}>
                     {layout.line.text.slice(0, visibleChars)}
                   </span>
-                )}
+                </div>
+              );
+            }
+
+            // Output lines
+            const text = layout.line.text;
+            let color = CLAUDE_TEXT_COLOR;
+
+            // Color checkmarks green, warnings yellow
+            if (text.includes("✓")) color = SUCCESS_COLOR;
+            if (text.includes("⚠")) color = WARNING_COLOR;
+            // Dim empty lines
+            if (text.trim() === "") {
+              return <div key={idx} style={{ minHeight: 16 }} />;
+            }
+
+            return (
+              <div key={idx} style={{ whiteSpace: "pre-wrap", minHeight: 32, marginBottom: 2 }}>
+                <span style={{ color }}>
+                  {text.slice(0, visibleChars)}
+                </span>
                 {showCursor && <CursorBlink />}
               </div>
             );
           })}
 
-          {/* Show blinking cursor at the end when all lines are done */}
+          {/* Thinking animation after command */}
+          {isThinking && <ThinkingDots />}
+
+          {/* Final cursor */}
           {lineLayouts.length > 0 &&
+            !isThinking &&
             frame >=
               lineLayouts[lineLayouts.length - 1].startFrame +
                 lineLayouts[lineLayouts.length - 1].typingDuration && (
-              <div style={{ whiteSpace: "pre-wrap", minHeight: 34 }}>
-                <span style={{ color: PROMPT_COLORS.command }}>$ </span>
+              <div style={{ whiteSpace: "pre-wrap", minHeight: 32, marginTop: 8 }}>
+                <span style={{ color: USER_PROMPT_COLOR, fontWeight: 600 }}>{">"} </span>
                 <CursorBlink />
               </div>
             )}
+        </div>
+
+        {/* Status bar at bottom */}
+        <div
+          style={{
+            backgroundColor: "#161b22",
+            padding: "8px 32px",
+            borderTop: `1px solid ${BORDER_COLOR}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontFamily: "'SF Mono', 'Menlo', 'Consolas', monospace",
+            fontSize: 13,
+            color: DIM_COLOR,
+          }}
+        >
+          <div style={{ display: "flex", gap: 16 }}>
+            <span><span style={{ color: SUCCESS_COLOR }}>●</span> Connected</span>
+            <span>orchestrator-academy</span>
+          </div>
+          <div style={{ display: "flex", gap: 16 }}>
+            <span>tokens: ~2.4k</span>
+            <span>cost: $0.08</span>
+          </div>
         </div>
       </div>
     </AbsoluteFill>

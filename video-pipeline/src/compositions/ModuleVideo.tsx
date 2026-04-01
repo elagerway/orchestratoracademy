@@ -1,11 +1,12 @@
 import React from "react";
-import { AbsoluteFill, Sequence, Video, interpolate, useCurrentFrame, staticFile } from "remotion";
+import { AbsoluteFill, Audio, Sequence, Video, interpolate, useCurrentFrame, staticFile } from "remotion";
 import { CodeScreen, type CodeLine } from "../components/CodeScreen";
 
 export interface TalkingHeadSegment {
   type: "talking-head";
   durationInFrames: number;
   src: string;
+  audioUrl?: string;
 }
 
 export interface CodeScreenSegment {
@@ -61,11 +62,12 @@ const PipTalkingHead: React.FC<{
  */
 const FullTalkingHead: React.FC<{
   src: string;
+  audioUrl?: string;
   durationInFrames: number;
   transitionFrames: number;
   isTransitioningToCode: boolean;
   isTransitioningFromCode: boolean;
-}> = ({ src, durationInFrames, transitionFrames, isTransitioningToCode, isTransitioningFromCode }) => {
+}> = ({ src, audioUrl, durationInFrames, transitionFrames, isTransitioningToCode, isTransitioningFromCode }) => {
   const frame = useCurrentFrame();
   const isPlaceholder = src.includes("placeholder");
 
@@ -114,6 +116,15 @@ const FullTalkingHead: React.FC<{
           <div style={{ fontSize: 24, fontWeight: "bold" }}>Leo — Talking Head</div>
           <div style={{ fontSize: 16, color: "#888", marginTop: 8 }}>Avatar video will be placed here</div>
         </div>
+      </AbsoluteFill>
+    );
+  }
+
+  // Only apply transforms when actually transitioning — avoids jitter on static segments
+  if (scale === 1 && opacity === 1) {
+    return (
+      <AbsoluteFill>
+        <Video src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </AbsoluteFill>
     );
   }
@@ -169,6 +180,7 @@ export const ModuleVideo: React.FC<ModuleVideoProps> = ({
                   lines={segment.lines}
                   durationInFrames={segment.durationInFrames}
                   transitionDurationInFrames={transitionDurationInFrames}
+                  voiceoverUrl={segment.voiceoverUrl}
                 />
                 {/* PIP: lip-synced Leo talking over the code */}
                 {segment.pipSrc && (

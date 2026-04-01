@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.5.0] - 2026-04-01
+
+### Added
+- 14 foundation lesson videos (Modules 1-7, ~35 min total content)
+- Video pipeline: ElevenLabs → HeyGen → Remotion → ffmpeg → Vimeo
+- Gemini-generated illustrations for conceptual lessons (models, frameworks, ethics, etc.)
+- Claude Code terminal UI for code screen segments
+- Brand intro (1.5s OA icon fade) prepended to all videos
+- Outro summary cards (PNG overlay via ffmpeg, jitter-free)
+- Custom thumbnails for all Vimeo videos (Gemini-generated)
+- OA watermark on video player via CSS overlay
+- Vimeo integration — upload, thumbnails, domain whitelist, hidden details
+- Postmark SMTP configured for Supabase Auth emails
+- Password reset flow working end-to-end via Postmark
+- Middleware redirect for auth codes landing on root (/?code=)
+- Video pipeline documentation (docs/video-pipeline.md)
+- /update-docs-commit skill for pre-commit doc updates
+- Trust-gap rules integrated into M6L2 (force blank, penalize guessing, show source)
+
+### Changed
+- Lesson content hides hero illustration when video is present
+- Code screens redesigned as authentic Claude Code UI (dark bg, green prompt, status bar)
+- Video segments: talking heads never re-encoded (raw HeyGen), graphics rendered independently
+- Supabase site_url updated to production domain
+- Supabase redirect allowlist includes localhost + production
+
+### Fixed
+- Password reset redirect (/?code= now routes to /auth/callback with reset-password redirect)
+- Video jitter eliminated by never passing HeyGen through Remotion
+- ElevenLabs pause gaps fixed by replacing periods with commas in scripts
+
 ## [0.4.0] - 2026-03-30
 
 ### Added

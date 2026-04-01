@@ -45,3 +45,5 @@ next-env.d.ts
 video-pipeline/output/
 video-pipeline/public/*.mp4
 video-pipeline/public/*.mp3
+video-pipeline/public/
+video-pipeline/output/
