@@ -154,7 +154,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
     return (
       <div className="container mx-auto px-4 py-12">
         {/* Course header (visible even behind paywall) */}
-        <div className="mb-4 max-w-3xl">
+        <div className="mb-4 mx-auto max-w-3xl">
           <div className="mb-3 flex items-center gap-2">
             <Badge variant="default">
               {`$${typedCourse.price ?? ""}`}
@@ -175,7 +175,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Course header */}
-      <div className="mb-8 max-w-3xl">
+      <div className="mb-8 mx-auto max-w-3xl">
         <div className="mb-3 flex items-center gap-2">
           <Badge variant={typedCourse.is_free ? "secondary" : "default"}>
             {typedCourse.is_free ? "Free" : `$${typedCourse.price ?? ""}`}
@@ -224,7 +224,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
       </div>
 
       {/* Module list */}
-      <div className="max-w-3xl space-y-4">
+      <div className="mx-auto max-w-3xl space-y-4">
         <h2 className="text-xl font-semibold">Course Content</h2>
         {typedCourse.modules.map((mod, modIndex) => {
           const modLessonIds = mod.lessons.map((l) => l.id);
