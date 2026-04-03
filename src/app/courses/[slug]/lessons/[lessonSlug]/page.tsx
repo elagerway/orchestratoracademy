@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   PlayCircle,
   FileText,
   Zap,
@@ -273,11 +274,20 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
           {/* Lesson header */}
           <div className="mb-8">
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex items-center gap-3">
               <Badge variant="outline">
                 {getContentTypeIcon(currentLesson.content_type)}
                 <span className="ml-1">{currentLesson.content_type}</span>
               </Badge>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="size-3" />
+                {(() => {
+                  const words = (currentLesson.content ?? "").split(/\s+/).length;
+                  const readMin = Math.ceil(words / 200);
+                  const total = currentLesson.content_type === "video" ? 3 + readMin : readMin;
+                  return `${total} min`;
+                })()}
+              </span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight">
               {currentLesson.title}
@@ -291,6 +301,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
             contentType={currentLesson.content_type}
             lessonSlug={currentLesson.slug}
             lessonTitle={currentLesson.title}
+            courseSlug={slug}
+            nextLessonSlug={nextLesson?.slug}
+            nextLessonTitle={nextLesson?.title}
           />
 
           {/* Mark complete + navigation */}

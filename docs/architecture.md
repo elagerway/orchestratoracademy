@@ -33,6 +33,9 @@ src/
 │   │   │   └── portal/route.ts              # Stripe billing portal
 │   │   ├── assessments/
 │   │   │   └── submit/route.ts              # Submit certification exam
+│   │   ├── quiz/
+│   │   │   ├── evaluate/route.ts            # LLM-graded quiz answers (Haiku)
+│   │   │   └── evaluate-spec/route.ts       # LLM-graded spec submissions (Haiku)
 │   │   └── gamification/
 │   │       ├── quiz-complete/route.ts       # Submit module quiz
 │   │       └── lesson-xp/route.ts           # Award XP for lesson completion
@@ -61,10 +64,11 @@ src/
 │   │   ├── course-progress.tsx              # Progress bar wrapper
 │   │   ├── enroll-button.tsx                # Course enrollment CTA
 │   │   ├── lesson-complete-button.tsx       # Mark complete + XP award
-│   │   ├── lesson-content.tsx               # Markdown renderer + hero image
+│   │   ├── lesson-content.tsx               # Markdown renderer + video player + end screen
 │   │   └── paywall-banner.tsx               # Premium course gate
 │   ├── gamification/
-│   │   ├── module-quiz.tsx                  # Fun 3-question quiz
+│   │   ├── module-quiz.tsx                  # Multiple choice quiz
+│   │   ├── terminal-quiz.tsx                # Terminal-style spec-writing quiz (Claude Code UI)
 │   │   ├── xp-bar.tsx                       # XP progress + level display
 │   │   ├── streak-badge.tsx                 # Daily streak indicator
 │   │   ├── confetti.tsx                     # CSS confetti animation
@@ -146,7 +150,7 @@ supabase/
 - **assessment_attempts**: Exam attempt history
 - **certificates**: Issued certificates with unique numbers
 - **module_quizzes**: 3-question quizzes per module
-- **module_quiz_results**: Quiz scores and pass/fail
+- **module_quiz_results**: Quiz scores, pass/fail, and stored answers (jsonb)
 - **achievements**: Achievement catalog (17 badges)
 - **user_achievements**: Unlocked achievements per user
 - **xp_log**: XP award history
@@ -164,7 +168,9 @@ supabase/
 1. Browse courses → Enroll (free or paid)
 2. Read lesson → Mark as Complete (awards 10 XP)
 3. Complete all module lessons → Unlock Module Quiz
-4. Pass quiz (2/3 correct) → Earn 25 XP + unlock next module
+4. Pass quiz → Earn 25 XP + unlock next module
+   - M1-M3, M6-M7: Multiple choice (3 questions, 2/3 to pass)
+   - M4-M5: Terminal-style spec writing (LLM-graded, 3/5 rubric to pass)
 5. Complete all modules → Take Certification Exam
 6. Pass exam (70%) → Earn certificate + 100 XP
 
@@ -173,8 +179,10 @@ supabase/
 - **Segment types**: Talking head (raw HeyGen), Claude Code screen (Remotion), Full-screen graphic (Gemini images + Remotion)
 - **Outro**: PNG overlay composited via ffmpeg (avoids Remotion jitter)
 - **Brand intro**: 1.5s OA icon fade prepended to every video
-- **Watermark**: CSS overlay in web player (not burned into video)
-- **Hosting**: Vimeo (private, whitelist embed, hidden details)
+- **Thumbnails**: Leo frame + title + CSS diagram (rendered at 850×480 display size, uploaded via Vimeo API)
+- **End screen**: CSS overlay on video end (Replay + Next Lesson) via @vimeo/player SDK
+- **Watermark**: CSS overlay in web player linking to course overview
+- **Hosting**: Vimeo (private, whitelist embed, hidden details, OA folder)
 - **14 foundation lessons** produced (~35 min total)
 - Full pipeline documented in `docs/video-pipeline.md`
 

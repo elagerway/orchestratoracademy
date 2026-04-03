@@ -351,20 +351,40 @@ Create `output/Module {N}/Lesson {N}/transcript.md` with the full transcript, la
 
 ### 11. Generate thumbnail
 
-Generate a custom thumbnail via Gemini for each lesson. No faces with open mouths. Use 16:9, 2K, dark navy background matching the course style.
+Thumbnails use a CSS/HTML template rendered via Playwright at the Vimeo player display size (850×480). **Design at display size, not at 1920×1080** — the thumbnail must be readable at the size users actually see it.
 
-```python
-prompt = f"Thumbnail image for online course video titled '{title}'. {description} 16:9 aspect ratio. No text, no faces, no people with open mouths. Cinematic, high quality, suitable as a video thumbnail."
+**Layout:**
+- Leo frame (mouth closed) on the left — 55% width, with a gradient fade into the dark background
+- Right side: green accent line, module/lesson label, lesson title, small contextual SVG diagram
+- "Orchestrator Academy" watermark top-right
+- Background: `#0a0a0a`, accent: `#00C853`, font: Sora
 
-response = client.models.generate_content(
-    model="gemini-3-pro-image-preview",
-    contents=[prompt],
-    config=types.GenerateContentConfig(
-        response_modalities=['TEXT', 'IMAGE'],
-        image_config=types.ImageConfig(aspect_ratio="16:9", image_size="2K"),
-    ),
-)
-```
+**Key rules:**
+- Leo must have his mouth closed — use `leo_frame_closed.jpg` (extracted at 1.9s from M1L1 final.mp4)
+- All sizing uses `vw` units so the layout scales with viewport
+- Leo side: `55%` width
+- Title: `3.2vw` bold
+- Module label: `1.4vw` green uppercase
+- Diagram: `18vw × 18vw`
+- Content padding: `5% 6% 5% 4%`, top-aligned (`justify-content: flex-start`)
+
+**Diagrams per lesson:**
+| Slug | Diagram | Description |
+|------|---------|-------------|
+| what-is-ai-orchestration | orchestra | Hub-and-spoke: ORC centre, 4 AI nodes |
+| ai-landscape-2026 | landscape | Stacked horizontal bars (LLMs, Vision, etc.) |
+| day-in-the-life | dayloop | Circular loop: Plan → Build → Monitor |
+| career-paths | paths | Branching tree: YOU → 3 career paths + Coach |
+| ai-models-providers | models | Grid of provider boxes (Claude, GPT, etc.) |
+| orchestration-frameworks | frameworks | Horizontal pipeline: CrewAI → LangGraph → Magpipe |
+| anatomy-of-great-prompt | prompt | RACE framework: R-A-C-E stacked |
+| advanced-prompt-techniques | chain | Chain-of-thought: linked circles descending |
+| workflow-design-principles | workflow | Vertical flowchart: Input → Process → Review → Output |
+| build-research-agent | agent | Agent loop: Question → Search → Analyse → Report |
+| ethics-for-orchestrators | shield | Shield icon with checkmark |
+| building-responsible-systems | checklist | Checklist with tick marks |
+| what-youve-learned | recap | Badge with 7 modules radiating |
+| advanced-courses-certification | rocket | Rocket / upward arrow |
 
 Save to `output/Module {N}/Lesson {N}/thumbnail.png`.
 

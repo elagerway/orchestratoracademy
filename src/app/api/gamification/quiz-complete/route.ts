@@ -71,6 +71,7 @@ export async function POST(request: Request) {
         total,
         passed,
         xp_earned: existingResult ? Math.max(existingResult.xp_earned, xpEarned) : xpEarned,
+        answers,
         completed_at: new Date().toISOString(),
       },
       { onConflict: "user_id,module_quiz_id" }

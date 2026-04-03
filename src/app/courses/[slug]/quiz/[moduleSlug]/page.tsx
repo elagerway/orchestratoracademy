@@ -3,7 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { ModuleQuiz } from "@/components/gamification/module-quiz";
-import { ChevronLeft, Trophy, Lock, BookOpen } from "lucide-react";
+import { TerminalQuiz } from "@/components/gamification/terminal-quiz";
+import { ChevronLeft, Trophy, Lock, BookOpen, CheckCircle2, XCircle } from "lucide-react";
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import type { ModuleQuiz as ModuleQuizType, CourseWithModules } from "@/lib/types/database";
 
@@ -82,12 +83,16 @@ export default async function QuizPage({ params }: QuizPageProps) {
   // Check if already passed
   const { data: result } = await supabase
     .from("module_quiz_results")
-    .select("passed, score, total, xp_earned")
+    .select("passed, score, total, xp_earned, answers")
     .eq("module_quiz_id", quiz.id)
     .eq("user_id", user.id)
     .maybeSingle();
 
   const alreadyPassed = result?.passed ?? false;
+  const storedAnswers = result?.answers as number[] | null;
+  // If no stored answers (pre-migration results), assume correct answers for a perfect score
+  const questions = (quiz as ModuleQuizType).questions;
+  const userAnswers = storedAnswers ?? (result?.score === result?.total ? questions.map(q => q.correct) : []);
 
   // Find the next module for "Continue" link
   const currentModuleIndex = typedCourse.modules.findIndex((m) => m.id === currentModule.id);
@@ -141,13 +146,57 @@ export default async function QuizPage({ params }: QuizPageProps) {
           })()}
         </div>
       ) : alreadyPassed ? (
-        <div className="text-center">
-          <Trophy className="mx-auto size-16 text-amber-500" />
-          <h1 className="mt-4 font-heading text-3xl font-bold">Quiz Complete!</h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            You scored {result?.score}/{result?.total} on the {currentModule.title} quiz
-          </p>
-          <p className="mt-1 font-semibold text-emerald-accent">+{result?.xp_earned || quiz.xp_reward} XP earned</p>
+        <div>
+          <div className="mb-8 text-center">
+            <Trophy className="mx-auto size-16 text-amber-500" />
+            <h1 className="mt-4 font-heading text-3xl font-bold">Quiz Complete!</h1>
+            <p className="mt-2 text-lg text-muted-foreground">
+              You scored {result?.score}/{result?.total} on the {currentModule.title} quiz
+            </p>
+            <p className="mt-1 font-semibold text-emerald-accent">+{result?.xp_earned || quiz.xp_reward} XP earned</p>
+          </div>
+
+          {/* Question review */}
+          <div className="space-y-6">
+            {questions.map((q, i) => {
+              const userAnswer = userAnswers[i] ?? -1;
+              const isCorrect = userAnswer === q.correct;
+              return (
+                <div key={i} className="rounded-xl border border-border/60 p-5">
+                  <div className="mb-3 flex items-start gap-2">
+                    {isCorrect ? (
+                      <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
+                    ) : (
+                      <XCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
+                    )}
+                    <p className="font-medium">{q.question}</p>
+                  </div>
+                  <div className="ml-7 space-y-2">
+                    {q.options.map((option, j) => {
+                      const isUserChoice = j === userAnswer;
+                      const isCorrectAnswer = j === q.correct;
+                      let classes = "rounded-lg border px-3 py-2 text-sm";
+                      if (isCorrectAnswer) {
+                        classes += " border-green-600/50 bg-green-600/10 text-green-700 dark:text-green-400";
+                      } else if (isUserChoice && !isCorrectAnswer) {
+                        classes += " border-destructive/50 bg-destructive/10 text-destructive line-through";
+                      } else {
+                        classes += " border-border/40 text-muted-foreground";
+                      }
+                      return (
+                        <div key={j} className={classes}>
+                          <span className="mr-2 font-medium">{String.fromCharCode(65 + j)}.</span>
+                          {option}
+                          {isCorrectAnswer && <span className="ml-2 text-xs font-medium">(correct)</span>}
+                          {isUserChoice && !isCorrectAnswer && <span className="ml-2 text-xs font-medium">(your answer)</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link href={nextLessonUrl}>
@@ -156,6 +205,14 @@ export default async function QuizPage({ params }: QuizPageProps) {
               </Button>
             </Link>
           </div>
+        </div>
+      ) : ["prompt-engineering-fundamentals", "building-first-ai-workflow"].includes(moduleSlug) ? (
+        <div>
+          <TerminalQuiz
+            quiz={quiz as ModuleQuizType}
+            moduleTitle={currentModule.title}
+            courseSlug={slug}
+          />
         </div>
       ) : (
         <div>

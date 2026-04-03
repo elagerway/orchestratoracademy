@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.6.0] - 2026-04-02
+
+### Added
+- Custom thumbnails for all 14 Vimeo videos (Leo frame + title + CSS diagram, designed at player display size)
+- Thumbnail generation pipeline: HTML template → Playwright screenshot → Vimeo upload
+- Video end screen overlay — shows Replay + Next Lesson buttons when video finishes (Vimeo Player SDK)
+- OA icon on video player links to course overview with hover opacity effect
+- Terminal-style quizzes for M4 (Prompt Engineering) and M5 (Building Workflows) — students write specs in a Claude Code-like interface, evaluated by Claude Haiku
+- Quiz spec evaluation API (`/api/quiz/evaluate-spec`) — LLM-graded free-text responses with rubric feedback
+- Quiz answer evaluation API (`/api/quiz/evaluate`) — per-question LLM grading with keyword fallback
+- Quiz answer storage — `answers` jsonb column on `module_quiz_results` for review after completion
+- Completed quiz review — shows all questions with user's answer vs correct answer, color-coded
+- Time estimates on course overview (total course hours), per-module, and per-lesson (based on video + reading time)
+- XP chat bubble animation on lesson completion (replaces bouncing pill)
+- `@vimeo/player` SDK for reliable video end detection
+- `claude-logo.png` rendered via PIL for cross-browser block character support
+
+### Changed
+- Vimeo end screens disabled on all 14 OA videos (no more "More from Snapsonic")
+- All 14 OA videos moved to the OA folder on Vimeo
+- Lesson hero illustrations replaced with CSS diagram component (SVG diagrams per lesson topic)
+- Thumbnail design documented in `docs/video-pipeline.md` (replaces Gemini-generated approach)
+- `tsconfig.json` excludes `video-pipeline/scripts` from type checking
+- Quiz page shows full question review when revisiting a passed quiz
+
+### Fixed
+- Quiz review showing wrong answers for perfect scores (pre-migration results without stored answers)
+
 ## [0.5.0] - 2026-04-01
 
 ### Added

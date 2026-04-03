@@ -6,9 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { CourseProgress } from "@/components/courses/course-progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
 import { PaywallBanner } from "@/components/courses/paywall-banner";
-import { BookOpen, CheckCircle2, ChevronRight, PlayCircle, Zap, Trophy, Lock } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronRight, Clock, PlayCircle, Zap, Trophy, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CourseWithModules, UserProgress } from "@/lib/types/database";
+import type { CourseWithModules, Lesson, UserProgress } from "@/lib/types/database";
+
+/**
+ * Estimate how long a lesson takes (in minutes).
+ * Video lessons: video duration + reading time for written content.
+ * Text-only lessons: ~1 min per 200 words.
+ * Quizzes add ~3 min per module.
+ */
+function estimateLessonMinutes(lesson: Lesson): number {
+  const wordCount = (lesson.content ?? "").split(/\s+/).length;
+  const readingMinutes = Math.ceil(wordCount / 200);
+
+  if (lesson.content_type === "video") {
+    // Video ~3 min avg + reading the written content below
+    return 3 + readingMinutes;
+  }
+  return readingMinutes;
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
 
 interface CoursePageProps {
   params: Promise<{ slug: string }>;
@@ -147,6 +171,13 @@ export default async function CoursePage({ params }: CoursePageProps) {
     }
   }
 
+  // Calculate total course duration
+  const totalMinutes = typedCourse.modules.reduce((sum, mod) => {
+    const lessonMinutes = mod.lessons.reduce((s, l) => s + estimateLessonMinutes(l), 0);
+    const quizMinutes = quizByModule.has(mod.id) ? 3 : 0;
+    return sum + lessonMinutes + quizMinutes;
+  }, 0);
+
   // Show paywall for paid courses when user has no active pro/team subscription
   const showPaywall = !typedCourse.is_free && !hasActiveSubscription;
 
@@ -161,6 +192,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
             </Badge>
             <span className="text-sm text-muted-foreground">
               {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
+            </span>
+            <span className="text-sm text-muted-foreground flex items-center gap-1">
+              <Clock className="size-3.5" />
+              {formatDuration(totalMinutes)}
             </span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{typedCourse.title}</h1>
@@ -182,6 +217,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
           </Badge>
           <span className="text-sm text-muted-foreground">
             {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
+          </span>
+          <span className="text-sm text-muted-foreground flex items-center gap-1">
+            <Clock className="size-3.5" />
+            {formatDuration(totalMinutes)}
           </span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{typedCourse.title}</h1>
@@ -231,6 +270,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
           const modCompleted = modLessonIds.filter((id) =>
             completedLessonIds.has(id)
           ).length;
+          const modMinutes = mod.lessons.reduce((s, l) => s + estimateLessonMinutes(l), 0) + (quizByModule.has(mod.id) ? 3 : 0);
 
           return (
             <Card key={mod.id}>
@@ -239,11 +279,17 @@ export default async function CoursePage({ params }: CoursePageProps) {
                   <CardTitle>
                     Module {modIndex + 1}: {mod.title}
                   </CardTitle>
-                  {isEnrolled && (
-                    <span className="text-xs text-muted-foreground">
-                      {modCompleted}/{mod.lessons.length} complete
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="size-3" />
+                      {formatDuration(modMinutes)}
                     </span>
-                  )}
+                    {isEnrolled && (
+                      <span className="text-xs text-muted-foreground">
+                        {modCompleted}/{mod.lessons.length} complete
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {mod.description && (
                   <p className="text-sm text-muted-foreground">{mod.description}</p>
@@ -253,6 +299,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 <ul className="space-y-1">
                   {mod.lessons.map((lesson) => {
                     const isComplete = completedLessonIds.has(lesson.id);
+                    const lessonMins = estimateLessonMinutes(lesson);
                     return (
                       <li key={lesson.id}>
                         {isEnrolled ? (
@@ -269,18 +316,20 @@ export default async function CoursePage({ params }: CoursePageProps) {
                               <BookOpen className="size-4 shrink-0 text-muted-foreground" />
                             )}
                             <span className="flex-1">{lesson.title}</span>
-                            <Badge variant="outline" className="text-[10px]">
-                              {lesson.content_type}
-                            </Badge>
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="size-3" />
+                              {lessonMins} min
+                            </span>
                             <ChevronRight className="size-4 text-muted-foreground" />
                           </Link>
                         ) : (
                           <div className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground">
                             <BookOpen className="size-4 shrink-0" />
                             <span className="flex-1">{lesson.title}</span>
-                            <Badge variant="outline" className="text-[10px]">
-                              {lesson.content_type}
-                            </Badge>
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="size-3" />
+                              {lessonMins} min
+                            </span>
                           </div>
                         )}
                       </li>

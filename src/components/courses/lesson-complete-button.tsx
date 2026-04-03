@@ -104,10 +104,13 @@ export function LessonCompleteButton({
         )}
       </Button>
       {xpEarned && (
-        <span className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce rounded-full bg-emerald-accent px-3 py-1 text-xs font-bold text-white">
-          <Sparkles className="mr-1 inline size-3" />
-          +{xpEarned} XP
-        </span>
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="rounded-lg bg-emerald-accent px-3 py-1.5 text-xs font-bold text-white shadow-lg">
+            <Sparkles className="mr-1 inline size-3" />
+            +{xpEarned} XP
+          </div>
+          <div className="mx-auto h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-emerald-accent" />
+        </div>
       )}
     </div>
   );
