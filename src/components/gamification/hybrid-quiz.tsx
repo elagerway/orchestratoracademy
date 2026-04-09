@@ -427,7 +427,7 @@ const HYBRID_QUESTIONS: Record<string, HybridQuestion[]> = {
       prompt: "$ ",
       hint: "Press Tab to start with a template",
       tabFill: "curl https://api.anthropic.com/v1/messages \\\n  -H \"x-api-key: $ANTHROPIC_API_KEY\" \\\n  -H \"content-type: application/json\" \\\n  -d '{\"model\": \"claude-sonnet-4-20250514\", \"max_tokens\": 1024, \"temperature\": 0, \"messages\": [{\"role\": \"user\", \"content\": \"Explain APIs\"}]}'",
-      acceptedKeywords: ["temperature", "0", "messages"],
+      acceptedKeywords: ["temperature", "messages"],
       correctFeedback: "Temperature 0 gives the most deterministic, consistent responses.",
       wrongFeedback: "Include \"temperature\": 0 in your API request body.",
     },
@@ -1544,8 +1544,10 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
   const terminalRef = useRef<HTMLTextAreaElement>(null);
   const [cursorVisible, setCursorVisible] = useState(true);
 
-  // P3 fix: use moduleSlug directly instead of fragile title matching
-  const questions = HYBRID_QUESTIONS[moduleSlug] ?? HYBRID_QUESTIONS["understanding-apis"];
+  const questions = HYBRID_QUESTIONS[moduleSlug];
+  if (!questions) {
+    throw new Error(`No hybrid questions defined for module: ${moduleSlug}`);
+  }
   const currentQ = questions[currentIndex];
 
   useEffect(() => {
@@ -1574,8 +1576,7 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           module_quiz_id: quiz.id,
-          // Map our score to the DB quiz format — send correct answers for passed questions
-          answers: quiz.questions.map((q, i) => (i < finalScore ? q.correct : -1)),
+          hybrid_score: { score: finalScore, total, passed },
         }),
       });
 
@@ -1594,7 +1595,7 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
     } finally {
       setSubmitting(false);
     }
-  }, [submitting, questions.length, quiz.id, quiz.questions]);
+  }, [submitting, questions.length, quiz.id]);
 
   // P2 fix: proper dependency array for auto-advance
   const advanceOrSubmit = useCallback((newCorrectCount: number) => {
@@ -1628,11 +1629,9 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
     setPhase("feedback");
   }
 
-  function handleTerminalSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function doTerminalSubmit() {
     if (phase !== "active" || currentQ.type !== "terminal" || !terminalInput.trim() || submitting) return;
 
-    // P2 fix: case-insensitive keyword matching
     const normalized = terminalInput.toLowerCase();
     const isCorrect = currentQ.acceptedKeywords.every((kw) =>
       normalized.includes(kw.toLowerCase())
@@ -1842,7 +1841,7 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
           <div className="mb-6 text-base text-neutral-400">{currentQ.scenario}</div>
 
           {phase === "active" ? (
-            <form onSubmit={handleTerminalSubmit}>
+            <form onSubmit={(e) => { e.preventDefault(); doTerminalSubmit(); }}>
               <div className="flex items-start gap-0">
                 <span className="text-emerald-400 font-bold mr-2 text-lg">$</span>
                 <textarea
@@ -1850,13 +1849,13 @@ export function HybridQuiz({ quiz, moduleTitle, courseSlug, moduleSlug }: Hybrid
                   value={terminalInput}
                   onChange={(e) => setTerminalInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Tab" && !terminalInput.trim()) {
+                    if (e.key === "Tab") {
                       e.preventDefault();
                       setTerminalInput(currentQ.tabFill);
                     }
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleTerminalSubmit(e);
+                      doTerminalSubmit();
                     }
                   }}
                   placeholder="type your command..."

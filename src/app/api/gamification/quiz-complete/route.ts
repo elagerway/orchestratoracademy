@@ -20,9 +20,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { module_quiz_id, answers } = await request.json();
+  const body = await request.json();
+  const { module_quiz_id, answers, hybrid_score } = body;
 
-  if (!module_quiz_id || !Array.isArray(answers)) {
+  if (!module_quiz_id) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
@@ -37,18 +38,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
   }
 
-  const questions = quiz.questions as Array<{ id: string; question: string; options: string[]; correct: number }>;
-  const total = questions.length;
+  let score: number;
+  let total: number;
+  let passed: boolean;
 
-  // Calculate score
-  let score = 0;
-  for (let i = 0; i < total; i++) {
-    if (answers[i] === questions[i].correct) {
-      score++;
+  if (hybrid_score && typeof hybrid_score.score === "number" && typeof hybrid_score.total === "number") {
+    // Hybrid quiz — client-scored (MC + terminal keyword matching)
+    total = hybrid_score.total;
+    if (total <= 0 || !Number.isInteger(hybrid_score.score) || !Number.isInteger(total)) {
+      return NextResponse.json({ error: "Invalid score" }, { status: 400 });
     }
+    score = Math.max(0, Math.min(hybrid_score.score, total));
+    passed = score >= Math.ceil(total * 2 / 3); // always re-derive, never trust client
+  } else if (Array.isArray(answers)) {
+    // Standard MC quiz — server-scored against DB questions
+    const questions = quiz.questions as Array<{ id: string; question: string; options: string[]; correct: number }>;
+    total = questions.length;
+    score = 0;
+    for (let i = 0; i < total; i++) {
+      if (answers[i] === questions[i].correct) {
+        score++;
+      }
+    }
+    passed = score >= Math.ceil(total * 2 / 3);
+  } else {
+    return NextResponse.json({ error: "Invalid request — provide answers or hybrid_score" }, { status: 400 });
   }
-
-  const passed = score >= Math.ceil(total * 2 / 3);
 
   // Check existing best result
   const { data: existingResult } = await supabase

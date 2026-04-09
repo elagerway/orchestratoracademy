@@ -187,7 +187,8 @@ export default async function QuizPage({ params }: QuizPageProps) {
             <p className="mt-1 font-semibold text-emerald-accent">+{result?.xp_earned || quiz.xp_reward} XP earned</p>
           </div>
 
-          {/* Question review */}
+          {/* Question review — only for standard MC quizzes (hybrid quizzes are client-scored, answers not stored) */}
+          {!HYBRID_MODULE_SLUGS.includes(moduleSlug) && (
           <div className="space-y-6">
             {questions.map((q, i) => {
               const userAnswer = userAnswers[i] ?? -1;
@@ -228,6 +229,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
               );
             })}
           </div>
+          )}
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link href={nextLessonUrl}>
