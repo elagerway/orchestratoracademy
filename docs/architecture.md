@@ -67,8 +67,9 @@ src/
 │   │   ├── lesson-content.tsx               # Markdown renderer + video player + end screen
 │   │   └── paywall-banner.tsx               # Premium course gate
 │   ├── gamification/
-│   │   ├── module-quiz.tsx                  # Multiple choice quiz
-│   │   ├── terminal-quiz.tsx                # Terminal-style spec-writing quiz (Claude Code UI)
+│   │   ├── module-quiz.tsx                  # Multiple choice quiz (premium courses)
+│   │   ├── terminal-quiz.tsx                # Terminal-style spec-writing quiz (M4-M5)
+│   │   ├── hybrid-quiz.tsx                  # MC + terminal command quiz (M1-M3, M6-M28)
 │   │   ├── xp-bar.tsx                       # XP progress + level display
 │   │   ├── streak-badge.tsx                 # Daily streak indicator
 │   │   ├── confetti.tsx                     # CSS confetti animation
@@ -169,8 +170,9 @@ supabase/
 2. Read lesson → Mark as Complete (awards 10 XP)
 3. Complete all module lessons → Unlock Module Quiz
 4. Pass quiz → Earn 25 XP + unlock next module
-   - M1-M3, M6-M7: Multiple choice (3 questions, 2/3 to pass)
    - M4-M5: Terminal-style spec writing (LLM-graded, 3/5 rubric to pass)
+   - M1-M3, M6-M28: Hybrid quiz — MC + terminal commands (5 questions, keyword-graded)
+   - Premium courses: Multiple choice (3 questions, 2/3 to pass)
 5. Complete all modules → Take Certification Exam
 6. Pass exam (70%) → Earn certificate + 100 XP
 

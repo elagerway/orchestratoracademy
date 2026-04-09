@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0] - 2026-04-09
+
+### Added
+- Hybrid terminal quizzes for all 26 foundation modules (M1-M3, M6-M28) — mix of multiple choice + hands-on terminal commands
+- `hybrid-quiz.tsx` component with 5 questions per module (3 MC + 2 terminal), keyword-graded with Tab-fill templates
+- Each module's terminal questions are tailored to its topic (API calls, git commands, Claude Code usage, Supabase CLI, etc.)
+- Quiz page routes foundation modules to hybrid format via `HYBRID_MODULE_SLUGS` array
+
+### Changed
+- Quiz page container widened from `max-w-2xl` to `max-w-4xl`
+- All quiz cards (intro, results, MC, terminal) widened from `max-w-lg` to `max-w-3xl`
+- Terminal quiz UI scaled up — larger text (`text-base`), taller textarea (`min-h-[120px]`), bigger traffic light dots, more padding
+- `ModuleQuiz` (standard MC) now only used for premium courses (CrewAI, LangGraph, Magpipe)
+- Updated `docs/project_status.md` — broke out Milestone 3 into completed sections, added content stats
+- Hybrid quiz result message generalized ("Well done" instead of API-specific)
+
 ## [0.6.0] - 2026-04-02
 
 ### Added

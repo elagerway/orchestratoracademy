@@ -33,16 +33,19 @@
 - [x] Button hover effects
 
 ## Milestone 3 — Video Production (In Progress)
-### Pipeline built:
-- [x] Remotion compositions (TalkingHead + CodeScreen)
+
+### Pipeline ✅
+- [x] Remotion compositions (TalkingHead, CodeScreen, BrandIntro, OutroCards)
 - [x] CodeScreen: dark terminal, typing animation, syntax highlighting
 - [x] ElevenLabs integration (Chad voice, American English)
 - [x] HeyGen integration (Silas/Leo avatar, Avatar 4, custom background)
 - [x] Script generator (Claude API, lesson-aware, per-lesson previews)
 - [x] Build-Instructions.md student template
 - [x] 25fps→30fps conversion in pipeline
+- [x] Brand intro: 1.5s black screen with OA icon fade
+- [x] OA watermark via CSS overlay (not burned in)
 
-### Content direction locked:
+### Content direction ✅
 - [x] Orchestrator = human, agent does the building
 - [x] Screen captures show natural language instructions to Claude Code
 - [x] Full workflow: Define → Build → Test → Review → Test → Push
@@ -50,27 +53,28 @@
 - [x] Leo addresses students as "you", not first person
 - [x] Commas instead of periods for tighter audio pacing
 
-### Next steps (audio-first approach):
-- [ ] Generate Module 1 intro — audio only (ElevenLabs + Remotion code screen)
-- [ ] Generate Lesson 1 video — audio only
-- [ ] Validate content, pacing, and flow
-- [ ] If good: batch generate all 51 module intros + 120 lesson videos (audio only)
-- [ ] Then: generate HeyGen talking head clips for all videos (393 clips)
-- [ ] Composite final videos (Remotion: talking head + code screen + audio)
-- [ ] Upload to Supabase Storage, update lesson video_url fields
+### Foundations Modules 1-7 (14 lessons) ✅
+- [x] All 14 videos produced (ElevenLabs audio + HeyGen talking head + Remotion code screens)
+- [x] All 14 uploaded to Vimeo (OA folder, domain whitelisted, details hidden)
+- [x] Custom thumbnails (Leo frame + lesson title + CSS diagram, 850×480)
+- [x] Vimeo end screens (Replay + Next Lesson buttons via Vimeo Player SDK)
+- [x] Full transcripts for all 14 lessons
+- [x] All 17 outros fixed — every video has a unique ending
+- [x] Time estimates on course overview, per-module, per-lesson
 
-### Video structure:
-**Module intro** (51 total):
-- Talking head: intro + transitions + outro (3 HeyGen clips)
-- Code screens with ElevenLabs audio between them
-- Covers all lessons in the module with code previews
+### Terminal-style quizzes ✅
+- [x] LLM-graded spec-writing quizzes (Claude Haiku evaluation) for M4-M5
+- [x] `/api/quiz/evaluate-spec` — free-text spec evaluation
+- [x] `/api/quiz/evaluate` — per-question LLM grading with keyword fallback
+- [x] Quiz answer storage in `answers` jsonb column for review
+- [x] Color-coded correct/user answers on completion review
 
-**Lesson video** (120+ total):
-- Talking head: short intro + outro (2 HeyGen clips)
-- Code screen with ElevenLabs audio for main content
-- Shows spec-driven workflow in context
-
-**Total HeyGen clips needed: ~393**
+### Remaining video production
+- [ ] Generate videos for Modules 8-28 (37 lessons remaining in Foundations)
+- [ ] Generate videos for CrewAI Mastery (7 modules, 14 lessons)
+- [ ] Generate videos for LangGraph Advanced (7 modules, 14 lessons)
+- [ ] Generate videos for Magpipe (9 modules, 18 lessons)
+- [ ] ~393 HeyGen clips total needed for all remaining content
 
 ## Milestone 4 — Job Board & Community (Not Started)
 - [ ] Graduate Job Board (profiles, skills, rates, availability)
@@ -81,8 +85,16 @@
 
 ## Pending / Nice to Have
 - [ ] Configure OAuth providers in Supabase (Google, GitHub)
-- [ ] Connect custom domain (orchestratoracademy.com) ✅ done
+- [x] Connect custom domain (orchestratoracademy.com)
 - [ ] Postmark email integration (transactional emails)
 - [ ] End-to-end testing with Playwright
 - [ ] Email notifications (welcome, streak reminders, certificate)
 - [ ] Update assessment questions to cover expanded course content
+
+## Content Stats
+- **4 courses** | **51 modules** | **120+ lessons**
+- **51 module quizzes** (153 questions)
+- **17 achievement badges**
+- **14 videos published** (Modules 1-7, Foundations)
+- **5 database migrations**
+- **6 seed files** (11,037 lines)

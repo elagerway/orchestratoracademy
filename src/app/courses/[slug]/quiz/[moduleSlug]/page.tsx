@@ -4,9 +4,40 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { ModuleQuiz } from "@/components/gamification/module-quiz";
 import { TerminalQuiz } from "@/components/gamification/terminal-quiz";
+import { HybridQuiz } from "@/components/gamification/hybrid-quiz";
 import { ChevronLeft, Trophy, Lock, BookOpen, CheckCircle2, XCircle } from "lucide-react";
 import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress";
 import type { ModuleQuiz as ModuleQuizType, CourseWithModules } from "@/lib/types/database";
+
+// All foundation modules that use the hybrid (MC + terminal) quiz format
+const HYBRID_MODULE_SLUGS = [
+  "welcome-to-ai-orchestration",
+  "the-ai-orchestrator-role",
+  "tools-platforms-landscape",
+  "ai-ethics-responsible-use",
+  "next-steps-your-journey",
+  "understanding-apis",
+  "working-with-ai-apis",
+  "introduction-to-mcp",
+  "building-with-mcp-servers",
+  "claude-code-fundamentals",
+  "advanced-claude-code",
+  "connecting-ai-to-real-data",
+  "ai-tool-use-function-calling",
+  "workflow-automation-integration",
+  "ai-for-business-communication",
+  "evaluating-ai-outputs",
+  "ai-security-compliance",
+  "the-ai-orchestrator-portfolio",
+  "modern-web-development-nextjs",
+  "supabase-your-ai-backend",
+  "deploying-with-vercel",
+  "tailwind-css-ui-design-systems",
+  "typescript-for-ai-orchestrators",
+  "git-version-control",
+  "payments-monetization-stripe",
+  "building-full-stack-ai-applications",
+];
 
 interface QuizPageProps {
   params: Promise<{ slug: string; moduleSlug: string }>;
@@ -102,7 +133,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     : `/courses/${slug}`;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-8">
+    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-8">
       {/* Back link */}
       <Link
         href={`/courses/${slug}`}
@@ -212,6 +243,15 @@ export default async function QuizPage({ params }: QuizPageProps) {
             quiz={quiz as ModuleQuizType}
             moduleTitle={currentModule.title}
             courseSlug={slug}
+          />
+        </div>
+      ) : HYBRID_MODULE_SLUGS.includes(moduleSlug) ? (
+        <div>
+          <HybridQuiz
+            quiz={quiz as ModuleQuizType}
+            moduleTitle={currentModule.title}
+            courseSlug={slug}
+            moduleSlug={moduleSlug}
           />
         </div>
       ) : (
