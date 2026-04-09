@@ -42,10 +42,11 @@ export async function POST(request: Request) {
   let total: number;
   let passed: boolean;
 
-  if (hybrid_score && typeof hybrid_score.score === "number" && typeof hybrid_score.total === "number") {
+  if (hybrid_score && typeof hybrid_score.score === "number") {
     // Hybrid quiz — client-scored (MC + terminal keyword matching)
-    total = hybrid_score.total;
-    if (total <= 0 || !Number.isInteger(hybrid_score.score) || !Number.isInteger(total)) {
+    // Use 5 as the expected hybrid quiz total (all hybrid quizzes have 5 questions)
+    total = 5;
+    if (!Number.isInteger(hybrid_score.score) || hybrid_score.score < 0) {
       return NextResponse.json({ error: "Invalid score" }, { status: 400 });
     }
     score = Math.max(0, Math.min(hybrid_score.score, total));

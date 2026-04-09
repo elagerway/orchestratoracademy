@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.7.1] - 2026-04-09
+
+### Added
+- 6 lesson videos for Module 9: Working with AI APIs (The OpenAI API, The Anthropic API, Comparing AI APIs)
+- 6 lesson videos for Module 10: Introduction to MCP (What is MCP?, MCP Architecture, MCP Capabilities)
+- 12 Remotion code screen compositions for M9-M10 in Root.tsx
+- Full transcripts for all 6 new lessons
+
+### Fixed
+- Hybrid quiz API: server now hardcodes `total=5` instead of trusting client-supplied total (prevents score inflation)
+- Hybrid quiz API: score clamped and `passed` re-derived server-side
+- Terminal submit logic extracted from event handler (no more FormEvent/KeyboardEvent type mismatch)
+- Silent fallback to wrong module's quiz questions replaced with thrown error
+- Removed overly-broad `"0"` keyword from M9 quiz acceptedKeywords
+- Tab-fill now works even when textarea has content (overwrites instead of no-op)
+- Already-passed review page skips per-question display for hybrid modules (stored answers don't match)
+- Stale `quiz.questions` removed from `submitQuiz` useCallback dependency array
+
 ## [0.7.0] - 2026-04-09
 
 ### Added

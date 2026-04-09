@@ -69,8 +69,13 @@
 - [x] Quiz answer storage in `answers` jsonb column for review
 - [x] Color-coded correct/user answers on completion review
 
+### Foundations Modules 8-10 (9 lessons) ✅
+- [x] M8: Understanding APIs (3 lessons) — uploaded to Vimeo
+- [x] M9: Working with AI APIs (3 lessons) — stitched, pending Vimeo upload
+- [x] M10: Introduction to MCP (3 lessons) — stitched, pending Vimeo upload
+
 ### Remaining video production
-- [ ] Generate videos for Modules 8-28 (37 lessons remaining in Foundations)
+- [ ] Generate videos for Modules 11-28 (54 lessons remaining in Foundations)
 - [ ] Generate videos for CrewAI Mastery (7 modules, 14 lessons)
 - [ ] Generate videos for LangGraph Advanced (7 modules, 14 lessons)
 - [ ] Generate videos for Magpipe (9 modules, 18 lessons)
@@ -95,6 +100,6 @@
 - **4 courses** | **51 modules** | **120+ lessons**
 - **51 module quizzes** (153 questions)
 - **17 achievement badges**
-- **14 videos published** (Modules 1-7, Foundations)
+- **20 videos produced** (Modules 1-10, Foundations; M1-M8 on Vimeo)
 - **5 database migrations**
 - **6 seed files** (11,037 lines)
