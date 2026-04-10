@@ -163,7 +163,8 @@ supabase/
 | CrewAI Mastery | 7 | 14 | No ($29/mo) |
 | LangGraph Advanced | 7 | 14 | No ($29/mo) |
 | AI Communications with Magpipe | 9 | 18 | No ($29/mo) |
-| **Total** | **51** | **123** | |
+| Supercharging Context & Memory | 7 | 14 | No ($29/mo) |
+| **Total** | **58** | **137** | |
 
 ## Learning Flow
 1. Browse courses → Enroll (free or paid)

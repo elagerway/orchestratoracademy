@@ -97,8 +97,8 @@
 - [ ] Update assessment questions to cover expanded course content
 
 ## Content Stats
-- **4 courses** | **51 modules** | **120+ lessons**
-- **51 module quizzes** (153 questions)
+- **5 courses** | **58 modules** | **137 lessons**
+- **58 module quizzes** (174 questions)
 - **17 achievement badges**
 - **20 videos produced** (Modules 1-10, Foundations; M1-M8 on Vimeo)
 - **5 database migrations**

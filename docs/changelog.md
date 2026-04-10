@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.0] - 2026-04-09
+
+### Added
+- New premium course: "Supercharging Context & Memory" ($29/mo)
+  - 7 modules, 14 lessons, 7 module quizzes (21 questions)
+  - Covers Karpathy's LLM Wiki pattern, AI 2027 context thesis, Obsidian knowledge management
+  - Modules: Context Bottleneck, LLM Wiki Pattern, Obsidian Setup, Claude Code Wiki Engine, Interlinking Strategies, Scaling, Capstone
+- Seed file: `supabase/seed_context_memory_course.sql` (eeee UUID prefix)
+- Course, modules, lessons, and quizzes deployed to production database
+
 ## [0.7.1] - 2026-04-09
 
 ### Added
