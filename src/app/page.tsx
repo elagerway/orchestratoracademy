@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   BrainCircuit,
   Workflow,
@@ -6,8 +7,13 @@ import {
   Bot,
   Check,
   ArrowRight,
+  Shield,
+  Database,
+  RefreshCw,
+  GitBranch,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { HeroImageRotator } from "@/components/landing/hero-image-rotator"
 import {
   Card,
   CardHeader,
@@ -39,7 +45,7 @@ const skills = [
     icon: Bot,
     title: "Multi-Agent Systems",
     description:
-      "Design systems where multiple AI agents collaborate to solve complex problems.",
+      "Design teams of AI agents that collaborate, delegate, and hire each other.",
   },
   {
     icon: Workflow,
@@ -52,6 +58,30 @@ const skills = [
     title: "AI Communications",
     description:
       "Build voice and chat agents that handle real customer conversations.",
+  },
+  {
+    icon: Shield,
+    title: "Security & Governance",
+    description:
+      "Lock down deployments with OWASP compliance, deny rules, sandboxing, and security agents.",
+  },
+  {
+    icon: Database,
+    title: "Context & Memory",
+    description:
+      "Build compounding knowledge bases that make your AI smarter every day.",
+  },
+  {
+    icon: RefreshCw,
+    title: "Self-Improving Agents",
+    description:
+      "Agents that optimize their own prompts and skills overnight using autoresearch.",
+  },
+  {
+    icon: GitBranch,
+    title: "Model Routing",
+    description:
+      "Route tasks to the right model at the right cost — Haiku for speed, Opus for reasoning.",
   },
 ]
 
@@ -166,45 +196,54 @@ export default function LandingPage() {
       {/* ---- Hero ---- */}
       <section className="relative overflow-hidden bg-background">
         <div className="mx-auto max-w-6xl px-5 pb-24 pt-20 sm:px-8 sm:pb-32 sm:pt-28 lg:pb-40 lg:pt-36">
-          <div className="animate-fade-up">
-            <span className="inline-block rounded-full border border-emerald-accent/30 bg-emerald-accent/8 px-4 py-1.5 text-[13px] font-medium text-emerald-accent">
-              Now available — free foundations course
-            </span>
+          <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-16">
+            {/* Left — copy */}
+            <div className="flex-1">
+              <div className="animate-fade-up">
+                <span className="inline-block rounded-full border border-emerald-accent/30 bg-emerald-accent/8 px-4 py-1.5 text-[13px] font-medium text-emerald-accent">
+                  Now available — 8 courses, 155+ lessons
+                </span>
+              </div>
+
+              <h1 className="animate-fade-up-delay-1 mt-8 max-w-3xl font-heading text-5xl font-bold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
+                Become an
+                <br />
+                <span className="text-emerald-accent">AI Orchestrator</span>
+              </h1>
+
+              <p className="animate-fade-up-delay-2 mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+                The world doesn&rsquo;t need more AI tools&thinsp;&mdash;&thinsp;it
+                needs people who know how to orchestrate them. Learn to design,
+                connect, and manage AI systems that deliver real results.
+              </p>
+
+              <div className="animate-fade-up-delay-3 mt-10 flex flex-wrap items-center gap-4">
+                <Link href="/auth/signup">
+                  <Button
+                    size="lg"
+                    className="bg-emerald-accent px-7 text-emerald-accent-foreground hover:bg-emerald-accent/90"
+                  >
+                    Start Free Course
+                    <ArrowRight className="ml-1.5 size-4" />
+                  </Button>
+                </Link>
+                <Link href="/courses">
+                  <Button variant="outline" size="lg" className="px-7">
+                    Explore Courses
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="mt-12 text-sm tracking-wide text-muted-foreground">
+                8 courses &middot; 155+ lessons &middot; Free to start
+              </p>
+            </div>
+
+            {/* Right — rotating course images */}
+            <div className="hidden w-full max-w-lg flex-shrink-0 animate-fade-up-delay-2 lg:block">
+              <HeroImageRotator />
+            </div>
           </div>
-
-          <h1 className="animate-fade-up-delay-1 mt-8 max-w-3xl font-heading text-5xl font-bold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
-            Become an
-            <br />
-            <span className="text-emerald-accent">AI Orchestrator</span>
-          </h1>
-
-          <p className="animate-fade-up-delay-2 mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            The world doesn&rsquo;t need more AI tools&thinsp;&mdash;&thinsp;it
-            needs people who know how to orchestrate them. Learn to design,
-            connect, and manage AI systems that deliver real results.
-          </p>
-
-          <div className="animate-fade-up-delay-3 mt-10 flex flex-wrap items-center gap-4">
-            <Link href="/auth/signup">
-              <Button
-                size="lg"
-                className="bg-emerald-accent px-7 text-emerald-accent-foreground hover:bg-emerald-accent/90"
-              >
-                Start Free Course
-                <ArrowRight className="ml-1.5 size-4" />
-              </Button>
-            </Link>
-            <Link href="/courses">
-              <Button variant="outline" size="lg" className="px-7">
-                Explore Courses
-              </Button>
-            </Link>
-          </div>
-
-          {/* Social proof hint */}
-          <p className="mt-12 text-sm tracking-wide text-muted-foreground">
-            4 courses &middot; 120+ lessons &middot; Free to start
-          </p>
         </div>
       </section>
 
