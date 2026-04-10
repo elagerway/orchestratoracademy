@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HeroImageRotator } from "@/components/landing/hero-image-rotator"
+import { createClient } from "@/lib/supabase/server"
 import {
   Card,
   CardHeader,
@@ -190,7 +191,11 @@ const faqItems = [
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const startHref = user ? "/courses/ai-orchestration-foundations" : "/auth/signup";
+
   return (
     <>
       {/* ---- Hero ---- */}
@@ -225,7 +230,7 @@ export default function LandingPage() {
               </p>
 
               <div className="animate-fade-up-delay-3 mt-10 flex flex-wrap items-center gap-4">
-                <Link href="/auth/signup">
+                <Link href={startHref}>
                   <Button
                     size="lg"
                     className="bg-emerald-accent px-7 text-emerald-accent-foreground hover:bg-emerald-accent/90"
@@ -317,7 +322,7 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-10 text-center">
-              <Link href="/auth/signup">
+              <Link href={startHref}>
                 <Button
                   size="lg"
                   className="bg-emerald-accent px-7 text-emerald-accent-foreground hover:bg-emerald-accent/90"
@@ -449,7 +454,7 @@ export default function LandingPage() {
             card required.
           </p>
           <div className="mt-9">
-            <Link href="/auth/signup">
+            <Link href={startHref}>
               <Button
                 size="lg"
                 className="bg-emerald-accent px-9 text-emerald-accent-foreground hover:bg-emerald-accent/90"
