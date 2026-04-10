@@ -25,7 +25,7 @@ export function HeroImageRotator() {
   }, []);
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white shadow-lg">
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white">
       {images.map((img, i) => (
         <div
           key={img.src}
