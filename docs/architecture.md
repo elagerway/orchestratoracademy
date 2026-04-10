@@ -164,7 +164,8 @@ supabase/
 | LangGraph Advanced | 7 | 14 | No ($29/mo) |
 | AI Communications with Magpipe | 9 | 18 | No ($29/mo) |
 | Supercharging Context & Memory | 7 | 14 | No ($29/mo) |
-| **Total** | **58** | **137** | |
+| Multi-Agent Systems with Paperclip | 9 | 18 | No ($29/mo) |
+| **Total** | **67** | **155** | |
 
 ## Learning Flow
 1. Browse courses → Enroll (free or paid)
@@ -186,7 +187,7 @@ supabase/
 - **End screen**: CSS overlay on video end (Replay + Next Lesson) via @vimeo/player SDK
 - **Watermark**: CSS overlay in web player linking to course overview
 - **Hosting**: Vimeo (private, whitelist embed, hidden details, OA folder)
-- **20 foundation lessons** produced (M1-M7 on Vimeo, M8 on Vimeo, M9-M10 stitched locally)
+- **77 foundation lessons** produced (M1-M28, all on Vimeo with thumbnails)
 - Full pipeline documented in `docs/video-pipeline.md`
 
 ## Email
@@ -199,5 +200,5 @@ supabase/
 1. **MVP**: Landing page, auth, free course, progress tracking ✅
 2. **Monetization**: Stripe, paid courses, certifications, B2B page ✅
 3. **Gamification**: XP, quizzes, achievements, streaks ✅
-4. **Video Production**: 20 foundation lesson videos (M1-M10), Vimeo hosting ✅ (in progress for M11-M28)
+4. **Video Production**: 77 foundation lesson videos (M1-M28), all on Vimeo ✅
 5. **Job Board**: Graduate profiles, company directory, messaging (next)

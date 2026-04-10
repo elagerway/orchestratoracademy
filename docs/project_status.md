@@ -69,13 +69,12 @@
 - [x] Quiz answer storage in `answers` jsonb column for review
 - [x] Color-coded correct/user answers on completion review
 
-### Foundations Modules 8-10 (9 lessons) ✅
-- [x] M8: Understanding APIs (3 lessons) — uploaded to Vimeo
-- [x] M9: Working with AI APIs (3 lessons) — stitched, pending Vimeo upload
-- [x] M10: Introduction to MCP (3 lessons) — stitched, pending Vimeo upload
+### Foundations Modules 8-28 (63 lessons) ✅
+- [x] M8-M10: APIs + MCP (9 lessons) — all on Vimeo
+- [x] M11-M20: MCP Servers, Claude Code, Data, Tools, Automation, Communication, Evals, Security, Portfolio (30 lessons) — all on Vimeo
+- [x] M21-M28: Next.js, Supabase, Vercel, Tailwind, TypeScript, Git, Stripe, Full-Stack (24 lessons) — all on Vimeo
 
 ### Remaining video production
-- [ ] Generate videos for Modules 11-28 (54 lessons remaining in Foundations)
 - [ ] Generate videos for CrewAI Mastery (7 modules, 14 lessons)
 - [ ] Generate videos for LangGraph Advanced (7 modules, 14 lessons)
 - [ ] Generate videos for Magpipe (9 modules, 18 lessons)
@@ -97,8 +96,9 @@
 - [ ] Update assessment questions to cover expanded course content
 
 ## Content Stats
-- **5 courses** | **58 modules** | **137 lessons**
-- **58 module quizzes** (174 questions)
+- **7 courses** | **67 modules** | **155 lessons**
+- **67 module quizzes** (201 questions)
+- **77 foundation videos** (M1-M28, all on Vimeo)
 - **17 achievement badges**
 - **20 videos produced** (Modules 1-10, Foundations; M1-M8 on Vimeo)
 - **5 database migrations**

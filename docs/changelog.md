@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0] - 2026-04-09
+
+### Added
+- All 77 foundation lesson videos complete (M1-M28) — all uploaded to Vimeo with thumbnails, domain whitelisting, OA folder, and database URLs
+- 54 new videos for M11-M28: scripts, ElevenLabs audio, HeyGen talking heads, Remotion code screens, ffmpeg stitching
+- 108 Remotion code screen compositions for M11-M28 in Root.tsx
+- New premium course: "Multi-Agent Systems with Paperclip" ($29/mo)
+  - 9 modules (7 core + 2 bonus), 18 lessons, 9 quizzes
+  - Bonus: Hermes Agent Adapter (GEPA self-improvement, cross-framework workflows)
+  - Bonus: Org Charts (5 ready-to-use company architecture templates with cost breakdowns)
+- New foundations module: M29 OpenRouter — Universal AI Gateway (3 lessons, quiz)
+- Seed file: `supabase/seed_paperclip_course.sql`
+
+### Changed
+- Foundations video production milestone complete — all 77 lessons have videos
+- Updated architecture docs to reflect 67 modules, 155 lessons across 7 courses
+
 ## [0.8.0] - 2026-04-09
 
 ### Added
