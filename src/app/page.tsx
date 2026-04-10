@@ -196,9 +196,16 @@ export default function LandingPage() {
       {/* ---- Hero ---- */}
       <section className="relative overflow-hidden bg-background">
         <div className="mx-auto max-w-6xl px-5 pb-24 pt-20 sm:px-8 sm:pb-32 sm:pt-28 lg:pb-40 lg:pt-36">
-          <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-16">
-            {/* Left — copy */}
-            <div className="flex-1">
+          <div className="relative">
+            {/* Background image — behind copy */}
+            <div className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block lg:w-[480px] xl:w-[540px]">
+              <div className="opacity-20">
+                <HeroImageRotator />
+              </div>
+            </div>
+
+            {/* Copy — always on top */}
+            <div className="relative z-10">
               <div className="animate-fade-up">
                 <span className="inline-block rounded-full border border-emerald-accent/30 bg-emerald-accent/8 px-4 py-1.5 text-[13px] font-medium text-emerald-accent">
                   Now available — 8 courses, 155+ lessons
@@ -237,11 +244,6 @@ export default function LandingPage() {
               <p className="mt-12 text-sm tracking-wide text-muted-foreground">
                 8 courses &middot; 155+ lessons &middot; Free to start
               </p>
-            </div>
-
-            {/* Right — rotating course images */}
-            <div className="hidden w-full max-w-lg flex-shrink-0 animate-fade-up-delay-2 lg:block">
-              <HeroImageRotator />
             </div>
           </div>
         </div>
