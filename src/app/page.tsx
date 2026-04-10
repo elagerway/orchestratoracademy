@@ -199,7 +199,7 @@ export default function LandingPage() {
           <div className="relative">
             {/* Background image — behind copy */}
             <div className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 lg:block lg:w-[480px] xl:w-[540px]">
-              <div className="opacity-20">
+              <div className="opacity-80">
                 <HeroImageRotator />
               </div>
             </div>
