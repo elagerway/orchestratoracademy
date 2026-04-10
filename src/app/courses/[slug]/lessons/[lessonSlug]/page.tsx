@@ -189,7 +189,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
+    <div className="flex h-[calc(100vh-4rem)]">
       {/* Sidebar */}
       <aside className="hidden w-72 shrink-0 overflow-y-auto border-r bg-muted/30 p-4 lg:block">
         <Link
