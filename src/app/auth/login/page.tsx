@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -36,6 +36,12 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.replace("/courses");
+    });
+  }, [router, supabase.auth]);
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
