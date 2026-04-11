@@ -1,6 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,6 +31,7 @@ import {
   XCircle,
   ArrowLeft,
   ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 interface AdminData {
@@ -1004,13 +1022,42 @@ function DeploysTab({ data }: { data: AdminData }) {
 // ── Courses Tab ───────────────────────────────────────────────────────────────
 
 function CoursesTab({ data }: { data: AdminData }) {
-  const [courses, setCourses] = useState(data.courses);
+  const [courses, setCourses] = useState(
+    [...data.courses].sort((a, b) => (a.order as number) - (b.order as number))
+  );
   const [toggling, setToggling] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [orderChanged, setOrderChanged] = useState(false);
   const [warning, setWarning] = useState<{
     courseId: string;
     courseTitle: string;
     users: { email: string; full_name: string }[];
   } | null>(null);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setCourses((prev) => {
+      const oldIndex = prev.findIndex((c) => c.id === active.id);
+      const newIndex = prev.findIndex((c) => c.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+    setOrderChanged(true);
+  }
+
+  async function saveOrder() {
+    setSaving(true);
+    await fetch("/api/admin/courses/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ordered_ids: courses.map((c) => c.id as string),
+      }),
+    });
+    setSaving(false);
+    setOrderChanged(false);
+  }
 
   async function handleToggle(courseId: string, currentActive: boolean, courseTitle: string) {
     if (currentActive) {
@@ -1101,63 +1148,132 @@ function CoursesTab({ data }: { data: AdminData }) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-left">
-              <th className="px-4 py-3 font-medium">Course</th>
-              <th className="px-4 py-3 font-medium">Type</th>
-              <th className="px-4 py-3 font-medium text-right">Enrolled</th>
-              <th className="px-4 py-3 font-medium text-right">Order</th>
-              <th className="px-4 py-3 font-medium text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {courses.map((c) => {
-              const isActive = c.active as boolean;
-              const courseId = c.id as string;
-              const enrolled = data.enrollmentCounts[courseId] ?? 0;
+      {orderChanged && (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={saveOrder}
+            disabled={saving}
+            className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
+          >
+            {saving ? "Saving..." : "Save Order"}
+          </button>
+          <span className="text-xs text-muted-foreground">Drag to reorder, then save</span>
+        </div>
+      )}
 
-              return (
-                <tr key={courseId} className="border-b border-border/50 hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{c.title as string}</p>
-                    <p className="text-xs text-muted-foreground">{c.slug as string}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      c.is_free ? "bg-emerald-accent/10 text-emerald-accent" : "bg-muted text-muted-foreground"
-                    }`}>
-                      {c.is_free ? "Free" : "Pro"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono">
-                    {enrolled}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono">
-                    {c.order as number}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleToggle(courseId, isActive, c.title as string)}
-                      disabled={toggling === courseId}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        isActive ? "bg-emerald-accent" : "bg-neutral-600"
-                      } ${toggling === courseId ? "opacity-50" : ""}`}
-                    >
-                      <span
-                        className={`inline-block size-4 rounded-full bg-white transition-transform ${
-                          isActive ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <DndContext
+        sensors={useSensors(
+          useSensor(PointerSensor),
+          useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+        )}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={courses.map((c) => c.id as string)} strategy={verticalListSortingStrategy}>
+          <div className="rounded-lg border border-border">
+            {courses.map((c, index) => (
+              <SortableCourseRow
+                key={c.id as string}
+                course={c}
+                index={index}
+                enrolled={data.enrollmentCounts[c.id as string] ?? 0}
+                toggling={toggling}
+                onToggle={handleToggle}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
+
+function SortableCourseRow({
+  course: c,
+  index,
+  enrolled,
+  toggling,
+  onToggle,
+}: {
+  course: Record<string, unknown>;
+  index: number;
+  enrolled: number;
+  toggling: string | null;
+  onToggle: (id: string, active: boolean, title: string) => void;
+}) {
+  const courseId = c.id as string;
+  const isActive = c.active as boolean;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: courseId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-4 border-b border-border/50 px-4 py-3 ${
+        isDragging ? "z-10 bg-muted shadow-lg" : "hover:bg-muted/30"
+      }`}
+    >
+      {/* Drag handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="3" r="1.5" />
+          <circle cx="11" cy="3" r="1.5" />
+          <circle cx="5" cy="8" r="1.5" />
+          <circle cx="11" cy="8" r="1.5" />
+          <circle cx="5" cy="13" r="1.5" />
+          <circle cx="11" cy="13" r="1.5" />
+        </svg>
+      </button>
+
+      <span className="w-6 text-center text-xs text-muted-foreground">{index + 1}</span>
+
+      {/* Course info */}
+      <div className="flex-1 min-w-0">
+        <p className="font-medium">{c.title as string}</p>
+        <p className="text-xs text-muted-foreground">{c.slug as string}</p>
       </div>
+
+      {/* Type */}
+      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+        c.is_free ? "bg-emerald-accent/10 text-emerald-accent" : "bg-muted text-muted-foreground"
+      }`}>
+        {c.is_free ? "Free" : "Pro"}
+      </span>
+
+      {/* Enrolled */}
+      <span className="w-12 shrink-0 text-right font-mono text-sm">{enrolled}</span>
+
+      {/* Toggle */}
+      <button
+        onClick={() => onToggle(courseId, isActive, c.title as string)}
+        disabled={toggling === courseId}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+          isActive ? "bg-emerald-accent" : "bg-neutral-600"
+        } ${toggling === courseId ? "opacity-50" : ""}`}
+      >
+        <span
+          className={`inline-block size-4 rounded-full bg-white transition-transform ${
+            isActive ? "translate-x-6" : "translate-x-1"
+          }`}
+        />
+      </button>
     </div>
   );
 }
