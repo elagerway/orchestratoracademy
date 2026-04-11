@@ -27,11 +27,13 @@ export async function POST(request: Request) {
   const user = await verifyAdmin();
   if (!user) return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
-  const { title, slug, excerpt, content, featured_image_url, published } = await request.json();
+  const { title, slug, excerpt, content, featured_image_url, published, meta_description, tags, author_name, status } = await request.json();
 
   if (!title || !slug) {
     return NextResponse.json({ error: "Missing title or slug" }, { status: 400 });
   }
+
+  const isPublished = published ?? status === "published";
 
   const supa = getSupa();
   const { data, error } = await supa
@@ -42,9 +44,13 @@ export async function POST(request: Request) {
       excerpt: excerpt || "",
       content: content || "",
       featured_image_url: featured_image_url || null,
+      meta_description: meta_description || "",
+      tags: tags || [],
+      author_name: author_name || "Orchestrator Academy",
+      status: status || (isPublished ? "published" : "draft"),
       author_id: user.id,
-      published: published ?? false,
-      published_at: published ? new Date().toISOString() : null,
+      published: isPublished,
+      published_at: isPublished ? new Date().toISOString() : null,
     })
     .select("id, slug")
     .single();
@@ -60,7 +66,7 @@ export async function PATCH(request: Request) {
   const user = await verifyAdmin();
   if (!user) return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
-  const { id, title, slug, excerpt, content, featured_image_url, published } = await request.json();
+  const { id, title, slug, excerpt, content, featured_image_url, published, meta_description, tags, author_name, status } = await request.json();
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
@@ -72,6 +78,10 @@ export async function PATCH(request: Request) {
   if (excerpt !== undefined) update.excerpt = excerpt;
   if (content !== undefined) update.content = content;
   if (featured_image_url !== undefined) update.featured_image_url = featured_image_url;
+  if (meta_description !== undefined) update.meta_description = meta_description;
+  if (tags !== undefined) update.tags = tags;
+  if (author_name !== undefined) update.author_name = author_name;
+  if (status !== undefined) update.status = status;
   if (published !== undefined) {
     update.published = published;
     if (published) update.published_at = new Date().toISOString();

@@ -1314,16 +1314,18 @@ function BlogTab({ data }: { data: AdminData }) {
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [featuredImage, setFeaturedImage] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [tags, setTags] = useState("");
+  const [authorName, setAuthorName] = useState("Orchestrator Academy");
+  const [status, setStatus] = useState<"draft" | "scheduled" | "published">("draft");
   const [saving, setSaving] = useState(false);
 
   function startCreate() {
     setEditing(null);
     setCreating(true);
-    setTitle("");
-    setSlug("");
-    setExcerpt("");
-    setContent("");
-    setFeaturedImage("");
+    setTitle(""); setSlug(""); setExcerpt(""); setContent("");
+    setFeaturedImage(""); setMetaDescription(""); setTags("");
+    setAuthorName("Orchestrator Academy"); setStatus("draft");
   }
 
   function startEdit(post: Record<string, unknown>) {
@@ -1331,41 +1333,44 @@ function BlogTab({ data }: { data: AdminData }) {
     setEditing(post);
     setTitle(post.title as string);
     setSlug(post.slug as string);
-    setExcerpt(post.excerpt as string);
-    setContent(post.content as string);
+    setExcerpt((post.excerpt as string) || "");
+    setContent((post.content as string) || "");
     setFeaturedImage((post.featured_image_url as string) || "");
+    setMetaDescription((post.meta_description as string) || "");
+    setTags(((post.tags as string[]) || []).join(", "));
+    setAuthorName((post.author_name as string) || "Orchestrator Academy");
+    setStatus((post.status as "draft" | "scheduled" | "published") || (post.published ? "published" : "draft"));
   }
 
-  function cancelEdit() {
-    setEditing(null);
-    setCreating(false);
-  }
+  function cancelEdit() { setEditing(null); setCreating(false); }
 
   function autoSlug(t: string) {
     return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
-  async function handleSave(publish: boolean) {
+  async function handleSave() {
     setSaving(true);
+    const tagsArray = tags.split(",").map((t) => t.trim()).filter(Boolean);
+    const isPublished = status === "published";
+    const payload = {
+      title, slug: slug || autoSlug(title), excerpt, content,
+      featured_image_url: featuredImage || null,
+      meta_description: metaDescription, tags: tagsArray,
+      author_name: authorName, status,
+      published: isPublished,
+    };
 
     if (creating) {
       const res = await fetch("/api/admin/blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title, slug: slug || autoSlug(title), excerpt, content,
-          featured_image_url: featuredImage || null,
-          published: publish,
-        }),
+        body: JSON.stringify(payload),
       });
       const result = await res.json();
       if (result.success) {
         setPosts((prev) => [{
-          id: result.post.id,
-          title, slug: slug || autoSlug(title), excerpt, content,
-          featured_image_url: featuredImage || null,
-          published: publish,
-          published_at: publish ? new Date().toISOString() : null,
+          id: result.post.id, ...payload,
+          published_at: isPublished ? new Date().toISOString() : null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }, ...prev]);
@@ -1375,24 +1380,17 @@ function BlogTab({ data }: { data: AdminData }) {
       await fetch("/api/admin/blog", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editing.id, title, slug, excerpt, content,
-          featured_image_url: featuredImage || null,
-          published: publish,
-        }),
+        body: JSON.stringify({ id: editing.id, ...payload }),
       });
       setPosts((prev) => prev.map((p) =>
         p.id === editing.id ? {
-          ...p, title, slug, excerpt, content,
-          featured_image_url: featuredImage || null,
-          published: publish,
-          published_at: publish ? new Date().toISOString() : p.published_at,
+          ...p, ...payload,
+          published_at: isPublished ? new Date().toISOString() : p.published_at,
           updated_at: new Date().toISOString(),
         } : p
       ));
       setEditing(null);
     }
-
     setSaving(false);
   }
 
@@ -1405,82 +1403,188 @@ function BlogTab({ data }: { data: AdminData }) {
     setPosts((prev) => prev.filter((p) => p.id !== id));
   }
 
-  // Editor view
+  // Editor view — two-column layout
   if (creating || editing) {
+    const postSlug = slug || autoSlug(title);
+    const postUrl = `https://orchestratoracademy.com/blog/${postSlug}`;
+    const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(postUrl)}`;
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`;
+
     return (
       <div className="space-y-4">
-        <button onClick={cancelEdit} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-4" />
-          Back to Posts
-        </button>
+        <div className="flex items-center justify-between">
+          <button onClick={cancelEdit} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-4" />
+            Back to List
+          </button>
+          <h3 className="text-sm font-medium text-muted-foreground">{creating ? "New Post" : "Edit Post"}</h3>
+        </div>
 
-        <h3 className="text-lg font-semibold">{creating ? "New Post" : "Edit Post"}</h3>
+        <div className="flex gap-6">
+          {/* Left — Content */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Title</label>
+              <input
+                value={title}
+                onChange={(e) => { setTitle(e.target.value); if (creating) setSlug(autoSlug(e.target.value)); }}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-lg font-semibold outline-none focus:border-emerald-accent/50"
+                placeholder="Post title"
+              />
+            </div>
 
-        <div className="space-y-4 max-w-2xl">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Title</label>
-            <input
-              value={title}
-              onChange={(e) => { setTitle(e.target.value); if (creating) setSlug(autoSlug(e.target.value)); }}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
-              placeholder="Post title"
-            />
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Slug</label>
+              <input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono outline-none focus:border-emerald-accent/50"
+                placeholder="post-slug"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Content</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="min-h-[400px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-emerald-accent/50"
+                placeholder="Write your post in markdown..."
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Slug</label>
-            <input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono outline-none focus:border-emerald-accent/50"
-              placeholder="post-slug"
-            />
-          </div>
+          {/* Right — Metadata sidebar */}
+          <div className="w-72 shrink-0 space-y-5">
+            {/* Status */}
+            <div>
+              <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</label>
+              <div className="flex rounded-lg border border-border">
+                {(["draft", "scheduled", "published"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setStatus(s)}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium capitalize transition-colors first:rounded-l-lg last:rounded-r-lg ${
+                      status === s
+                        ? "bg-emerald-accent text-emerald-accent-foreground"
+                        : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Excerpt</label>
-            <textarea
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              className="min-h-[60px] w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
-              placeholder="Brief description for cards and meta tags"
-            />
-          </div>
+            {/* Meta description */}
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Meta Description <span className="normal-case text-muted-foreground/60">(max 300 chars)</span>
+              </label>
+              <textarea
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value.slice(0, 300))}
+                className="min-h-[70px] w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+                placeholder="SEO description"
+                maxLength={300}
+              />
+              <p className="mt-1 text-right text-[10px] text-muted-foreground">{metaDescription.length}/300</p>
+            </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Featured Image URL</label>
-            <input
-              value={featuredImage}
-              onChange={(e) => setFeaturedImage(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
-              placeholder="https://..."
-            />
-          </div>
+            {/* Excerpt */}
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Excerpt</label>
+              <textarea
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+                className="min-h-[70px] w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+                placeholder="Brief description for blog cards"
+              />
+            </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Content (Markdown)</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[300px] w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-emerald-accent/50"
-              placeholder="Write your post in markdown..."
-            />
-          </div>
+            {/* Author */}
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Author</label>
+              <input
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+              />
+            </div>
 
-          <div className="flex items-center gap-3">
+            {/* Tags */}
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Tags</label>
+              <input
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+                placeholder="Comma-separated"
+              />
+            </div>
+
+            {/* Featured Image */}
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Featured Image</label>
+              <input
+                value={featuredImage}
+                onChange={(e) => setFeaturedImage(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+                placeholder="https://..."
+              />
+              {featuredImage && (
+                <img src={featuredImage} alt="Preview" className="mt-2 w-full rounded-lg border border-border object-cover" style={{ maxHeight: 160 }} />
+              )}
+            </div>
+
+            {/* Social posting — only for published/editing */}
+            {!creating && status === "published" && (
+              <>
+                <div>
+                  <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Twitter / X</label>
+                  <a
+                    href={xUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-md bg-neutral-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
+                  >
+                    <XIcon className="size-3.5" />
+                    Post to X
+                  </a>
+                  {typeof editing?.twitter_posted_at === "string" && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Last posted: {new Date(editing.twitter_posted_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">LinkedIn</label>
+                  <a
+                    href={linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-md bg-[#0A66C2] px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-[#004182]"
+                  >
+                    <LinkedInIcon className="size-3.5" />
+                    {typeof editing?.linkedin_posted_at === "string" ? "Re-post to LinkedIn" : "Post to LinkedIn"}
+                  </a>
+                  {typeof editing?.linkedin_posted_at === "string" && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Last posted: {new Date(editing.linkedin_posted_at).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Save button */}
             <button
-              onClick={() => handleSave(false)}
+              onClick={handleSave}
               disabled={saving || !title}
-              className="rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+              className="w-full rounded-md bg-emerald-accent px-4 py-2.5 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
             >
-              {saving ? "Saving..." : "Save Draft"}
-            </button>
-            <button
-              onClick={() => handleSave(true)}
-              disabled={saving || !title}
-              className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
-            >
-              {saving ? "Publishing..." : "Publish"}
+              {saving ? "Saving..." : creating ? "Create Post" : "Update Post"}
             </button>
           </div>
         </div>
@@ -1509,29 +1613,41 @@ function BlogTab({ data }: { data: AdminData }) {
       ) : (
         <div className="space-y-2">
           {posts.map((post) => {
-            const isPublished = post.published as boolean;
+            const postStatus = (post.status as string) || (post.published ? "published" : "draft");
             const postSlug = post.slug as string;
             const postUrl = `https://orchestratoracademy.com/blog/${postSlug}`;
             const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(post.title as string)}&url=${encodeURIComponent(postUrl)}`;
             const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`;
+            const postTags = (post.tags as string[]) || [];
 
             return (
               <div key={post.id as string} className="flex items-center gap-4 rounded-lg border border-border px-4 py-3 hover:bg-muted/30">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{post.title as string}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    /blog/{postSlug}
-                    {typeof post.published_at === "string" && ` \u00b7 ${formatDate(post.published_at)}`}
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>/blog/{postSlug}</span>
+                    {typeof post.published_at === "string" && <span>{formatDate(post.published_at)}</span>}
+                    {postTags.length > 0 && (
+                      <span className="flex gap-1">
+                        {postTags.slice(0, 3).map((t) => (
+                          <span key={t} className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{t}</span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  isPublished ? "bg-emerald-accent/10 text-emerald-accent" : "bg-muted text-muted-foreground"
+                  postStatus === "published" ? "bg-emerald-accent/10 text-emerald-accent"
+                    : postStatus === "scheduled" ? "bg-amber-500/10 text-amber-500"
+                    : "bg-muted text-muted-foreground"
                 }`}>
-                  {isPublished ? <><Eye className="size-3" /> Live</> : <><EyeOff className="size-3" /> Draft</>}
+                  {postStatus === "published" ? <><Eye className="size-3" /> Live</>
+                    : postStatus === "scheduled" ? <><Eye className="size-3" /> Scheduled</>
+                    : <><EyeOff className="size-3" /> Draft</>}
                 </span>
 
-                {isPublished && (
+                {postStatus === "published" && (
                   <div className="flex items-center gap-1 shrink-0">
                     <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
                       className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" title="Share on LinkedIn">

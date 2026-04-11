@@ -16,26 +16,30 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const supabase = await createClient();
   const { data: post } = await supabase
     .from("blog_posts")
-    .select("title, excerpt, featured_image_url")
+    .select("title, excerpt, featured_image_url, meta_description, tags, author_name")
     .eq("slug", slug)
     .eq("published", true)
     .single();
 
   if (!post) return { title: "Post Not Found" };
 
+  const description = post.meta_description || post.excerpt;
+
   return {
     title: `${post.title} — AI Orchestrator Academy`,
-    description: post.excerpt,
+    description,
+    keywords: (post.tags as string[])?.join(", "),
+    authors: [{ name: post.author_name }],
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description,
       images: post.featured_image_url ? [post.featured_image_url] : [],
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt,
+      description,
       images: post.featured_image_url ? [post.featured_image_url] : [],
     },
   };
@@ -79,17 +83,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {post.title}
       </h1>
 
-      <div className="mt-4 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Calendar className="size-3.5" />
-          {new Date(post.published_at).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </span>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <span>{post.author_name}</span>
+          <span>&middot;</span>
+          <span className="flex items-center gap-1.5">
+            <Calendar className="size-3.5" />
+            {new Date(post.published_at).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </span>
+        </div>
         <ShareButtons url={postUrl} title={post.title} excerpt={post.excerpt} />
       </div>
+
+      {post.tags?.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {(post.tags as string[]).map((tag: string) => (
+            <span key={tag} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-8 border-t border-border pt-8">
         <article className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-heading prose-p:leading-relaxed prose-a:text-emerald-accent">
