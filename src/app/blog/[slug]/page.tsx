@@ -87,14 +87,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>{post.author_name}</span>
           <span>&middot;</span>
-          <span className="flex items-center gap-1.5">
-            <Calendar className="size-3.5" />
-            {new Date(post.published_at).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
+          {post.published_at && (
+            <span className="flex items-center gap-1.5">
+              <Calendar className="size-3.5" />
+              {new Date(post.published_at).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          )}
         </div>
         <ShareButtons url={postUrl} title={post.title} excerpt={post.excerpt} />
       </div>

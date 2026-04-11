@@ -151,21 +151,23 @@ export async function GET(request: Request) {
     const userRank = rankMap.get(userId) ?? totalStudents;
     const userDisplayName = getDisplayName(profile);
 
-    if (daysSinceActivity >= 14 && !sentSet.has(`${userId}:day14`)) {
-      dripType = "day14";
-      emailData = day14Email({
+    // Send in sequence: day3 → day7 → day14
+    // Never skip ahead — each drip must be sent before the next
+    if (daysSinceActivity >= 3 && !sentSet.has(`${userId}:day3`) && nextLesson) {
+      dripType = "day3";
+      emailData = day3Email({
         name: profile.full_name || "",
         displayName: userDisplayName,
+        lessonTitle: nextLesson.title,
         courseSlug: course.slug,
-        totalStudents,
-        avgLessonsCompleted,
+        lessonSlug: nextLesson.slug,
         completedCount,
         xp: userXp,
         level: userLevel,
         rank: userRank,
         leaderboard,
       });
-    } else if (daysSinceActivity >= 7 && !sentSet.has(`${userId}:day7`)) {
+    } else if (daysSinceActivity >= 7 && sentSet.has(`${userId}:day3`) && !sentSet.has(`${userId}:day7`)) {
       dripType = "day7";
       emailData = day7Email({
         name: profile.full_name || "",
@@ -180,14 +182,14 @@ export async function GET(request: Request) {
         rank: userRank,
         leaderboard,
       });
-    } else if (daysSinceActivity >= 3 && !sentSet.has(`${userId}:day3`) && nextLesson) {
-      dripType = "day3";
-      emailData = day3Email({
+    } else if (daysSinceActivity >= 14 && sentSet.has(`${userId}:day7`) && !sentSet.has(`${userId}:day14`)) {
+      dripType = "day14";
+      emailData = day14Email({
         name: profile.full_name || "",
         displayName: userDisplayName,
-        lessonTitle: nextLesson.title,
         courseSlug: course.slug,
-        lessonSlug: nextLesson.slug,
+        totalStudents,
+        avgLessonsCompleted,
         completedCount,
         xp: userXp,
         level: userLevel,

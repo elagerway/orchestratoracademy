@@ -35,10 +35,14 @@ export async function PATCH(request: Request) {
 
   // Update each course's order
   for (let i = 0; i < ordered_ids.length; i++) {
-    await supa
+    const { error } = await supa
       .from("courses")
       .update({ order: i + 1 })
       .eq("id", ordered_ids[i]);
+
+    if (error) {
+      return NextResponse.json({ error: `Failed to update course ${ordered_ids[i]}: ${error.message}` }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ success: true });

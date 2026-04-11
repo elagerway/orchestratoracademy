@@ -107,7 +107,11 @@ export async function DELETE(request: Request) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   const supa = getSupa();
-  await supa.from("blog_posts").delete().eq("id", id);
+  const { error } = await supa.from("blog_posts").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

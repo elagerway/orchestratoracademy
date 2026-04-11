@@ -51,11 +51,11 @@ export default async function BlogPage() {
                       </CardTitle>
                       <CardDescription className="flex items-center gap-1.5 text-xs">
                         <Calendar className="size-3" />
-                        {new Date(post.published_at).toLocaleDateString("en-US", {
+                        {post.published_at ? new Date(post.published_at).toLocaleDateString("en-US", {
                           month: "long",
                           day: "numeric",
                           year: "numeric",
-                        })}
+                        }) : "Draft"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
