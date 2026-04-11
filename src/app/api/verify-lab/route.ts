@@ -133,6 +133,23 @@ export async function POST(request: Request) {
       result = { verified: false, feedback: "Unknown lab type." };
   }
 
+  // Check if already verified — never downgrade a passing result
+  const { data: existingLab } = await supabase
+    .from("lab_verifications")
+    .select("verified")
+    .eq("user_id", user.id)
+    .eq("lesson_id", lesson_id)
+    .maybeSingle();
+
+  if (existingLab?.verified && !result.verified) {
+    return NextResponse.json({
+      verified: true,
+      feedback: "Already verified. Your previous passing submission is preserved.",
+      xp_earned: 0,
+      achievements: [],
+    });
+  }
+
   // Upsert lab verification
   await supabase.from("lab_verifications").upsert(
     {
