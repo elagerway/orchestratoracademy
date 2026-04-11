@@ -54,24 +54,15 @@ export function LessonCompleteButton({
 
         if (error) throw error;
         setIsCompleted(true);
+        setXpEarned(10);
+        setTimeout(() => setXpEarned(null), 3000);
 
-        // Award XP
-        try {
-          const res = await fetch("/api/gamification/lesson-xp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lesson_id: lessonId }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.xpEarned > 0) {
-              setXpEarned(data.xpEarned);
-              setTimeout(() => setXpEarned(null), 3000);
-            }
-          }
-        } catch {
-          // XP is bonus, don't fail the completion
-        }
+        // Confirm XP with API (fire and forget)
+        fetch("/api/gamification/lesson-xp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lesson_id: lessonId }),
+        }).catch(() => {});
       }
 
       router.refresh();
@@ -83,7 +74,7 @@ export function LessonCompleteButton({
   }
 
   return (
-    <div className="relative inline-block">
+    <div className="flex items-center gap-3">
       <Button
         onClick={handleToggleComplete}
         disabled={isLoading}
@@ -104,13 +95,10 @@ export function LessonCompleteButton({
         )}
       </Button>
       {xpEarned && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="rounded-lg bg-emerald-accent px-3 py-1.5 text-xs font-bold text-white shadow-lg">
-            <Sparkles className="mr-1 inline size-3" />
-            +{xpEarned} XP
-          </div>
-          <div className="mx-auto h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-emerald-accent" />
-        </div>
+        <span className="flex items-center gap-1 rounded-full bg-emerald-accent/10 px-3 py-1.5 text-xs font-bold text-emerald-accent animate-[xp-pop_0.4s_ease-out,xp-shake_0.3s_0.4s_ease-in-out_3]">
+          <Sparkles className="size-3 animate-[spin_0.6s_ease-out]" />
+          +{xpEarned} XP
+        </span>
       )}
     </div>
   );

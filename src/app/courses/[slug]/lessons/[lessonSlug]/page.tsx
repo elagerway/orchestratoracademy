@@ -16,7 +16,9 @@ import {
   Zap,
   HelpCircle,
   Trophy,
+  Home,
 } from "lucide-react";
+import { LessonSidebarUser } from "@/components/layout/lesson-sidebar-user";
 import { cn } from "@/lib/utils";
 import type {
   CourseWithModules,
@@ -188,21 +190,58 @@ export default async function LessonPage({ params }: LessonPageProps) {
     }
   }
 
+  // Fetch user profile for sidebar
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, avatar_url")
+    .eq("user_id", user.id)
+    .single();
+
+  const userName = profile?.full_name || user.email || "";
+  const nameParts = userName.split(" ").filter(Boolean);
+  const userInitials =
+    nameParts.length >= 2
+      ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      : (nameParts[0] || "?").slice(0, 2).toUpperCase();
+
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex h-screen">
       {/* Sidebar */}
-      <aside className="hidden w-72 shrink-0 overflow-y-auto border-r bg-muted/30 p-4 lg:block">
-        <Link
-          href={`/courses/${slug}`}
-          className="mb-4 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ChevronLeft className="size-4" />
-          Back to course
-        </Link>
+      <aside className="hidden w-72 shrink-0 flex-col border-r bg-muted/30 lg:flex">
+        {/* Logo + home */}
+        <div className="border-b border-border/60 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-md bg-foreground">
+                <span className="text-xs font-bold text-background">OA</span>
+              </div>
+              <span className="font-heading text-[13px] font-semibold leading-[1.15] tracking-tight">
+                Orchestrator Academy
+              </span>
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title="Dashboard"
+            >
+              <Home className="size-4" />
+            </Link>
+          </div>
+        </div>
 
-        <h3 className="mb-3 text-sm font-semibold">{typedCourse.title}</h3>
+        {/* Course nav - scrollable, hidden scrollbar */}
+        <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+          <Link
+            href={`/courses/${slug}`}
+            className="mb-4 flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronLeft className="size-4" />
+            Back to course
+          </Link>
 
-        <nav className="space-y-4">
+          <h3 className="mb-3 text-sm font-semibold">{typedCourse.title}</h3>
+
+          <nav className="space-y-4">
           {typedCourse.modules.map((mod) => (
             <div key={mod.id}>
               <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -256,6 +295,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </div>
           ))}
         </nav>
+        </div>
+
+        {/* User section */}
+        <LessonSidebarUser
+          user={{
+            email: user.email ?? "",
+            fullName: profile?.full_name ?? "",
+            avatarUrl: profile?.avatar_url ?? null,
+            initials: userInitials,
+          }}
+        />
       </aside>
 
       {/* Main content */}

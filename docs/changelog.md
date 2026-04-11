@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.10.1] - 2026-04-11
+
+### Added
+- Reusable dashboard sidebar component (`dashboard-sidebar.tsx`) with OA logo, active-page highlighting, and user popover menu
+- User popover on sidebar bottom-left — Profile, Dark/Light Mode, Sign Out (replaces inline items)
+- Lesson pages now have their own full-height sidebar with OA logo, home icon, scrollable course nav, and user popover
+- XP pop+shake animation on lesson completion (replaces bouncing bubble toast)
+- `xp-pop` and `xp-shake` CSS keyframes in globals.css
+
+### Changed
+- Global header and footer hidden on `/dashboard` and lesson pages — each has its own sidebar navigation
+- Dashboard leaderboard moved to top of page (above stats cards)
+- Dashboard stat cards now single-line layout (icon + number + label inline)
+- Lesson XP award is now optimistic — shows immediately on click, confirms with API in background
+- Middleware passes `x-pathname` header for conditional header/footer rendering
+- Profile link moved from sidebar nav into user popover menu
+
+### Removed
+- Floating bounce XP toast with speech-bubble triangle on lesson completion
+
 ## [0.10.0] - 2026-04-11
 
 ### Added

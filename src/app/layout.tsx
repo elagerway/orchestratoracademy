@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -26,11 +27,15 @@ export const metadata: Metadata = {
     "Learn to design, connect, and manage AI-powered systems. Free foundational course on prompt engineering, multi-agent systems, and AI workflows.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isDashboard = pathname.startsWith("/dashboard") || pathname.includes("/lessons/");
+
   return (
     <html
       lang="en"
@@ -54,9 +59,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <Header />
+        {!isDashboard && <Header />}
         <main className="flex-1">{children}</main>
-        <Footer />
+        {!isDashboard && <Footer />}
       </body>
     </html>
   );

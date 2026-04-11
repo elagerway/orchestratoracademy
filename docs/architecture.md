@@ -55,12 +55,12 @@ src/
 │   │       ├── quiz/
 │   │       │   └── [moduleSlug]/page.tsx     # Module quiz (own page)
 │   │       └── lessons/
-│   │           └── [lessonSlug]/page.tsx     # Lesson player
+│   │           └── [lessonSlug]/page.tsx     # Lesson player (own sidebar, no header/footer)
 │   ├── certificates/
 │   │   └── [number]/page.tsx                # Public certificate verification
 │   ├── dashboard/
-│   │   ├── layout.tsx                        # Dashboard sidebar layout (admin link conditional)
-│   │   ├── page.tsx                          # Student dashboard + leaderboard
+│   │   ├── layout.tsx                        # Dashboard layout (uses DashboardSidebar)
+│   │   ├── page.tsx                          # Student dashboard (leaderboard + stats + courses)
 │   │   ├── achievements/page.tsx            # Achievements grid
 │   │   ├── certificates/page.tsx            # User's certificates
 │   │   ├── profile/page.tsx                 # User profile + leaderboard display settings
@@ -89,8 +89,10 @@ src/
 │   │   ├── upgrade-button.tsx               # Checkout CTA
 │   │   └── manage-subscription-button.tsx   # Billing portal CTA
 │   ├── layout/
-│   │   ├── header.tsx                        # Header + dark mode toggle + AuthButton
-│   │   └── footer.tsx                        # Footer
+│   │   ├── header.tsx                        # Global header (hidden on dashboard + lessons)
+│   │   ├── footer.tsx                        # Global footer (hidden on dashboard + lessons)
+│   │   ├── dashboard-sidebar.tsx            # Dashboard sidebar (OA logo, nav, user popover)
+│   │   └── lesson-sidebar-user.tsx          # Lesson sidebar user popover (profile, theme, sign out)
 │   └── ui/                                   # shadcn/ui components
 ├── components/
 │   └── lab-challenge.tsx                     # In-lesson hands-on lab submission
