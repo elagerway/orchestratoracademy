@@ -11,9 +11,21 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Check if this is a new user (profile has no name set yet)
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (!profile?.full_name) {
+          return NextResponse.redirect(`${origin}/dashboard/profile?welcome=true`);
+        }
+      }
       return NextResponse.redirect(`${origin}${redirect}`);
     }
   }

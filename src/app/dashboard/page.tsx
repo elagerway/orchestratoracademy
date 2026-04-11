@@ -17,6 +17,7 @@ import {
   GraduationCap,
   PlayCircle,
   Trophy,
+  Medal,
 } from "lucide-react";
 import type {
   CourseWithModules,
@@ -51,6 +52,22 @@ export default async function DashboardPage() {
       (p) => p.lesson_id
     )
   );
+
+  // Leaderboard: top 10 by XP
+  const { data: leaderboard } = await supabase
+    .from("profiles")
+    .select("user_id, full_name, username, leaderboard_display, xp, level, avatar_url")
+    .gt("xp", 0)
+    .order("xp", { ascending: false })
+    .limit(10);
+
+  // Find current user's rank
+  const { count: usersAhead } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .gt("xp", (leaderboard?.find((l) => l.user_id === user.id)?.xp ?? 0));
+
+  const currentUserRank = (usersAhead ?? 0) + 1;
 
   // Process enrollments — no additional queries needed
   const enrolledCourses: Array<{
@@ -242,6 +259,78 @@ export default async function DashboardPage() {
           )}
         </div>
       )}
+      {/* Leaderboard */}
+      <div className="mt-10">
+        <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+          <Medal className="size-5 text-amber-500" />
+          Leaderboard
+        </h2>
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {(leaderboard ?? []).map((entry, i) => {
+                const isCurrentUser = entry.user_id === user.id;
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+                const nameParts = (entry.full_name || "").split(" ");
+                const first = nameParts[0] || "Anonymous";
+                const lastInit = nameParts.slice(1).join(" ").charAt(0);
+                const displayName =
+                  entry.leaderboard_display === "username" && entry.username
+                    ? entry.username
+                    : entry.leaderboard_display === "full_name" && entry.full_name
+                    ? entry.full_name
+                    : lastInit
+                    ? `${first} ${lastInit}.`
+                    : first;
+
+                return (
+                  <div
+                    key={entry.user_id}
+                    className={`flex items-center gap-4 px-5 py-3 ${
+                      isCurrentUser ? "bg-emerald-accent/5" : ""
+                    }`}
+                  >
+                    <span className="w-8 text-center text-sm font-semibold text-muted-foreground">
+                      {medal ?? `${i + 1}.`}
+                    </span>
+                    <div className="flex-1">
+                      <span className={`text-sm font-medium ${isCurrentUser ? "text-emerald-accent" : ""}`}>
+                        {displayName}
+                        {isCurrentUser && (
+                          <span className="ml-1.5 text-xs text-emerald-accent/70">(you)</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-emerald-accent">
+                        {entry.xp} XP
+                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        Lv.{entry.level}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {currentUserRank > 10 && (
+              <div className="border-t border-dashed border-border px-5 py-3">
+                <div className="flex items-center gap-4">
+                  <span className="w-8 text-center text-sm font-semibold text-muted-foreground">
+                    {currentUserRank}.
+                  </span>
+                  <span className="flex-1 text-sm font-medium text-emerald-accent">
+                    You
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Keep going to climb the ranks
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

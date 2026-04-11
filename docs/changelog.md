@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.10.0] - 2026-04-11
+
+### Added
+- **B2B Assess → Train → Deploy pipeline**
+  - `POST /api/assess` — receives CLI team assessment results, awards XP + achievements
+  - `POST /api/verify-lab` — verifies hands-on lab evidence (API responses, terminal output via Haiku, configs, file hashes)
+  - `POST /api/deploy-complete` — records project scaffold deployments, checks full-pipeline achievement
+  - `GET /api/learning-path/me` — returns assessment, course progress, and recommendations from Bearer token
+  - `GET /api/learning-path/[userId]` — same for web (cookie auth)
+  - Dual-auth Supabase client (`server-with-token.ts`) supports both cookie (web) and Bearer token (CLI)
+  - CLI commands: `/assess-team` (environment scan + maturity scoring) and `/deploy-project` (project scaffolding)
+  - 10 hands-on lab challenges mapped to foundation lessons
+  - 7 new achievements: first-assessment, maturity-3, maturity-5, first-lab, five-labs, first-deploy, full-pipeline
+  - Migration 006: team_assessments, lab_verifications, deploy_completions tables + profile fields
+- **Admin dashboard** at `/dashboard/admin` (role-gated)
+  - Overview tab with stats (users, companies, assessments, labs, deploys, avg maturity)
+  - Users tab — searchable table with email, XP, level, maturity, last activity, last sign-in; click for full detail
+  - Teams tab — grouped by company with member list, avg maturity, assessment/deploy counts
+  - Assessments, Labs, Deploys tabs with full data tables
+  - User detail panel — profile info, assessments with tool/API badges, lab submissions, deployments, XP activity log
+  - Admin link in sidebar only visible to admin role users
+- **Profile page** at `/dashboard/profile`
+  - Editable: full name, bio, company, role
+  - Leaderboard display preference: first name + last initial (default), full name, or custom username
+  - Live preview of leaderboard display name
+  - Welcome mode (`?welcome=true`) with onboarding copy and redirect to courses
+- **Dashboard leaderboard** — top 10 by XP with medals, respects display preferences, highlights current user
+- **Drip campaign** for dormant user re-engagement
+  - Day 3: "You left off at [lesson]" with next lesson card
+  - Day 7: Progress report with visual progress bar
+  - Day 14: Community stats with social proof
+  - All emails include XP badge (XP, level, rank) and top-5 leaderboard
+  - Branded dark theme matching OA design (emerald CTAs, card layout, OA logo)
+  - Vercel cron job runs daily at 2pm UTC (`/api/cron/drip-campaign`)
+  - `drip_log` table prevents re-sending (migration 007)
+  - First names only on leaderboard (privacy)
+- **API token page** at `/dashboard/api-token` — displays session JWT for CLI tool usage
+- **Lab challenge component** (`lab-challenge.tsx`) — in-lesson evidence submission with verification feedback
+- Signup form now requires first name and last name separately
+- OAuth callback redirects new users (no name set) to profile setup
+- `vercel.json` with cron schedule
+- Migration 008: username (unique) + leaderboard_display columns on profiles
+
+### Fixed
+- `.single()` → `.maybeSingle()` on all XP/achievement existence checks — prevents double XP awards on retries (affected assess, verify-lab, deploy-complete routes)
+- verify-lab response no longer lies about XP on resubmission — tracks actual XP awarded vs. hardcoded value
+- `file_hash` lab verification now validates hex characters (`/^[0-9a-f]{64}$/i`), not just string length
+- Expired Bearer tokens now return helpful error: "Token expired. Visit /dashboard/api-token for a fresh token."
+- `learning-path/[userId]` N+1 query eliminated — single modules query with lookup map instead of per-course DB calls
+- Dead query removed from learning-path route (fetched lessons but never used result)
+
+### Changed
+- Postmark API key updated for Orchestrator Academy server
+- Email sender set to `learn@orchestratoracademy.com`
+
 ## [0.9.0] - 2026-04-09
 
 ### Added

@@ -5,6 +5,10 @@ export interface Profile {
   avatar_url: string | null;
   bio: string | null;
   role: "student" | "admin";
+  assessment_score: number | null;
+  maturity_level: number | null;
+  company_name: string | null;
+  company_role: string | null;
   created_at: string;
 }
 
@@ -166,4 +170,40 @@ export interface UserAchievement {
   user_id: string;
   achievement_id: string;
   unlocked_at: string;
+}
+
+export interface TeamAssessment {
+  id: string;
+  user_id: string;
+  tool_checks: Record<string, boolean>;
+  api_checks: Record<string, boolean>;
+  repo_analysis: Record<string, unknown>;
+  maturity_score: number;
+  gap_report: string;
+  raw_results: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface LabVerification {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  lab_type: "api_response" | "terminal_output" | "config_content" | "file_hash";
+  evidence: string;
+  verified: boolean;
+  verification_details: Record<string, unknown>;
+  xp_earned: number;
+  created_at: string;
+}
+
+export interface DeployCompletion {
+  id: string;
+  user_id: string;
+  project_name: string;
+  use_case: string;
+  scaffold_type: string;
+  technologies: string[];
+  assessment_id: string | null;
+  completed_courses: string[];
+  created_at: string;
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { LayoutDashboard, BookOpen, User, Award, Trophy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { LayoutDashboard, BookOpen, User, Award, Trophy, Shield } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -10,11 +10,26 @@ const sidebarLinks = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
 ];
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+    isAdmin = profile?.role === "admin";
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       {/* Sidebar */}
@@ -30,6 +45,15 @@ export default function DashboardLayout({
               {link.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/dashboard/admin"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-amber-500 transition-colors hover:bg-muted hover:text-amber-400"
+            >
+              <Shield className="size-4" />
+              Admin
+            </Link>
+          )}
         </nav>
       </aside>
 

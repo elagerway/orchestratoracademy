@@ -23,14 +23,22 @@ src/
 │   ├── layout.tsx                            # Root layout (Header + Footer + fonts)
 │   ├── auth/
 │   │   ├── login/page.tsx                    # Login page
-│   │   ├── signup/page.tsx                   # Signup page
-│   │   ├── callback/route.ts                # OAuth callback handler
+│   │   ├── signup/page.tsx                   # Signup page (first + last name required)
+│   │   ├── callback/route.ts                # OAuth callback (redirects new users to profile)
 │   │   └── actions.ts                        # Server actions (signOut)
 │   ├── api/
 │   │   ├── stripe/
 │   │   │   ├── checkout/route.ts            # Create Stripe checkout session
 │   │   │   ├── webhook/route.ts             # Stripe webhook handler
 │   │   │   └── portal/route.ts              # Stripe billing portal
+│   │   ├── assess/route.ts                  # POST: CLI team assessment results
+│   │   ├── verify-lab/route.ts              # POST: Hands-on lab evidence verification
+│   │   ├── deploy-complete/route.ts         # POST: Project scaffold deploy completion
+│   │   ├── learning-path/
+│   │   │   ├── [userId]/route.ts            # GET: User learning path (web)
+│   │   │   └── me/route.ts                  # GET: Learning path from Bearer token (CLI)
+│   │   ├── cron/
+│   │   │   └── drip-campaign/route.ts       # GET: Daily drip email cron (Vercel cron)
 │   │   ├── assessments/
 │   │   │   └── submit/route.ts              # Submit certification exam
 │   │   ├── quiz/
@@ -51,10 +59,13 @@ src/
 │   ├── certificates/
 │   │   └── [number]/page.tsx                # Public certificate verification
 │   ├── dashboard/
-│   │   ├── layout.tsx                        # Dashboard sidebar layout
-│   │   ├── page.tsx                          # Student dashboard
+│   │   ├── layout.tsx                        # Dashboard sidebar layout (admin link conditional)
+│   │   ├── page.tsx                          # Student dashboard + leaderboard
 │   │   ├── achievements/page.tsx            # Achievements grid
-│   │   └── certificates/page.tsx            # User's certificates
+│   │   ├── certificates/page.tsx            # User's certificates
+│   │   ├── profile/page.tsx                 # User profile + leaderboard display settings
+│   │   ├── api-token/page.tsx               # CLI API token display
+│   │   └── admin/page.tsx                   # Admin dashboard (role-gated)
 │   └── for-companies/
 │       └── page.tsx                          # B2B landing page
 ├── components/
@@ -81,22 +92,31 @@ src/
 │   │   ├── header.tsx                        # Header + dark mode toggle + AuthButton
 │   │   └── footer.tsx                        # Footer
 │   └── ui/                                   # shadcn/ui components
+├── components/
+│   └── lab-challenge.tsx                     # In-lesson hands-on lab submission
 ├── lib/
 │   ├── supabase/
 │   │   ├── client.ts                         # Browser Supabase client
 │   │   ├── server.ts                         # Server Supabase client
+│   │   ├── server-with-token.ts             # Dual auth: cookie (web) + Bearer token (CLI)
 │   │   └── middleware.ts                     # Auth middleware (protects /dashboard, /lessons)
 │   ├── stripe/
 │   │   ├── client.ts                         # Browser Stripe (loadStripe)
 │   │   ├── server.ts                         # Server Stripe (lazy init)
 │   │   ├── config.ts                         # Plan/price configuration
 │   │   └── helpers.ts                        # getUserSubscription helper
+│   ├── email/
+│   │   ├── client.ts                         # Postmark send helper
+│   │   └── templates.ts                     # Branded drip email templates (day 3/7/14)
 │   ├── heygen/
 │   │   └── client.ts                         # HeyGen API (avatars, video gen)
 │   ├── elevenlabs/
 │   │   └── client.ts                         # ElevenLabs TTS
+│   ├── data/
+│   │   └── lab-challenges.json              # Lab challenge definitions per lesson
 │   ├── types/
-│   │   └── database.ts                      # All TypeScript types
+│   │   ├── database.ts                      # All TypeScript types
+│   │   └── lab-challenges.ts                # Lab challenge type
 │   └── utils.ts                              # cn() utility
 └── middleware.ts                              # Next.js middleware
 
@@ -128,7 +148,10 @@ supabase/
 ├── migrations/
 │   ├── 001_initial_schema.sql               # Profiles, courses, modules, lessons, progress, enrollments
 │   ├── 002_m2_monetization.sql              # Subscriptions, payments, assessments, certificates
-│   └── 003_gamification.sql                 # XP, module quizzes, achievements, streaks
+│   ├── 003_gamification.sql                 # XP, module quizzes, achievements, streaks
+│   ├── 006_b2b_assess_train_deploy.sql      # Team assessments, lab verifications, deploy completions
+│   ├── 007_drip_campaign_log.sql            # Drip email tracking
+│   └── 008_leaderboard_display_preferences.sql  # Username + leaderboard display preference
 ├── seed.sql                                  # Free course content (7 original modules)
 ├── seed_foundations_expanded.sql             # Modules 8-20 (APIs, MCP, Claude Code, etc.)
 ├── seed_foundations_infra.sql                # Modules 21-28 (Next.js, Supabase, Vercel, etc.)
@@ -139,7 +162,7 @@ supabase/
 ```
 
 ## Database Schema
-- **profiles**: User profiles + XP, level, streak (auto-created on signup)
+- **profiles**: User profiles + XP, level, streak, username, leaderboard_display, company info (auto-created on signup)
 - **courses**: Course catalog (title, slug, description, is_free, price)
 - **modules**: Course modules (ordered within a course)
 - **lessons**: Module lessons (video, text, interactive, quiz content types)
@@ -152,9 +175,13 @@ supabase/
 - **certificates**: Issued certificates with unique numbers
 - **module_quizzes**: 3-question quizzes per module
 - **module_quiz_results**: Quiz scores, pass/fail, and stored answers (jsonb)
-- **achievements**: Achievement catalog (17 badges)
+- **achievements**: Achievement catalog (24 badges, including B2B pipeline)
 - **user_achievements**: Unlocked achievements per user
 - **xp_log**: XP award history
+- **team_assessments**: CLI-submitted maturity assessments (tools, APIs, repo analysis, score 1-5)
+- **lab_verifications**: Hands-on lab evidence submissions (API response, terminal output, config, file hash)
+- **deploy_completions**: Project scaffold deployment milestones
+- **drip_log**: Tracks sent drip campaign emails per user (prevents re-sending)
 
 ## Course Content
 | Course | Modules | Lessons | Free |
@@ -191,14 +218,33 @@ supabase/
 - Full pipeline documented in `docs/video-pipeline.md`
 
 ## Email
-- **Provider**: Postmark (SMTP via Supabase Auth)
-- **Server**: Orchestrator Academy (519ab24f...)
-- **Sender**: help@OrchestratorAcademy.com (SPF + DKIM verified)
-- **Templates**: Supabase default (reset password, confirm signup, etc.)
+- **Provider**: Postmark (SMTP via Supabase Auth + Postmark SDK for drip)
+- **Server**: Orchestrator Academy
+- **Senders**: help@OrchestratorAcademy.com, learn@orchestratoracademy.com
+- **Auth templates**: Supabase default (reset password, confirm signup, etc.)
+- **Drip campaign**: 3 branded emails (day 3, 7, 14 inactive) with XP stats + leaderboard
+  - Runs daily at 2pm UTC via Vercel cron (`/api/cron/drip-campaign`)
+  - Tracks sent emails in `drip_log` table to prevent duplicates
+  - OA dark theme: #0a0a0a bg, #171717 cards, #34d399 emerald CTAs
+
+## B2B Pipeline (Assess → Train → Deploy)
+- **Assess**: CLI skill (`/assess-team`) scans tools, APIs, repos → posts maturity score (1-5) to API
+- **Train**: Personalized learning path based on maturity level, hands-on labs with evidence verification
+- **Deploy**: CLI skill (`/deploy-project`) scaffolds a project based on completed courses
+- **Lab types**: API response ID, terminal output (AI-verified via Haiku), config content, file hash
+- **Auth**: Dual-mode Supabase client supports both cookie (web) and Bearer token (CLI)
+- **Achievements**: first-assessment, maturity-3, maturity-5, first-lab, five-labs, first-deploy, full-pipeline
+
+## Admin Dashboard
+- **Route**: `/dashboard/admin` (role-gated, admin only)
+- **Tabs**: Overview stats, Users (searchable + click for detail), Teams (grouped by company), Assessments, Labs, Deploys
+- **User detail**: Full activity log, assessments, lab submissions, deployments, XP history
+- **Data**: Fetched server-side via service role (bypasses RLS)
 
 ## Milestones
 1. **MVP**: Landing page, auth, free course, progress tracking ✅
 2. **Monetization**: Stripe, paid courses, certifications, B2B page ✅
 3. **Gamification**: XP, quizzes, achievements, streaks ✅
 4. **Video Production**: 77 foundation lesson videos (M1-M28), all on Vimeo ✅
-5. **Job Board**: Graduate profiles, company directory, messaging (next)
+5. **B2B Pipeline**: Assess → Train → Deploy, CLI tools, admin dashboard, drip campaign ✅
+6. **Job Board**: Graduate profiles, company directory, messaging (next)

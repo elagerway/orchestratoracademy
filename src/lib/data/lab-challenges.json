@@ -1,0 +1,82 @@
+[
+  {
+    "lessonSlug": "making-first-api-call",
+    "labType": "api_response",
+    "title": "Make a Real API Call",
+    "instructions": "Call the Claude API using curl or the SDK. Paste the `id` field from the response (starts with `msg_`).",
+    "hint": "Run: curl https://api.anthropic.com/v1/messages with your API key",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "the-anthropic-api",
+    "labType": "api_response",
+    "title": "Call the Anthropic API",
+    "instructions": "Send a message to Claude via the API and paste the response message ID.",
+    "hint": "The response JSON contains an `id` field starting with `msg_`",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "what-is-claude-code",
+    "labType": "terminal_output",
+    "title": "Verify Claude Code Installation",
+    "instructions": "Run `claude --version` in your terminal and paste the full output.",
+    "hint": "If not installed, run: npm install -g @anthropic-ai/claude-code",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "your-first-session",
+    "labType": "terminal_output",
+    "title": "Run Your First Claude Code Session",
+    "instructions": "Run `claude -p \"What directory am I in?\"` and paste the output.",
+    "hint": "The -p flag runs Claude Code in print/headless mode",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "what-is-mcp",
+    "labType": "terminal_output",
+    "title": "List Your MCP Servers",
+    "instructions": "Run `claude mcp list` in your terminal and paste the output.",
+    "hint": "This shows all configured MCP servers. It's OK if the list is empty.",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "using-existing-mcp-servers",
+    "labType": "config_content",
+    "title": "Configure an MCP Server",
+    "instructions": "Add an MCP server to your project and paste the contents of your `.mcp.json` or MCP config.",
+    "hint": "Try: claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "supabase-overview",
+    "labType": "terminal_output",
+    "title": "Check Supabase CLI",
+    "instructions": "Run `supabase --version` and paste the output to verify the Supabase CLI is installed.",
+    "hint": "Install with: brew install supabase/tap/supabase",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "git-fundamentals",
+    "labType": "terminal_output",
+    "title": "Verify Git Setup",
+    "instructions": "Run `git config --global user.name && git config --global user.email` and paste the output.",
+    "hint": "This confirms your git identity is configured for commits",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "authentication-api-keys",
+    "labType": "terminal_output",
+    "title": "Store an API Key Safely",
+    "instructions": "Run `echo $ANTHROPIC_API_KEY | head -c 15` and paste the output (first 15 chars only — never share the full key).",
+    "hint": "Set with: export ANTHROPIC_API_KEY=\"sk-ant-...\"",
+    "xpReward": 25
+  },
+  {
+    "lessonSlug": "project-structure-routing",
+    "labType": "terminal_output",
+    "title": "Create a Next.js Project",
+    "instructions": "Run `npx create-next-app@latest --typescript test-project` and paste the terminal output showing the project was created.",
+    "hint": "This scaffolds a new Next.js project with TypeScript",
+    "xpReward": 25
+  }
+]
