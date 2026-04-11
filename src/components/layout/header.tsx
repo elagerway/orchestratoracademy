@@ -5,12 +5,20 @@ import { useState, useEffect } from "react"
 import { Menu, X, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AuthButton } from "@/components/auth/auth-button"
+import { createClient } from "@/lib/supabase/client"
 
-const navLinks = [
+const publicLinks = [
   { href: "/courses", label: "Courses" },
   { href: "/for-companies", label: "For Companies" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
+]
+
+const studentLinks = [
+  { href: "/courses", label: "Courses" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/achievements", label: "Achievements" },
+  { href: "/dashboard/certificates", label: "Certificates" },
 ]
 
 function ThemeToggle() {
@@ -46,6 +54,22 @@ function ThemeToggle() {
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user)
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const navLinks = isLoggedIn ? studentLinks : publicLinks
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl dark:bg-background/90">
