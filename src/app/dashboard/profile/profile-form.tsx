@@ -42,7 +42,7 @@ export function ProfileForm({
   const [companyRole, setCompanyRole] = useState(profile.company_role ?? "");
   const [username, setUsername] = useState(profile.username ?? "");
   const [leaderboardDisplay, setLeaderboardDisplay] = useState<LeaderboardDisplay>(
-    (profile.leaderboard_display as LeaderboardDisplay) ?? "first_initial"
+    (profile.leaderboard_display as LeaderboardDisplay) ?? "username"
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
