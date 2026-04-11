@@ -19,6 +19,7 @@ async function getAdminData() {
     { data: { users: authUsers } },
     { data: courses },
     { data: enrollments },
+    { data: blogPosts },
   ] = await Promise.all([
     supa
       .from("profiles")
@@ -51,6 +52,10 @@ async function getAdminData() {
     supa
       .from("user_enrollments")
       .select("course_id, user_id"),
+    supa
+      .from("blog_posts")
+      .select("*")
+      .order("created_at", { ascending: false }),
   ]);
 
   // Build last activity map from XP logs (most recent per user)
@@ -96,6 +101,7 @@ async function getAdminData() {
     xpLogsByUser,
     courses: courses ?? [],
     enrollmentCounts,
+    blogPosts: blogPosts ?? [],
   };
 }
 

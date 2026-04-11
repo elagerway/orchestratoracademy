@@ -32,6 +32,12 @@ import {
   ArrowLeft,
   ChevronUp,
   ChevronDown,
+  Pencil,
+  Plus,
+  Eye,
+  EyeOff,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 
 interface AdminData {
@@ -45,6 +51,7 @@ interface AdminData {
   xpLogsByUser: Record<string, Record<string, unknown>[]>;
   courses: Record<string, unknown>[];
   enrollmentCounts: Record<string, number>;
+  blogPosts: Record<string, unknown>[];
 }
 
 function formatDate(d: string) {
@@ -1278,6 +1285,286 @@ function SortableCourseRow({
   );
 }
 
+// ── Blog Tab ──────────────────────────────────────────────────────────────────
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  );
+}
+
+function BlogTab({ data }: { data: AdminData }) {
+  const [posts, setPosts] = useState(data.blogPosts);
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  // Form state
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [featuredImage, setFeaturedImage] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function startCreate() {
+    setEditing(null);
+    setCreating(true);
+    setTitle("");
+    setSlug("");
+    setExcerpt("");
+    setContent("");
+    setFeaturedImage("");
+  }
+
+  function startEdit(post: Record<string, unknown>) {
+    setCreating(false);
+    setEditing(post);
+    setTitle(post.title as string);
+    setSlug(post.slug as string);
+    setExcerpt(post.excerpt as string);
+    setContent(post.content as string);
+    setFeaturedImage((post.featured_image_url as string) || "");
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setCreating(false);
+  }
+
+  function autoSlug(t: string) {
+    return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  async function handleSave(publish: boolean) {
+    setSaving(true);
+
+    if (creating) {
+      const res = await fetch("/api/admin/blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title, slug: slug || autoSlug(title), excerpt, content,
+          featured_image_url: featuredImage || null,
+          published: publish,
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setPosts((prev) => [{
+          id: result.post.id,
+          title, slug: slug || autoSlug(title), excerpt, content,
+          featured_image_url: featuredImage || null,
+          published: publish,
+          published_at: publish ? new Date().toISOString() : null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, ...prev]);
+        setCreating(false);
+      }
+    } else if (editing) {
+      await fetch("/api/admin/blog", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editing.id, title, slug, excerpt, content,
+          featured_image_url: featuredImage || null,
+          published: publish,
+        }),
+      });
+      setPosts((prev) => prev.map((p) =>
+        p.id === editing.id ? {
+          ...p, title, slug, excerpt, content,
+          featured_image_url: featuredImage || null,
+          published: publish,
+          published_at: publish ? new Date().toISOString() : p.published_at,
+          updated_at: new Date().toISOString(),
+        } : p
+      ));
+      setEditing(null);
+    }
+
+    setSaving(false);
+  }
+
+  async function handleDelete(id: string) {
+    await fetch("/api/admin/blog", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  // Editor view
+  if (creating || editing) {
+    return (
+      <div className="space-y-4">
+        <button onClick={cancelEdit} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="size-4" />
+          Back to Posts
+        </button>
+
+        <h3 className="text-lg font-semibold">{creating ? "New Post" : "Edit Post"}</h3>
+
+        <div className="space-y-4 max-w-2xl">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Title</label>
+            <input
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); if (creating) setSlug(autoSlug(e.target.value)); }}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+              placeholder="Post title"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Slug</label>
+            <input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono outline-none focus:border-emerald-accent/50"
+              placeholder="post-slug"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Excerpt</label>
+            <textarea
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              className="min-h-[60px] w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+              placeholder="Brief description for cards and meta tags"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Featured Image URL</label>
+            <input
+              value={featuredImage}
+              onChange={(e) => setFeaturedImage(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-emerald-accent/50"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">Content (Markdown)</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[300px] w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-emerald-accent/50"
+              placeholder="Write your post in markdown..."
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleSave(false)}
+              disabled={saving || !title}
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Draft"}
+            </button>
+            <button
+              onClick={() => handleSave(true)}
+              disabled={saving || !title}
+              className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
+            >
+              {saving ? "Publishing..." : "Publish"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // List view
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{posts.length} post{posts.length !== 1 ? "s" : ""}</p>
+        <button
+          onClick={startCreate}
+          className="flex items-center gap-1.5 rounded-md bg-emerald-accent px-3 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90"
+        >
+          <Plus className="size-4" />
+          New Post
+        </button>
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="rounded-lg border border-border px-4 py-12 text-center text-muted-foreground">
+          No blog posts yet. Create your first one.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {posts.map((post) => {
+            const isPublished = post.published as boolean;
+            const postSlug = post.slug as string;
+            const postUrl = `https://orchestratoracademy.com/blog/${postSlug}`;
+            const xUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(post.title as string)}&url=${encodeURIComponent(postUrl)}`;
+            const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`;
+
+            return (
+              <div key={post.id as string} className="flex items-center gap-4 rounded-lg border border-border px-4 py-3 hover:bg-muted/30">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{post.title as string}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    /blog/{postSlug}
+                    {typeof post.published_at === "string" && ` \u00b7 ${formatDate(post.published_at)}`}
+                  </p>
+                </div>
+
+                <span className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  isPublished ? "bg-emerald-accent/10 text-emerald-accent" : "bg-muted text-muted-foreground"
+                }`}>
+                  {isPublished ? <><Eye className="size-3" /> Live</> : <><EyeOff className="size-3" /> Draft</>}
+                </span>
+
+                {isPublished && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" title="Share on LinkedIn">
+                      <LinkedInIcon className="size-3.5" />
+                    </a>
+                    <a href={xUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" title="Share on X">
+                      <XIcon className="size-3.5" />
+                    </a>
+                    <a href={`/blog/${postSlug}`} target="_blank" rel="noopener noreferrer"
+                      className="flex size-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" title="View post">
+                      <ExternalLink className="size-3.5" />
+                    </a>
+                  </div>
+                )}
+
+                <button onClick={() => startEdit(post)}
+                  className="flex size-7 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground" title="Edit">
+                  <Pencil className="size-3.5" />
+                </button>
+                <button onClick={() => handleDelete(post.id as string)}
+                  className="flex size-7 shrink-0 items-center justify-center rounded text-red-400 hover:bg-red-500/10" title="Delete">
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export function AdminDashboard({ data }: { data: AdminData }) {
@@ -1299,6 +1586,7 @@ export function AdminDashboard({ data }: { data: AdminData }) {
           <TabsTrigger value="labs">Labs</TabsTrigger>
           <TabsTrigger value="deploys">Deploys</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="blog">Blog</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -1321,6 +1609,9 @@ export function AdminDashboard({ data }: { data: AdminData }) {
         </TabsContent>
         <TabsContent value="courses">
           <CoursesTab data={data} />
+        </TabsContent>
+        <TabsContent value="blog">
+          <BlogTab data={data} />
         </TabsContent>
       </Tabs>
     </div>
