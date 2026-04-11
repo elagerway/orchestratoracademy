@@ -17,8 +17,8 @@ const publicLinks = [
 const studentLinks = [
   { href: "/courses", label: "Courses" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/courses", label: "My Courses" },
   { href: "/dashboard/achievements", label: "Achievements" },
-  { href: "/dashboard/certificates", label: "Certificates" },
 ]
 
 function ThemeToggle() {

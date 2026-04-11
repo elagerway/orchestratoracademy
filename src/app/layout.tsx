@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,15 +25,11 @@ export const metadata: Metadata = {
     "Learn to design, connect, and manage AI-powered systems. Free foundational course on prompt engineering, multi-agent systems, and AI workflows.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "";
-  const isDashboard = pathname.startsWith("/dashboard") || pathname.includes("/lessons/");
-
   return (
     <html
       lang="en"
@@ -59,9 +53,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {!isDashboard && <Header />}
-        <main className="flex-1">{children}</main>
-        {!isDashboard && <Footer />}
+        <ConditionalChrome>{children}</ConditionalChrome>
       </body>
     </html>
   );

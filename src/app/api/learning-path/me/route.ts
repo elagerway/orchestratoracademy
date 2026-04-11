@@ -28,6 +28,7 @@ export async function GET(request: Request) {
   const { data: courses } = await supabase
     .from("courses")
     .select("id, title, slug, is_free, order")
+    .eq("active", true)
     .order("order");
 
   // Fetch user enrollments

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import { ImpersonationBanner } from "@/components/layout/impersonation-banner";
 
 export default async function DashboardLayout({
   children,
@@ -45,9 +46,12 @@ export default async function DashboardLayout({
       />
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-6 sm:p-8">
-        {children}
-      </main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <ImpersonationBanner />
+        <main className="flex-1 overflow-y-auto p-6 sm:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

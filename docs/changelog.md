@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.10.2] - 2026-04-11
+
+### Added
+- **Admin course management** — Courses tab with activate/deactivate toggle per course
+  - Checks affected enrolled users before deactivation, shows warning with names/emails
+  - "Deactivate Anyway" confirmation required when users are affected
+  - `active` boolean column on courses table (migration 011), replaces hardcoded slug filtering
+- **Admin grant course access** — enroll individual users or entire teams in pro courses
+  - Available in user detail panel and team detail view
+  - Checkbox UI with "Select all" shortcut, upserts enrollments (skips duplicates)
+  - `POST /api/admin/enroll` endpoint
+- **Admin user impersonation** — view the platform as any user
+  - "Impersonate" button on user detail panel, swaps to user's session
+  - Admin session preserved in sessionStorage, restored on return
+  - Amber banner "You are viewing as another user" with "Return to Admin" button
+  - `POST /api/admin/impersonate` endpoint (generates magic link + verifies OTP)
+- **My Courses page** at `/dashboard/courses` with enrolled courses + recommended next courses section
+- **Conditional header/footer** via client-side `ConditionalChrome` component (replaces unreliable middleware header approach)
+- **Context-aware header nav** — logged-in users see Courses, Dashboard, My Courses, Achievements instead of marketing links
+- **Team detail view** — expandable team cards with member email, role, and bulk grant access
+- **`POST /api/admin/courses/affected`** — preview affected users before course deactivation
+- Achievements page now shows all titles, descriptions, and proper icons (24 icons mapped)
+- `active` field added to `Course` TypeScript interface
+
+### Changed
+- Course visibility now uses `active` column instead of hardcoded slug filter
+- Paperclip course deactivated via migration (was filtered by slug)
+- "My Courses" sidebar/header link now goes to `/dashboard/courses` instead of `/courses`
+- Course deactivation requires confirmation when enrolled users exist (was fire-and-forget)
+
+### Fixed
+- Impersonation shows error feedback when admin session is expired instead of silent failure
+- Course `active` field added to TypeScript `Course` interface (was only accessed via casts)
+
 ## [0.10.1] - 2026-04-11
 
 ### Added

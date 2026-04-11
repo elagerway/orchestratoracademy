@@ -34,10 +34,11 @@ export async function GET(request: Request, { params }: LearningPathProps) {
     .limit(1)
     .maybeSingle();
 
-  // Fetch all courses
+  // Fetch all courses (exclude hidden)
   const { data: courses } = await supabase
     .from("courses")
     .select("id, title, slug, is_free, order")
+    .eq("active", true)
     .order("order");
 
   // Fetch user enrollments

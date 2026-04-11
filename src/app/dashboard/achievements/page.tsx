@@ -10,6 +10,22 @@ import {
   Award,
   Target,
   Lock,
+  Rocket,
+  BookCheck,
+  CheckCircle2,
+  Crown,
+  Medal,
+  Calendar,
+  GraduationCap,
+  Bolt,
+  Moon,
+  Sunrise,
+  Building,
+  ClipboardCheck,
+  TrendingUp,
+  FlaskConical,
+  Microscope,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 import type { Achievement, UserAchievement } from "@/lib/types/database";
@@ -22,6 +38,22 @@ const ICON_MAP: Record<string, LucideIcon> = {
   zap: Zap,
   award: Award,
   target: Target,
+  rocket: Rocket,
+  "book-check": BookCheck,
+  "check-circle": CheckCircle2,
+  crown: Crown,
+  medal: Medal,
+  calendar: Calendar,
+  "graduation-cap": GraduationCap,
+  bolt: Bolt,
+  moon: Moon,
+  sunrise: Sunrise,
+  building: Building,
+  "clipboard-check": ClipboardCheck,
+  "trending-up": TrendingUp,
+  "flask-conical": FlaskConical,
+  microscope: Microscope,
+  workflow: Workflow,
 };
 
 export default async function AchievementsPage() {
@@ -151,10 +183,10 @@ export default async function AchievementsPage() {
                 </div>
                 <div className="flex-1 space-y-1">
                   <p className="font-heading text-sm font-bold">
-                    {unlocked ? achievement.title : "???"}
+                    {achievement.title}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {unlocked ? achievement.description : "Keep learning to unlock this achievement!"}
+                    {achievement.description}
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <span

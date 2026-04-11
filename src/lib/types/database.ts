@@ -21,6 +21,7 @@ export interface Course {
   is_free: boolean;
   price: number | null;
   order: number;
+  active: boolean;
   created_at: string;
 }
 

@@ -21,7 +21,7 @@ import { signOut } from "@/app/auth/actions";
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/courses", label: "My Courses", icon: BookOpen },
+  { href: "/dashboard/courses", label: "My Courses", icon: BookOpen },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
   { href: "/dashboard/certificates", label: "Certificates", icon: Award },
   { href: "/dashboard/api-token", label: "API Token", icon: Key },

@@ -23,12 +23,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const response = await updateSession(request);
-
-  // Pass pathname to root layout for conditional header/footer hiding
-  response.headers.set("x-pathname", request.nextUrl.pathname);
-
-  return response;
+  return await updateSession(request);
 }
 
 export const config = {

@@ -89,10 +89,12 @@ src/
 │   │   ├── upgrade-button.tsx               # Checkout CTA
 │   │   └── manage-subscription-button.tsx   # Billing portal CTA
 │   ├── layout/
-│   │   ├── header.tsx                        # Global header (hidden on dashboard + lessons)
-│   │   ├── footer.tsx                        # Global footer (hidden on dashboard + lessons)
+│   │   ├── header.tsx                        # Global header (context-aware: student vs public nav)
+│   │   ├── footer.tsx                        # Global footer
+│   │   ├── conditional-chrome.tsx           # Client-side header/footer toggle (hidden on dashboard + lessons)
 │   │   ├── dashboard-sidebar.tsx            # Dashboard sidebar (OA logo, nav, user popover)
-│   │   └── lesson-sidebar-user.tsx          # Lesson sidebar user popover (profile, theme, sign out)
+│   │   ├── lesson-sidebar-user.tsx          # Lesson sidebar user popover (profile, theme, sign out)
+│   │   └── impersonation-banner.tsx         # Admin impersonation return banner
 │   └── ui/                                   # shadcn/ui components
 ├── components/
 │   └── lab-challenge.tsx                     # In-lesson hands-on lab submission
@@ -239,8 +241,11 @@ supabase/
 
 ## Admin Dashboard
 - **Route**: `/dashboard/admin` (role-gated, admin only)
-- **Tabs**: Overview stats, Users (searchable + click for detail), Teams (grouped by company), Assessments, Labs, Deploys
-- **User detail**: Full activity log, assessments, lab submissions, deployments, XP history
+- **Tabs**: Overview stats, Users, Teams, Assessments, Labs, Deploys, Courses
+- **User detail**: Full activity log, assessments, labs, deployments, XP history, grant course access, impersonate
+- **Teams**: Expandable detail with member table + bulk grant course access for entire team
+- **Courses**: Activate/deactivate toggle with affected-user warning before deactivation
+- **Impersonation**: Swap to user's session, amber banner to return to admin (session preserved)
 - **Data**: Fetched server-side via service role (bypasses RLS)
 
 ## Milestones

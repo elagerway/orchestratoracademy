@@ -17,6 +17,8 @@ async function getAdminData() {
     { count: totalUsers },
     { data: xpLogs },
     { data: { users: authUsers } },
+    { data: courses },
+    { data: enrollments },
   ] = await Promise.all([
     supa
       .from("profiles")
@@ -42,6 +44,13 @@ async function getAdminData() {
       .select("user_id, amount, source, source_id, created_at")
       .order("created_at", { ascending: false }),
     supa.auth.admin.listUsers({ perPage: 1000 }),
+    supa
+      .from("courses")
+      .select("*")
+      .order("order"),
+    supa
+      .from("user_enrollments")
+      .select("course_id, user_id"),
   ]);
 
   // Build last activity map from XP logs (most recent per user)
@@ -69,6 +78,13 @@ async function getAdminData() {
     xpLogsByUser[uid].push(log);
   }
 
+  // Build enrollment counts per course
+  const enrollmentCounts: Record<string, number> = {};
+  for (const e of enrollments ?? []) {
+    const cid = e.course_id as string;
+    enrollmentCounts[cid] = (enrollmentCounts[cid] ?? 0) + 1;
+  }
+
   return {
     profiles: profiles ?? [],
     assessments: assessments ?? [],
@@ -78,6 +94,8 @@ async function getAdminData() {
     lastActivityMap,
     authMap,
     xpLogsByUser,
+    courses: courses ?? [],
+    enrollmentCounts,
   };
 }
 

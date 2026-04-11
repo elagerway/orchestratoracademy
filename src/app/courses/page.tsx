@@ -11,6 +11,7 @@ export default async function CourseCatalogPage() {
   const { data: courses, error } = await supabase
     .from("courses")
     .select("*")
+    .eq("active", true)
     .order("order");
 
   if (error) {

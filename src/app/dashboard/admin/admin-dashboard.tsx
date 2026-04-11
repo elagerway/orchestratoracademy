@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   XCircle,
   ArrowLeft,
+  ChevronUp,
 } from "lucide-react";
 
 interface AdminData {
@@ -24,6 +25,8 @@ interface AdminData {
   lastActivityMap: Record<string, string>;
   authMap: Record<string, { email: string; last_sign_in_at: string | null }>;
   xpLogsByUser: Record<string, Record<string, unknown>[]>;
+  courses: Record<string, unknown>[];
+  enrollmentCounts: Record<string, number>;
 }
 
 function formatDate(d: string) {
@@ -102,6 +105,113 @@ function OverviewTab({ data }: { data: AdminData }) {
 
 // ── Users Tab ─────────────────────────────────────────────────────────────────
 
+// ── Grant Access Component ────────────────────────────────────────────────────
+
+function GrantAccessPanel({
+  userIds,
+  label,
+  courses,
+  onGranted,
+}: {
+  userIds: string[];
+  label: string;
+  courses: Record<string, unknown>[];
+  onGranted?: () => void;
+}) {
+  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
+  const [granting, setGranting] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const proCourses = courses.filter((c) => !(c.is_free as boolean));
+
+  function toggleCourse(id: string) {
+    setSelectedCourses((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedCourses(new Set(proCourses.map((c) => c.id as string)));
+  }
+
+  async function handleGrant() {
+    if (selectedCourses.size === 0) return;
+    setGranting(true);
+    setResult(null);
+
+    const res = await fetch("/api/admin/enroll", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_ids: userIds,
+        course_ids: Array.from(selectedCourses),
+      }),
+    });
+
+    const data = await res.json();
+    setGranting(false);
+
+    if (data.success) {
+      setResult(`Granted access to ${selectedCourses.size} course${selectedCourses.size !== 1 ? "s" : ""} for ${label}`);
+      setSelectedCourses(new Set());
+      onGranted?.();
+    } else {
+      setResult(`Error: ${data.error}`);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-border p-4 space-y-3">
+      <h4 className="text-sm font-medium">Grant Pro Course Access</h4>
+      <p className="text-xs text-muted-foreground">
+        Select courses to grant access for {label}
+      </p>
+      <div className="space-y-2">
+        {proCourses.map((c) => (
+          <label key={c.id as string} className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selectedCourses.has(c.id as string)}
+              onChange={() => toggleCourse(c.id as string)}
+              className="accent-emerald-500"
+            />
+            <span className="text-sm">{c.title as string}</span>
+            {!(c.active as boolean) && (
+              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">inactive</span>
+            )}
+          </label>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={selectAll}
+          className="text-xs text-emerald-accent hover:underline"
+        >
+          Select all
+        </button>
+        <span className="text-xs text-muted-foreground">
+          {selectedCourses.size} selected
+        </span>
+      </div>
+      <button
+        onClick={handleGrant}
+        disabled={selectedCourses.size === 0 || granting}
+        className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
+      >
+        {granting ? "Granting..." : `Grant Access`}
+      </button>
+      {result && (
+        <p className={`text-xs ${result.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
+          {result}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── User Detail Panel ─────────────────────────────────────────────────────────
 
 function UserDetail({
@@ -120,6 +230,43 @@ function UserDetail({
   const userLabs = data.labs.filter((l) => l.user_id === userId);
   const userDeploys = data.deploys.filter((d) => d.user_id === userId);
   const lastActivity = data.lastActivityMap[userId];
+  const [impersonating, setImpersonating] = useState(false);
+
+  async function handleImpersonate() {
+    setImpersonating(true);
+
+    // Save admin session before switching
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+    if (!adminSession) {
+      setImpersonating(false);
+      return;
+    }
+
+    const res = await fetch("/api/admin/impersonate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const result = await res.json();
+    setImpersonating(false);
+
+    if (result.access_token && adminSession) {
+      // Store admin tokens to restore later
+      sessionStorage.setItem("admin_access_token", adminSession.access_token);
+      sessionStorage.setItem("admin_refresh_token", adminSession.refresh_token);
+      sessionStorage.setItem("admin_return", "true");
+
+      // Switch to impersonated session
+      await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+      window.location.href = "/dashboard";
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -139,15 +286,24 @@ function UserDetail({
           </h2>
           <p className="text-sm text-muted-foreground">{auth?.email || "—"}</p>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            profile.role === "admin"
-              ? "bg-amber-500/10 text-amber-500"
-              : "bg-muted text-muted-foreground"
-          }`}
-        >
-          {profile.role as string}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleImpersonate}
+            disabled={impersonating}
+            className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-xs font-medium text-amber-500 transition-colors hover:bg-amber-500/10 disabled:opacity-50"
+          >
+            {impersonating ? "Switching..." : "Impersonate"}
+          </button>
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              profile.role === "admin"
+                ? "bg-amber-500/10 text-amber-500"
+                : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {profile.role as string}
+          </span>
+        </div>
       </div>
 
       {/* Stats row */}
@@ -308,6 +464,13 @@ function UserDetail({
           </div>
         </div>
       )}
+
+      {/* Grant Course Access */}
+      <GrantAccessPanel
+        userIds={[userId]}
+        label={profile.full_name as string || "this user"}
+        courses={data.courses}
+      />
 
       {/* XP Activity Log */}
       <div>
@@ -500,6 +663,8 @@ function UsersTab({ data }: { data: AdminData }) {
 // ── Teams Tab ─────────────────────────────────────────────────────────────────
 
 function TeamsTab({ data }: { data: AdminData }) {
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+
   // Group profiles by company_name
   const teamMap = new Map<
     string,
@@ -519,7 +684,6 @@ function TeamsTab({ data }: { data: AdminData }) {
     teamMap.get(company)!.members.push(p);
   }
 
-  // Attach assessments and deploys to teams
   for (const a of data.assessments) {
     const profile = a.profiles as Record<string, unknown> | null;
     const company = profile?.company_name as string | null;
@@ -557,62 +721,87 @@ function TeamsTab({ data }: { data: AdminData }) {
         </div>
       ) : (
         <div className="grid gap-4">
-          {teams.map((team) => (
-            <div key={team.name} className="overflow-hidden rounded-lg border border-border">
-              <div className="flex items-center justify-between bg-muted/50 px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <Building2 className="size-4 text-muted-foreground" />
-                  <span className="font-medium">{team.name}</span>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{team.members.length} member{team.members.length !== 1 ? "s" : ""}</span>
-                  <span>{team.assessments.length} assessment{team.assessments.length !== 1 ? "s" : ""}</span>
-                  <span>{team.deploys.length} deploy{team.deploys.length !== 1 ? "s" : ""}</span>
-                  {team.avgMaturity > 0 && (
-                    <MaturityBar score={Math.round(team.avgMaturity)} />
-                  )}
-                </div>
+          {teams.map((team) => {
+            const isExpanded = expandedTeam === team.name;
+            const memberUserIds = team.members.map((m) => m.user_id as string);
+
+            return (
+              <div key={team.name} className="overflow-hidden rounded-lg border border-border">
+                <button
+                  onClick={() => setExpandedTeam(isExpanded ? null : team.name)}
+                  className="flex w-full items-center justify-between bg-muted/50 px-5 py-3 text-left transition-colors hover:bg-muted/70"
+                >
+                  <div className="flex items-center gap-3">
+                    <Building2 className="size-4 text-muted-foreground" />
+                    <span className="font-medium">{team.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{team.members.length} member{team.members.length !== 1 ? "s" : ""}</span>
+                    <span>{team.assessments.length} assessment{team.assessments.length !== 1 ? "s" : ""}</span>
+                    <span>{team.deploys.length} deploy{team.deploys.length !== 1 ? "s" : ""}</span>
+                    {team.avgMaturity > 0 && (
+                      <MaturityBar score={Math.round(team.avgMaturity)} />
+                    )}
+                    <ChevronUp className={`size-4 transition-transform ${isExpanded ? "" : "rotate-180"}`} />
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="p-4 space-y-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-muted-foreground">
+                          <th className="pb-2 font-medium">Member</th>
+                          <th className="pb-2 font-medium">Email</th>
+                          <th className="pb-2 font-medium">Role</th>
+                          <th className="pb-2 font-medium text-right">XP</th>
+                          <th className="pb-2 font-medium text-right">Level</th>
+                          <th className="pb-2 font-medium">Maturity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {team.members.map((m) => {
+                          const auth = data.authMap[m.user_id as string];
+                          return (
+                            <tr key={m.id as string} className="border-t border-border/30">
+                              <td className="py-2 font-medium">
+                                {(m.full_name as string) || "—"}
+                              </td>
+                              <td className="py-2 text-muted-foreground">
+                                {auth?.email || "—"}
+                              </td>
+                              <td className="py-2 text-muted-foreground">
+                                {(m.company_role as string) || "—"}
+                              </td>
+                              <td className="py-2 text-right font-mono">
+                                {(m.xp as number) ?? 0}
+                              </td>
+                              <td className="py-2 text-right font-mono">
+                                {(m.level as number) ?? 1}
+                              </td>
+                              <td className="py-2">
+                                {m.maturity_level ? (
+                                  <MaturityBar score={m.maturity_level as number} />
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+
+                    <GrantAccessPanel
+                      userIds={memberUserIds}
+                      label={`${team.members.length} member${team.members.length !== 1 ? "s" : ""} of ${team.name}`}
+                      courses={data.courses}
+                    />
+                  </div>
+                )}
               </div>
-              <div className="p-4">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-muted-foreground">
-                      <th className="pb-2 font-medium">Member</th>
-                      <th className="pb-2 font-medium">Role</th>
-                      <th className="pb-2 font-medium text-right">XP</th>
-                      <th className="pb-2 font-medium text-right">Level</th>
-                      <th className="pb-2 font-medium">Maturity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {team.members.map((m) => (
-                      <tr key={m.id as string} className="border-t border-border/30">
-                        <td className="py-2 font-medium">
-                          {(m.full_name as string) || "—"}
-                        </td>
-                        <td className="py-2 text-muted-foreground">
-                          {(m.company_role as string) || "—"}
-                        </td>
-                        <td className="py-2 text-right font-mono">
-                          {(m.xp as number) ?? 0}
-                        </td>
-                        <td className="py-2 text-right font-mono">
-                          {(m.level as number) ?? 1}
-                        </td>
-                        <td className="py-2">
-                          {m.maturity_level ? (
-                            <MaturityBar score={m.maturity_level as number} />
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -812,6 +1001,167 @@ function DeploysTab({ data }: { data: AdminData }) {
   );
 }
 
+// ── Courses Tab ───────────────────────────────────────────────────────────────
+
+function CoursesTab({ data }: { data: AdminData }) {
+  const [courses, setCourses] = useState(data.courses);
+  const [toggling, setToggling] = useState<string | null>(null);
+  const [warning, setWarning] = useState<{
+    courseId: string;
+    courseTitle: string;
+    users: { email: string; full_name: string }[];
+  } | null>(null);
+
+  async function handleToggle(courseId: string, currentActive: boolean, courseTitle: string) {
+    if (currentActive) {
+      // Check affected users BEFORE deactivating
+      setToggling(courseId);
+      const checkRes = await fetch("/api/admin/courses/affected", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId }),
+      });
+      const checkResult = await checkRes.json();
+      setToggling(null);
+
+      if (checkResult.affected_users?.length > 0) {
+        // Show warning and wait for confirmation
+        setWarning({
+          courseId,
+          courseTitle,
+          users: checkResult.affected_users,
+        });
+        return;
+      }
+
+      // No affected users — deactivate immediately
+      await confirmDeactivate(courseId);
+    } else {
+      // Activating — no warning needed
+      setToggling(courseId);
+      await fetch("/api/admin/courses", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId, active: true }),
+      });
+      setToggling(null);
+      setCourses((prev) =>
+        prev.map((c) => (c.id === courseId ? { ...c, active: true } : c))
+      );
+    }
+  }
+
+  async function confirmDeactivate(courseId: string) {
+    setToggling(courseId);
+    await fetch("/api/admin/courses", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ course_id: courseId, active: false }),
+    });
+    setToggling(null);
+    setCourses((prev) =>
+      prev.map((c) => (c.id === courseId ? { ...c, active: false } : c))
+    );
+    setWarning(null);
+  }
+
+  return (
+    <div className="space-y-4">
+      {warning && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+          <p className="font-medium text-amber-500">
+            Warning: {warning.users.length} user{warning.users.length !== 1 ? "s" : ""} enrolled in &quot;{warning.courseTitle}&quot;
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            These users will lose access to the course while it&apos;s deactivated:
+          </p>
+          <ul className="mt-2 space-y-1">
+            {warning.users.map((u, i) => (
+              <li key={i} className="text-sm">
+                <span className="font-medium">{u.full_name || "Unnamed"}</span>
+                <span className="ml-2 text-muted-foreground">{u.email}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              onClick={() => confirmDeactivate(warning.courseId)}
+              disabled={toggling === warning.courseId}
+              className="rounded-md bg-red-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+            >
+              {toggling === warning.courseId ? "Deactivating..." : "Deactivate Anyway"}
+            </button>
+            <button
+              onClick={() => setWarning(null)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50 text-left">
+              <th className="px-4 py-3 font-medium">Course</th>
+              <th className="px-4 py-3 font-medium">Type</th>
+              <th className="px-4 py-3 font-medium text-right">Enrolled</th>
+              <th className="px-4 py-3 font-medium text-right">Order</th>
+              <th className="px-4 py-3 font-medium text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {courses.map((c) => {
+              const isActive = c.active as boolean;
+              const courseId = c.id as string;
+              const enrolled = data.enrollmentCounts[courseId] ?? 0;
+
+              return (
+                <tr key={courseId} className="border-b border-border/50 hover:bg-muted/30">
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{c.title as string}</p>
+                    <p className="text-xs text-muted-foreground">{c.slug as string}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      c.is_free ? "bg-emerald-accent/10 text-emerald-accent" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {c.is_free ? "Free" : "Pro"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {enrolled}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {c.order as number}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleToggle(courseId, isActive, c.title as string)}
+                      disabled={toggling === courseId}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        isActive ? "bg-emerald-accent" : "bg-neutral-600"
+                      } ${toggling === courseId ? "opacity-50" : ""}`}
+                    >
+                      <span
+                        className={`inline-block size-4 rounded-full bg-white transition-transform ${
+                          isActive ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export function AdminDashboard({ data }: { data: AdminData }) {
@@ -832,6 +1182,7 @@ export function AdminDashboard({ data }: { data: AdminData }) {
           <TabsTrigger value="assessments">Assessments</TabsTrigger>
           <TabsTrigger value="labs">Labs</TabsTrigger>
           <TabsTrigger value="deploys">Deploys</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -851,6 +1202,9 @@ export function AdminDashboard({ data }: { data: AdminData }) {
         </TabsContent>
         <TabsContent value="deploys">
           <DeploysTab data={data} />
+        </TabsContent>
+        <TabsContent value="courses">
+          <CoursesTab data={data} />
         </TabsContent>
       </Tabs>
     </div>
