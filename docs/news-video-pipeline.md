@@ -4,38 +4,46 @@ Repeatable process for producing "Daily Dose of AI" news videos for Orchestrator
 
 ## Overview
 
-Each video covers a trending AI topic (tweet, article, announcement) with Leo narrating over highlighted source material. Videos are ~90-120 seconds.
+Each video covers a trending AI topic (tweet, article, announcement) with Leo narrating over highlighted source material. Videos are ~90-120 seconds. Published to YouTube with thumbnail, description, and companion blog post.
 
 ## Video Structure
 
 ```
-1. Typing Opener (2-3s)
+1. Typing Opener (3-4s)
    - Green monospace text on dark bg: "> this is your daily dose of AI"
-   - ElevenLabs voiceover synced to typing
+   - ElevenLabs voiceover synced to typing animation
    - Hold completed text 1s
-   - Flicker effect + modem sound
-   
-2. Leo Intro (8-12s)
-   - Dark background, OA icon top-right
-   - Sets up who/what: "Andrej Karpathy, the guy who built Tesla's AI..."
+   - Flicker effect (on/off pattern) + modem glitch sound (0.4s)
+
+2. Leo Intro (8-14s)
+   - Dark solid background (#1a1a1a), OA icon (200px) top-right
+   - Sets up who/what: who is this person, why should you care, what happened
    - No filler, straight to the story
 
-3. Tweet/Source Sections (variable, 20-30s each)
-   - White background tweet cards (looks like real X/Twitter)
+3. Tweet/Source Sections (variable, 15-30s each)
+   - White tweet card on dark (#1a1a1a) background
+   - Tweet card: 900px wide, 40px padding, 24px text, rounded corners, drop shadow
+   - Rendered at 1920x1080 natively (no scaling)
    - Progressive yellow highlights synced to narration
    - Each highlight appears exactly when narrator quotes that text
-   - Multiple sections if the source is long
+   - Highlights accumulate — they don't reset between quotes
+   - If narrator makes commentary (not quoting), no new highlight needed
 
-4. Leo Outro (8-12s)
+4. Leo Analysis (optional, 8-14s)
    - Dark background, OA icon top-right
-   - "This is the new world, this is AI orchestration..."
-   - Statement, not a question
+   - Leo delivers the "what this means" takeaway on camera
+   - Used when the analysis isn't a direct tweet quote
+
+5. Leo Outro (4-8s)
+   - Dark background, OA icon top-right
+   - Standard: "This is the new world, this is AI orchestration, subscribe to be enlightened."
+   - MUST be a statement, never a question
    - Natural/conversational voice (stability: 0.45, style: 0.5)
 
-5. End Card (3-4s)
-   - Leo holds 1s after finishing
+6. End Card (3-4s)
+   - Leo holds on screen 1s after finishing talking
    - Gentle 1.5s fade to black
-   - OA logo (white on dark) fades in centered
+   - OA logo (white, 200x200, rounded) fades in centered on #1a1a1a
    - Hold 2s
 ```
 
@@ -44,68 +52,76 @@ Each video covers a trending AI topic (tweet, article, announcement) with Leo na
 ```
 video-pipeline/output/News/<topic-slug>/
 ├── assets_v2/
-│   ├── leo-intro.txt              # Leo intro script
-│   ├── leo-intro.mp3              # ElevenLabs audio
-│   ├── leo-intro-padded.mp3       # +1s silence at start
-│   ├── vo-section1.txt            # Voiceover section 1 script
-│   ├── vo-section1.mp3            # ElevenLabs audio
-│   ├── vo-section2.txt            # Voiceover section 2 script
+│   ├── leo-intro.txt                # Leo intro script
+│   ├── leo-intro.mp3                # ElevenLabs audio
+│   ├── leo-intro-padded.mp3         # +1s silence at start (for HeyGen)
+│   ├── leo-intro-padded_video_id.txt # HeyGen video ID
+│   ├── vo-section1.txt              # Voiceover section 1 script
+│   ├── vo-section1.mp3              # ElevenLabs audio
+│   ├── vo-section2.txt              # Voiceover section 2 script
 │   ├── vo-section2.mp3
-│   ├── vo-section3.txt            # (optional) section 3
+│   ├── vo-section3.txt              # (optional) Leo analysis script
 │   ├── vo-section3.mp3
-│   ├── leo-outro.txt              # Leo outro script
+│   ├── leo-outro.txt                # Leo outro script
 │   ├── leo-outro.mp3
-│   └── *_video_id.txt             # HeyGen video IDs
+│   └── leo-outro-padded_video_id.txt
 ├── screenshots/
-│   ├── tweet-none_p1.png          # Unhighlighted tweet page 1
-│   ├── tweet-none_p2.png          # Unhighlighted tweet page 2
-│   ├── tweet-s1a_p1.png           # Section 1, highlight phase A
-│   ├── tweet-s1b_p1.png           # Section 1, highlight phase B
-│   ├── tweet-s2a_p2.png           # Section 2, highlight phase A
-│   └── ...                        # Progressive highlights per section
-├── tweet-config.json              # Base tweet config (full text, stats)
-├── tweet-config-s1a.json          # Section-specific highlight configs
+│   ├── tweet-none.png               # Unhighlighted tweet (full, single image)
+│   ├── tweet-s1a.png                # Section 1, highlight phase A
+│   ├── tweet-s1b.png                # Section 1, highlight phase B (accumulates)
+│   ├── tweet-s2a.png                # Section 2, highlight phase A
+│   └── ...
+├── tweet-config.json                # Base tweet config (full text, stats)
+├── tweet-config-none.json           # No highlights
+├── tweet-config-s1a.json            # Section-specific highlight configs
 ├── normalized_v2/
-│   ├── opener.mp4
-│   ├── leo-intro-padded.mp4
-│   ├── tweet-s1.mp4
+│   ├── opener.mp4                   # Reused from shared/karpathy
+│   ├── leo-intro-padded.mp4         # With OA icon overlay
+│   ├── tweet-s1.mp4                 # Tweet section with timed highlights
 │   ├── tweet-s2.mp4
-│   ├── leo-outro-final.mp4
-│   └── concat.txt
-└── final.mp4                      # Final output
+│   ├── vo-section3.mp4              # Leo analysis (optional, with OA icon)
+│   ├── leo-outro-fade.mp4           # With fade out
+│   ├── endcard.mp4                  # OA logo fade in
+│   └── concat.txt                   # Final concat order
+├── thumbnail.png                    # YouTube thumbnail (1280x720)
+└── final.mp4                        # Final output
 ```
 
-## Shared Assets
+## Shared Assets (reusable across all videos)
 
 ```
 video-pipeline/output/News/shared/
-├── daily-dose.mp3                 # "This is your daily dose of AI" voiceover
-├── dark-bg.png                    # Solid dark background for HeyGen
-├── intro-bg.png                   # (unused, keep dark solid)
-└── intro.mp4                      # (deprecated, use typing opener instead)
+├── daily-dose.mp3                   # "This is your daily dose of AI" voiceover
+└── dark-bg.png                      # Solid #1a1a1a background for HeyGen
+
+video-pipeline/output/News/karpathy-20-80/
+├── normalized_v2/opener.mp4         # Typing opener (copy to each new video)
+├── normalized/oa-icon-dark.png      # OA icon overlay for Leo segments
+└── endcard.png                      # OA logo centered on dark bg
 ```
 
 ## Step-by-Step Process
 
 ### 1. Research & Select Topic
 
-Find trending AI content via web search or Twitter. Look for:
+Find trending AI content via web search. Look for:
 - Tweets with high engagement (10K+ likes) from key accounts
-- Breaking news about models, frameworks, tools
-- Key accounts: @karpathy, @AnthropicAI, @OpenAI, @GoogleAI
+- Breaking news about models, frameworks, tools, security
+- Key accounts: @karpathy, @AnthropicAI, @OpenAI, @GoogleAI, @kevinroose, @CNBC
+- Topics: agentic engineering, MCP, A2A, vibe coding, AI security, new model releases
 
 ### 2. Create Tweet Config
 
-Create `tweet-config.json` with the full tweet text:
+Create `tweet-config.json` with the FULL tweet text and real engagement stats:
 
 ```json
 {
   "name": "Andrej Karpathy",
   "handle": "@karpathy",
-  "avatar": "https://pbs.twimg.com/profile_images/.../photo.jpg",
+  "avatar": "",
   "verified": true,
   "date": "10:50 AM · Feb 25, 2026",
-  "text": "Full tweet text here...",
+  "text": "Full tweet text here — copy the ENTIRE tweet, not a summary...",
   "highlights": [],
   "likes": "37.1K",
   "replies": "1.6K",
@@ -114,26 +130,71 @@ Create `tweet-config.json` with the full tweet text:
 }
 ```
 
+**Multiple tweets per video:** Create separate config files (e.g., `tweet-config-anthropic.json`) for each source tweet.
+
 ### 3. Write Scripts — Tweet First
 
-Read the tweet top to bottom. Write narration that follows the tweet order:
+Read the tweet top to bottom. Write narration that follows the tweet order.
+
+**Script files:**
+- `leo-intro.txt` — Who is this person, why should you care, what happened
+- `vo-section1.txt` — Narration over first tweet (quotes exact text)
+- `vo-section2.txt` — Narration over second tweet or second part
+- `vo-section3.txt` — (optional) Leo analysis / what this means
+- `leo-outro.txt` — Standard: "This is the new world, this is AI orchestration, subscribe to be enlightened."
 
 **Rules:**
-- When quoting the tweet, use the EXACT words
+- When quoting the tweet, use the EXACT words from the tweet
 - Each voiceover section covers one natural section of the tweet
-- Identify which phrases to highlight in each section
-- Note the word position of each highlight for timing
-- No filler phrases ("watch this", "check this out")
-- Leo intro: who is this person, why should you care, what happened
-- Leo outro: statement about what this means, "subscribe to learn more"
+- Identify which phrases to highlight — only highlight text being directly quoted
+- If narrator is making a comment (not quoting), no highlight needed
+- No filler phrases: no "watch this", "check this out", "let's get into it"
+- Leo outro is always a statement, never a question
+- Use commas instead of periods between sentences (prevents ElevenLabs silence gaps)
 
-### 4. Calculate Highlight Timing
+**Pronunciation:**
+- Uppercase terms get misread by ElevenLabs (GET → "geet"). Use lowercase.
+- "Mythos" → spell as "Mithose" in scripts
+- Test audio before sending to HeyGen — listen to the full concatenated audio
 
-For each voiceover section, calculate when each highlighted phrase is spoken:
+### 4. Generate Audio — ElevenLabs
+
+```bash
+VOICE_ID="WQcQveC0hbQNvI69FWyU"
+API_KEY="${ELEVENLABS_API_KEY}"
+
+curl -X POST "https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}" \
+  -H "xi-api-key: ${API_KEY}" \
+  -H "Content-Type: application/json" \
+  -H "Accept: audio/mpeg" \
+  -d '{"text": "...", "model_id": "eleven_turbo_v2_5", "voice_settings": {"stability": 0.6, "similarity_boost": 0.8, "style": 0.3, "use_speaker_boost": true}}' \
+  -o section.mp3
+```
+
+**Voice settings:**
+| Segment | Stability | Similarity | Style |
+|---------|-----------|------------|-------|
+| Narration / voiceovers | 0.6 | 0.8 | 0.3 |
+| Leo outro (conversational) | 0.45 | 0.75 | 0.5 |
+
+**Silence gap check** — any gap >1.0s means replace the period before it with a comma:
+```bash
+ffmpeg -i section.mp3 -af silencedetect=noise=-30dB:d=0.8 -f null - 2>&1 | grep silence_duration
+```
+
+**Pad Leo segments** with 1s silence (so mouth starts closed in HeyGen):
+```bash
+ffmpeg -y -f lavfi -t 1 -i anullsrc=r=44100 -i leo.mp3 \
+  -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1" leo-padded.mp3
+```
+
+### 5. Calculate Highlight Timing
+
+For each voiceover section, calculate the exact second each highlighted phrase is spoken:
 
 ```python
 text = "full narration script..."
-duration = 21.9  # seconds (from audio file)
+duration = 21.9  # from ffprobe
 words_per_sec = len(text.split()) / duration
 
 target = "phrase to highlight"
@@ -141,103 +202,58 @@ words_before = len(text.split(target)[0].split())
 time_at_target = words_before / words_per_sec
 ```
 
-### 5. Generate Tweet Cards
+This gives you the cut point for each progressive highlight phase.
 
-Create progressive highlight configs for each timing phase:
+### 6. Generate Tweet Cards
 
-```bash
-# Unhighlighted
+Create progressive highlight configs — highlights accumulate across phases:
+
+```
 tweet-config-none.json  → highlights: []
-
-# Section 1, phase A (first quote)
-tweet-config-s1a.json   → highlights: ["first quoted phrase"]
-
-# Section 1, phase B (accumulates)
-tweet-config-s1b.json   → highlights: ["first quoted phrase", "second quoted phrase"]
+tweet-config-s1a.json   → highlights: ["first phrase"]
+tweet-config-s1b.json   → highlights: ["first phrase", "second phrase"]
 ```
 
 Render all variants:
-
 ```bash
-node video-pipeline/scripts/tweet-card.mjs \
-  --config tweet-config-s1a.json \
-  --output screenshots/tweet-s1a.png
+node video-pipeline/scripts/tweet-card.mjs --config tweet-config-s1a.json --output screenshots/tweet-s1a.png
 ```
 
-The tweet-card renderer outputs `_p1.png` and `_p2.png` for multi-page tweets.
-
-### 6. Generate Audio — ElevenLabs
-
-```bash
-VOICE_ID="WQcQveC0hbQNvI69FWyU"
-
-# Standard narration (voiceover sections)
-curl -X POST "https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}" \
-  -H "xi-api-key: ${ELEVENLABS_API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "script content",
-    "model_id": "eleven_turbo_v2_5",
-    "voice_settings": {
-      "stability": 0.6,
-      "similarity_boost": 0.8,
-      "style": 0.3,
-      "use_speaker_boost": true
-    }
-  }' -o section.mp3
-
-# Leo outro (more conversational)
-# Use: stability: 0.45, style: 0.5 for natural feel
-```
-
-**Check for silence gaps** (>1.0s means replace periods with commas):
-```bash
-ffmpeg -i section.mp3 -af silencedetect=noise=-30dB:d=0.8 -f null - 2>&1 | grep silence_duration
-```
-
-**Pad Leo segments with 1s silence** (mouth-closed start):
-```bash
-ffmpeg -y -f lavfi -t 1 -i anullsrc=r=44100 -i leo.mp3 \
-  -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1" leo-padded.mp3
-```
+**Tweet card specs:**
+- 1920x1080 output, rendered natively (deviceScaleFactor: 1)
+- Dark (#1a1a1a) background, white tweet card (900px, 40px padding, 20px border-radius)
+- Yellow (#fef08a) highlights on quoted text
+- Real X/Twitter styling: avatar, verified badge, handle, date, engagement stats
+- Drop shadow for depth against dark bg
 
 ### 7. Generate Leo Segments — HeyGen
 
-Upload padded audio to Supabase storage, then submit to HeyGen:
+Upload padded audio to Supabase storage (public URL), then submit to HeyGen:
 
 ```bash
-# Upload audio
+# Upload audio to Supabase
 curl -X POST "${SB_URL}/storage/v1/object/assets/news-audio/${filename}.mp3" \
   -H "Authorization: Bearer ${SB_KEY}" \
   -H "Content-Type: audio/mpeg" \
   --data-binary "@audio.mp3"
 
-# Generate video
+# Submit to HeyGen
 curl -X POST "https://api.heygen.com/v2/video/generate" \
   -H "X-Api-Key: ${HEYGEN_KEY}" \
+  -H "Content-Type: application/json" \
   -d '{
     "video_inputs": [{
-      "character": {
-        "type": "avatar",
-        "avatar_id": "Silas_expressive_2024120201",
-        "avatar_style": "normal"
-      },
-      "voice": {
-        "type": "audio",
-        "audio_url": "https://...public-url.mp3"
-      },
-      "background": {
-        "type": "image",
-        "url": "https://...dark-bg.png"
-      }
+      "character": {"type": "avatar", "avatar_id": "Silas_expressive_2024120201", "avatar_style": "normal"},
+      "voice": {"type": "audio", "audio_url": "https://...public-url.mp3"},
+      "background": {"type": "image", "url": "https://...dark-bg.png"}
     }],
     "dimension": {"width": 1920, "height": 1080}
   }'
 ```
 
-**Always use dark-bg.png** for Leo segments.
+**Always use dark-bg.png** (#1a1a1a solid) for all Leo segments.
 
-**Add OA icon overlay** (200x200, top-right) after downloading:
+**After downloading, add OA icon overlay** (200x200, top-right):
 ```bash
 ffmpeg -y -i leo.mp4 -i oa-icon-dark.png \
   -filter_complex "[0:v]scale=1920:1080[base];[1:v]scale=200:200[icon];[base][icon]overlay=W-240:40[vout]" \
@@ -248,150 +264,160 @@ ffmpeg -y -i leo.mp4 -i oa-icon-dark.png \
 
 ### 8. Build Typing Opener
 
-Generate typing animation frames (Puppeteer, single page, evaluate updates):
-
+Reuse the shared opener from the first video:
 ```bash
-# See video-pipeline/output/News/karpathy-20-80/opener_frames_v6/ for reference
-# Key params: green #34d399, SF Mono font, 52px, dark #0a0a0a bg
-# Type speed: ~1.6s for the full line
-# Hold: 1s after completion
-# Flicker: 0.4s rapid on/off with modem sound
+cp video-pipeline/output/News/karpathy-20-80/normalized_v2/opener.mp4 normalized_v2/opener.mp4
 ```
 
-Build opener video:
-```bash
-# 1. Render frames to video
-ffmpeg -y -framerate 25 -i frames/frame-%04d.png -c:v libx264 typing.mp4
-
-# 2. Create 1s hold (last frame + silence)
-ffmpeg -y -loop 1 -i last-frame.png -f lavfi -t 1 -i anullsrc -t 1 hold.mp4
-
-# 3. Create flicker (10 frames, on/off pattern) + modem sound
-# Modem: ffmpeg sine wave chain at varying frequencies, 0.4s, volume 0.3
-
-# 4. Concat: typing + hold + flicker
-```
+If regenerating, the opener has 3 parts:
+1. **Typing animation** — Puppeteer renders green (#34d399) monospace text, character by character, on #0a0a0a background. Uses `page.evaluate()` to update text per frame (avoids jitter from re-loading HTML).
+2. **Hold** — Last frame held for 1s with silence
+3. **Flicker + modem** — 10 frames with on/off pattern, modem sound (sine wave chain, 0.4s)
 
 ### 9. Build Tweet Sections
 
-For each voiceover section, create video with progressive highlights:
+For each voiceover section, assemble video with progressive highlight phases at calculated timestamps:
 
 ```bash
-# Example: 4 phases (none → A → B → C) at calculated timestamps
 ffmpeg -y \
-  -loop 1 -i tweet-none_p1.png \
-  -loop 1 -i tweet-s1a_p1.png \
-  -loop 1 -i tweet-s1b_p1.png \
-  -loop 1 -i tweet-s1c_p1.png \
+  -loop 1 -i tweet-none.png \
+  -loop 1 -i tweet-s1a.png \
+  -loop 1 -i tweet-s1b.png \
   -i voiceover.mp3 \
   -filter_complex "\
-    [0:v]scale=1920:1080:pad=white,trim=duration=1.6,setpts=PTS-STARTPTS[v0];\
-    [1:v]scale=1920:1080:pad=white,trim=duration=7.2,setpts=PTS-STARTPTS[v1];\
-    [2:v]scale=1920:1080:pad=white,trim=duration=10.3,setpts=PTS-STARTPTS[v2];\
-    [3:v]scale=1920:1080:pad=white,trim=duration=2.8,setpts=PTS-STARTPTS[v3];\
-    [v0][v1][v2][v3]concat=n=4:v=1:a=0[vout]" \
-  -map "[vout]" -map 4:a \
-  -t ${AUDIO_DURATION} tweet-section.mp4
+    [0:v]trim=duration=${T_A},setpts=PTS-STARTPTS[v0];\
+    [1:v]trim=duration=${T_B_minus_A},setpts=PTS-STARTPTS[v1];\
+    [2:v]trim=duration=${REMAINING},setpts=PTS-STARTPTS[v2];\
+    [v0][v1][v2]concat=n=3:v=1:a=0[vout]" \
+  -map "[vout]" -map 3:a \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 -t ${EXACT_AUDIO_DURATION} \
+  tweet-section.mp4
 ```
 
-**CRITICAL: Match video duration exactly to audio duration** (`-t` flag). Mismatch causes audio dropout.
+**CRITICAL:** Use `-t ${EXACT_AUDIO_DURATION}` to match video exactly to audio. Mismatch causes audio dropout on YouTube.
 
-**Tweet cards use WHITE background.** Leo uses DARK background.
+**Tweet images are already 1920x1080** — no scaling needed. Do NOT use `scale=` or `pad=` on them.
 
-### 10. Build Leo Outro with Fade
+### 10. Build Leo Outro with Fade to End Card
 
 ```bash
-OUTRO_DUR=$(ffprobe ... leo-outro.mp4)
+OUTRO_DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 leo-outro.mp4)
 
-# Leo holds 1s after talking, then 1.5s fade out, then endcard fades in 2s
-ffmpeg -y -i leo-outro.mp4 -loop 1 -i endcard.png \
-  -f lavfi -t 5 -i anullsrc \
-  -filter_complex "\
-    [0:v]tpad=stop_mode=clone:stop_duration=1[hold];\
-    [hold]fade=t=out:st=${OUTRO_DUR+1}:d=1.5[fade];\
-    [1:v]fade=t=in:d=0.5,trim=duration=2,setpts=PTS+${OUTRO_DUR+1}/TB[card];\
-    [fade][card]overlay=eof_action=pass[vout];\
-    [0:a]apad=whole_dur=${OUTRO_DUR+4.5}[aout]" \
-  -map "[vout]" -map "[aout]" outro-final.mp4
+# Hold Leo 1s after talking, fade out 1.5s
+ffmpeg -y -i leo-outro.mp4 \
+  -vf "tpad=stop_mode=clone:stop_duration=1,fade=t=out:st=$(python3 -c 'print(float(OUTRO_DUR)+1)'):d=1.5" \
+  -af "apad=whole_dur=$(python3 -c 'print(float(OUTRO_DUR)+2.5)')" \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 leo-outro-fade.mp4
+
+# End card: OA logo fades in
+ffmpeg -y -loop 1 -i endcard.png -f lavfi -t 2 -i "anullsrc=r=44100:cl=stereo" \
+  -vf "scale=1920:1080,fade=t=in:d=0.5" \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 -t 2 endcard.mp4
 ```
-
-**End card:** Large white OA icon (200x200, rounded corners) centered on #1a1a1a background.
 
 ### 11. Normalize & Stitch
 
-All segments must have identical format before concat:
-- Video: libx264, 1920x1080, 25fps, yuv420p, crf 18
-- Audio: aac, 44100 Hz, stereo, 128k
+All segments must have identical format:
+- **Video:** libx264, 1920x1080, 25fps, yuv420p, crf 18
+- **Audio:** aac, 44100 Hz, stereo
 
 ```bash
-# Concat with re-encode (prevents audio glitches at boundaries)
+# Always re-encode on concat — never use -c copy (causes audio dropout)
 ffmpeg -y -f concat -safe 0 -i concat.txt \
   -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
   -c:a aac -ar 44100 -ac 2 \
   final.mp4
 ```
 
-**Never use `-c copy` for concat** — causes audio dropout at segment boundaries.
+### 12. Generate Thumbnail
 
-### 12. Upload & Publish
+Leo on the left, big bold text on the right. 1280x720.
 
-Upload to YouTube, create blog post with embedded tweet, schedule both.
+- Leo's face extracted from a HeyGen video frame (`ffmpeg -ss 2 -vframes 1`)
+- Leo occupies the left ~40% of frame, slightly cropped
+- Text is right-aligned, 86-90px Inter Black
+- Key number/word in accent color (yellow, red, green)
+- Text must NOT overlap Leo's shoulders or body
+- OA icon badge (50x50) in top-right corner
+- Dark background (#0f0f0f)
+- Max 4-5 words total — no sentences
 
-## 12. Upload to YouTube
-
-Upload using the youtube-upload script. OAuth token is cached after first auth.
+### 13. Upload to YouTube
 
 ```bash
-node video-pipeline/scripts/youtube-upload.mjs --file video.mp4 --title "Title" --description "Description" --tags ai,topic --privacy public
+node video-pipeline/scripts/youtube-upload.mjs \
+  --file final.mp4 \
+  --title "Video Title" \
+  --description "Description with summary" \
+  --tags ai,topic,tags \
+  --privacy public
 ```
 
-Requires `YOUTUBE_CLIENT_ID` and `YOUTUBE_CLIENT_SECRET` in `.env.local`.
+**Description format:**
+```
+One-line summary of what happened.
 
-First run opens a browser for Google OAuth. Token saved to `video-pipeline/scripts/.youtube-token.json` for future uploads.
+In this episode:
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
 
-**Privacy options:** `public`, `unlisted`, `private`
-**Category:** Science & Technology (28)
+This is your daily dose of AI from Orchestrator Academy.
 
-## 13. Create Blog Post
+Learn AI orchestration for free: https://orchestratoracademy.com
+Source: https://x.com/...
+```
 
-Create a companion blog post in the admin dashboard (`/dashboard/admin` → Blog tab):
-- Embed the tweet using the blockquote embed code
-- Embed the YouTube video
-- Add SEO meta description and tags
-- Publish or schedule
+**Thumbnail upload** (separate step, may be rate-limited):
+```javascript
+youtube.thumbnails.set({ videoId, media: { body: createReadStream('thumbnail.png') } })
+```
+
+YouTube rate-limits thumbnail uploads — if blocked, wait 30-60 minutes or upload manually from YouTube Studio.
+
+### 14. Create Blog Post
+
+In the admin dashboard (`/dashboard/admin` → Blog tab):
+1. Create new post with WYSIWYG editor
+2. Embed the source tweet(s) using blockquote embed code
+3. Embed the YouTube video
+4. Write a summary with the key takeaways
+5. Add SEO meta description, tags, author
+6. Set featured image (use thumbnail or generate via Gemini)
+7. Publish or schedule
 
 ## Tools
 
-| Tool | Purpose | Config |
-|------|---------|--------|
-| `tweet-card.mjs` | Render tweet as styled card with highlights | White bg, yellow highlights, real X styling |
-| `tweet-screenshot.mjs` | Screenshot real tweet via oembed (no login) | White bg, centered |
-| `text-card.mjs` | Render styled text cards | Dark bg, green highlights (for non-tweet content) |
-| `youtube-upload.mjs` | Upload video to YouTube | OAuth, cached token |
-| ElevenLabs | Voice generation | Voice: WQcQveC0hbQNvI69FWyU, Model: eleven_turbo_v2_5 |
-| HeyGen | Avatar video | Avatar: Silas_expressive_2024120201, Dark bg |
-| Puppeteer | Frame generation, screenshots | Headless, no-sandbox |
-| ffmpeg | Video stitching, audio processing | Always re-encode on concat |
-
-## Voice Settings
-
-| Segment | Stability | Similarity | Style | Notes |
-|---------|-----------|------------|-------|-------|
-| Narration | 0.6 | 0.8 | 0.3 | Standard, clear |
-| Leo outro | 0.45 | 0.75 | 0.5 | Conversational, human |
-| Daily dose opener | 0.6 | 0.8 | 0.3 | Standard |
+| Tool | Purpose |
+|------|---------|
+| `video-pipeline/scripts/tweet-card.mjs` | Render tweet as styled card with yellow highlights on dark bg |
+| `video-pipeline/scripts/tweet-screenshot.mjs` | Screenshot real tweet via oembed (no login needed) |
+| `video-pipeline/scripts/text-card.mjs` | Render styled text cards (dark bg, green highlights) |
+| `video-pipeline/scripts/youtube-upload.mjs` | Upload video to YouTube with OAuth |
+| ElevenLabs API | Voice generation (Voice ID: WQcQveC0hbQNvI69FWyU) |
+| HeyGen API | Avatar video (Avatar: Silas_expressive_2024120201) |
+| Puppeteer | Frame generation, tweet card rendering |
+| ffmpeg | Video stitching, audio processing, normalization |
+| Supabase Storage | Public URL hosting for HeyGen audio files |
 
 ## Rules
 
 1. **Tweet-first:** Write narration to follow the tweet top-to-bottom
-2. **Highlight what you're quoting:** Every time narrator reads tweet text, that text is highlighted on screen
-3. **Progressive highlights:** Highlights accumulate, don't reset between quotes
-4. **No fake content:** Use actual tweet text, actual quotes, actual stats
-5. **No paywall screenshots:** Never screenshot paywalled sites, use styled cards instead
-6. **Dark bg for Leo, white bg for tweets:** Consistent visual language
-7. **OA icon on Leo segments:** 200x200, top-right corner, always
-8. **Statement outros:** "Subscribe to learn more." not "Subscribe if you want to learn more?"
+2. **Highlight what you're quoting:** Yellow highlight appears exactly when narrator reads that text
+3. **Progressive highlights:** Highlights accumulate, never reset
+4. **No fake content:** Use actual tweet text, actual quotes, actual engagement stats
+5. **No paywall screenshots:** Never screenshot paywalled sites — use tweet-card renderer
+6. **Dark bg for Leo, dark bg with white tweet card for tweets:** Consistent visual language
+7. **OA icon on all Leo segments:** 200x200, top-right corner
+8. **Statement outros:** "Subscribe to be enlightened." — never end on a question
 9. **No filler:** No "watch this", "check this out", "let's get into it"
-10. **Match audio to visuals:** Every visual cut must match what's being said
-11. **Silence check:** All audio must pass <1.0s gap check before sending to HeyGen
-12. **Pad Leo audio:** 1s silence prepended so mouth starts closed
+10. **Match audio to visuals:** Every highlight must sync with what's being said
+11. **Silence check:** All audio <1.0s gaps before sending to HeyGen
+12. **Pad Leo audio:** 1s silence prepended so HeyGen mouth starts closed
+13. **Re-encode on concat:** Never use `-c copy` — causes audio dropout
+14. **Exact duration match:** Tweet section video duration must exactly match audio duration (`-t` flag)
+15. **Pronunciation:** Test audio before HeyGen — uppercase terms get misread, spell phonetically if needed
+16. **Thumbnails:** Leo left, text right, no overlap on body, max 5 words, accent color on key word

@@ -67,20 +67,20 @@ const html = `<!DOCTYPE html>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 960px;
-      height: 540px;
-      background: #ffffff;
+      width: 1920px;
+      height: 1080px;
+      background: #1a1a1a;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     .tweet {
-      width: 520px;
+      width: 900px;
       background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.4);
     }
     .header {
       display: flex;
@@ -117,7 +117,7 @@ const html = `<!DOCTYPE html>
     }
     .name {
       font-weight: 700;
-      font-size: 15px;
+      font-size: 22px;
       color: #0f1419;
       display: flex;
       align-items: center;
@@ -140,8 +140,8 @@ const html = `<!DOCTYPE html>
       height: 22px;
     }
     .text {
-      font-size: 16px;
-      line-height: 1.55;
+      font-size: 24px;
+      line-height: 1.5;
       color: #0f1419;
       margin-bottom: 14px;
       word-wrap: break-word;
@@ -214,7 +214,7 @@ const html = `<!DOCTYPE html>
 async function run() {
   const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox"] });
   const page = await browser.newPage();
-  await page.setViewport({ width: 960, height: 540, deviceScaleFactor: 2 });
+  await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
   await page.setContent(html, { waitUntil: "networkidle0", timeout: 10000 });
   await new Promise((r) => setTimeout(r, 1000));
 
@@ -225,11 +225,11 @@ async function run() {
   });
 
   // If tweet is taller than viewport, render multiple pages
-  const pageHeight = 540;
+  const pageHeight = 1080;
   const pages = Math.ceil(tweetHeight / pageHeight);
 
   if (pages <= 1) {
-    await page.screenshot({ path: outputPath, type: "png", clip: { x: 0, y: 0, width: 960, height: 540 } });
+    await page.screenshot({ path: outputPath, type: "png", clip: { x: 0, y: 0, width: 1920, height: 1080 } });
     console.log(`Saved: ${outputPath} (1 page)`);
   } else {
     // Resize viewport to fit full tweet
