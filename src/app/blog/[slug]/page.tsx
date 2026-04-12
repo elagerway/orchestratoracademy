@@ -114,9 +114,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       )}
 
       <div className="mt-8 border-t border-border pt-8">
-        <article className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-heading prose-p:leading-relaxed prose-a:text-emerald-accent">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{post.content}</ReactMarkdown>
-        </article>
+        <article
+          className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-heading prose-p:leading-relaxed prose-a:text-emerald-accent prose-li:my-1 prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-ul:my-4 prose-ol:my-4 prose-blockquote:my-6"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
         <TwitterEmbed />
       </div>
 
