@@ -3,8 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { ChevronLeft, Calendar, Share2 } from "lucide-react";
 import { ShareButtons } from "./share-buttons";
+import { TwitterEmbed } from "@/components/twitter-embed";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {
@@ -113,8 +115,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       <div className="mt-8 border-t border-border pt-8">
         <article className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-heading prose-p:leading-relaxed prose-a:text-emerald-accent">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{post.content}</ReactMarkdown>
         </article>
+        <TwitterEmbed />
       </div>
 
       {/* Bottom share */}

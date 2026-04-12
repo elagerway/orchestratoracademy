@@ -18,6 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { RichEditor } from "@/components/blog/rich-editor";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1445,11 +1446,10 @@ function BlogTab({ data }: { data: AdminData }) {
 
             <div>
               <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Content</label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[400px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-emerald-accent/50"
-                placeholder="Write your post in markdown..."
+              <RichEditor
+                content={content}
+                onChange={setContent}
+                placeholder="Start writing your post..."
               />
             </div>
           </div>
