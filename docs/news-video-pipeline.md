@@ -34,13 +34,15 @@ Each video covers a trending AI topic (tweet, article, announcement) with Leo na
    - Leo delivers the "what this means" takeaway on camera
    - Used when the analysis isn't a direct tweet quote
 
-5. Leo Outro (4-8s)
+5. Leo Outro + Subscribe CTA (8-12s)
    - Dark background, OA icon top-right
-   - Standard: "This is the new world, this is AI orchestration, subscribe to be enlightened."
+   - Leo says: "This is the new world, this is AI orchestration."
+   - Then: "Subscribe and hit the bell for your daily dose of AI."
+   - Subscribe button + bell animation overlay on screen during CTA
    - MUST be a statement, never a question
    - Natural/conversational voice (stability: 0.45, style: 0.5)
 
-6. End Card (3-4s)
+6. End Screen (5-8s)
    - Leo holds on screen 1s after finishing talking
    - Gentle 1.5s fade to black
    - OA logo (white, 200x200, rounded) fades in centered on #1a1a1a
@@ -345,16 +347,19 @@ Leo on the left, big bold text on the right. 1280x720.
 - Dark background (#0f0f0f)
 - Max 4-5 words total — no sentences
 
-### 13. Upload to YouTube
+### 13. Upload to YouTube (UNLISTED)
+
+**Always upload as unlisted.** Videos go public only when the companion blog post is published.
 
 ```bash
 node video-pipeline/scripts/youtube-upload.mjs \
   --file final.mp4 \
   --title "Video Title" \
-  --description "Description with summary" \
-  --tags ai,topic,tags \
-  --privacy public
+  --description "Description" \
+  --tags ai,topic,tags
 ```
+
+Default privacy is `unlisted`. Only use `--privacy public` when deliberately publishing.
 
 **Description format:**
 ```
@@ -378,16 +383,34 @@ youtube.thumbnails.set({ videoId, media: { body: createReadStream('thumbnail.png
 
 YouTube rate-limits thumbnail uploads — if blocked, wait 30-60 minutes or upload manually from YouTube Studio.
 
-### 14. Create Blog Post
+### 14. Add End Screen Cards
+
+In YouTube Studio, add end screen elements to the last 5-8 seconds of the video:
+- **Subscribe button** — positioned bottom-left
+- **Best for viewer** video card — positioned top-right
+- **Recent upload** video card — positioned bottom-right
+
+This must be done manually in YouTube Studio after upload — the API doesn't support end screen creation.
+
+### 15. Create Blog Post + Go Live
 
 In the admin dashboard (`/dashboard/admin` → Blog tab):
 1. Create new post with WYSIWYG editor
 2. Embed the source tweet(s) using blockquote embed code
-3. Embed the YouTube video
+3. Embed the YouTube video: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen></iframe>`
 4. Write a summary with the key takeaways
 5. Add SEO meta description, tags, author
 6. Set featured image (use thumbnail or generate via Gemini)
-7. Publish or schedule
+7. **Publish the blog post**
+8. **Set the YouTube video to public** — video and blog go live together
+
+To set a video public via API:
+```javascript
+youtube.videos.update({
+  part: 'status',
+  requestBody: { id: 'VIDEO_ID', status: { privacyStatus: 'public' } }
+})
+```
 
 ## Tools
 
@@ -412,7 +435,7 @@ In the admin dashboard (`/dashboard/admin` → Blog tab):
 5. **No paywall screenshots:** Never screenshot paywalled sites — use tweet-card renderer
 6. **Dark bg for Leo, dark bg with white tweet card for tweets:** Consistent visual language
 7. **OA icon on all Leo segments:** 200x200, top-right corner
-8. **Statement outros:** "Subscribe to be enlightened." — never end on a question
+8. **Standard outro:** "This is the new world, this is AI orchestration. Subscribe and hit the bell for your daily dose of AI." — always a statement, never a question
 9. **No filler:** No "watch this", "check this out", "let's get into it"
 10. **Match audio to visuals:** Every highlight must sync with what's being said
 11. **Silence check:** All audio <1.0s gaps before sending to HeyGen
@@ -421,3 +444,7 @@ In the admin dashboard (`/dashboard/admin` → Blog tab):
 14. **Exact duration match:** Tweet section video duration must exactly match audio duration (`-t` flag)
 15. **Pronunciation:** Test audio before HeyGen — uppercase terms get misread, spell phonetically if needed
 16. **Thumbnails:** Leo left, text right, no overlap on body, max 5 words, accent color on key word
+17. **Upload unlisted:** Videos are always uploaded as unlisted — go public only when companion blog post publishes
+18. **Blog + video go live together:** Embed YouTube video in blog post, publish blog, then set video to public
+19. **End screen cards:** Add subscribe button + video cards in YouTube Studio for last 5-8 seconds
+20. **Subscribe CTA in video:** Leo says "Subscribe and hit the bell for your daily dose of AI" with subscribe/bell animation overlay

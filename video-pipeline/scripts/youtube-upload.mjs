@@ -30,7 +30,7 @@ const TOKEN_PATH = "video-pipeline/scripts/.youtube-token.json";
 const REDIRECT_URI = "http://localhost:3333/callback";
 
 const args = process.argv.slice(2);
-let file = "", title = "", description = "", tags = "", privacy = "public";
+let file = "", title = "", description = "", tags = "", privacy = "unlisted";
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--file") file = args[++i];
@@ -65,7 +65,7 @@ async function getToken() {
   // First-time auth — open browser
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/youtube.upload"],
+    scope: ["https://www.googleapis.com/auth/youtube", "https://www.googleapis.com/auth/youtube.upload"],
   });
 
   console.log("Opening browser for authorization...");
