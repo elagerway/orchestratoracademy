@@ -503,7 +503,7 @@ curl -X PATCH "${SB_URL}/rest/v1/blog_posts?slug=eq.${SLUG}" \
 // Using the googleapis library (same auth as youtube-upload.mjs)
 youtube.videos.update({
   part: 'status',
-  requestBody: { id: 'VIDEO_ID', status: { privacyStatus: 'public' } }
+  requestBody: { id: 'VIDEO_ID', status: { privacyStatus: 'public', selfDeclaredMadeForKids: false } }
 })
 ```
 Or via node one-liner:
@@ -514,7 +514,7 @@ if(existsSync('.env.local')){for(const l of readFileSync('.env.local','utf-8').s
 const token=JSON.parse(readFileSync('video-pipeline/scripts/.youtube-token.json','utf-8'));
 const auth=new google.auth.OAuth2(process.env.YOUTUBE_CLIENT_ID,process.env.YOUTUBE_CLIENT_SECRET);
 auth.setCredentials(token);const yt=google.youtube({version:'v3',auth});
-yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus:'public'}}})
+yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus:'public',selfDeclaredMadeForKids:false}}})
 .then(()=>console.log('Public')).catch(e=>console.error(e.message));
 "
 ```

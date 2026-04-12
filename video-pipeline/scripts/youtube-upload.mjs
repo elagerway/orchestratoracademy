@@ -113,6 +113,7 @@ async function upload() {
       },
       status: {
         privacyStatus: privacy,
+        selfDeclaredMadeForKids: false,
       },
     },
     media: {
