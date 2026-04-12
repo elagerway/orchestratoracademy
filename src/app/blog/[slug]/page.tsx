@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         Back to Blog
       </Link>
 
-      {post.featured_image_url && (
+      {post.featured_image_url && !post.content?.includes("youtube.com/embed") && (
         <img
           src={post.featured_image_url}
           alt={post.title}
