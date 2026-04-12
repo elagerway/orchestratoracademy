@@ -2,6 +2,22 @@
 
 Repeatable process for producing "Daily Dose of AI" news videos for Orchestrator Academy YouTube channel.
 
+## Prerequisites
+
+All API keys are in `.env.local` at the project root:
+- `ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID` (WQcQveC0hbQNvI69FWyU)
+- `HEYGEN_API_KEY` (starts with `sk_V2_`)
+- `HEYGEN_AVATAR_ID` (Silas_expressive_2024120201)
+- `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+- `YOUTUBE_CLIENT_ID` + `YOUTUBE_CLIENT_SECRET`
+
+**Shared asset paths (already exist, do not regenerate):**
+- Typing opener: `video-pipeline/output/News/karpathy-20-80/normalized_v2/opener.mp4`
+- OA icon overlay: `video-pipeline/output/News/karpathy-20-80/normalized/oa-icon-dark.png`
+- End card image: `video-pipeline/output/News/karpathy-20-80/endcard.png`
+- Dark background for HeyGen: `https://oxsiajjnbnedimblidrs.supabase.co/storage/v1/object/public/assets/news-audio/dark-bg.png`
+- Leo frame for thumbnails: `video-pipeline/output/News/karpathy-20-80/leo-frame.png`
+
 ## Overview
 
 Each video covers a trending AI topic (tweet, article, announcement) with Leo narrating over highlighted source material. Videos are ~90-120 seconds. Published to YouTube with thumbnail, description, and companion blog post.
@@ -143,7 +159,8 @@ Read the tweet top to bottom. Write narration that follows the tweet order.
 - `vo-section1.txt` — Narration over first tweet (quotes exact text)
 - `vo-section2.txt` — Narration over second tweet or second part
 - `vo-section3.txt` — (optional) Leo analysis / what this means
-- `leo-outro.txt` — Standard: "This is the new world, this is AI orchestration, subscribe to be enlightened."
+- `leo-outro.txt` — Standard outro (two sentences, same every video):
+    "This is the new world, this is AI orchestration. Subscribe and hit the bell for your daily dose of AI."
 
 **Rules:**
 - When quoting the tweet, use the EXACT words from the tweet
@@ -255,6 +272,16 @@ curl -X POST "https://api.heygen.com/v2/video/generate" \
 
 **Always use dark-bg.png** (#1a1a1a solid) for all Leo segments.
 
+**Background URL:** `https://oxsiajjnbnedimblidrs.supabase.co/storage/v1/object/public/assets/news-audio/dark-bg.png`
+
+**Poll for completion** — HeyGen takes 2-5 minutes per segment:
+```bash
+curl -s "https://api.heygen.com/v1/video_status.get?video_id=${VIDEO_ID}" \
+  -H "X-Api-Key: ${HEYGEN_KEY}"
+# Response: {"data": {"status": "processing|completed", "video_url": "https://..."}}
+# Poll every 15-20 seconds until status is "completed", then download video_url
+```
+
 **After downloading, add OA icon overlay** (200x200, top-right):
 ```bash
 ffmpeg -y -i leo.mp4 -i oa-icon-dark.png \
@@ -305,11 +332,13 @@ ffmpeg -y \
 
 ```bash
 OUTRO_DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 leo-outro.mp4)
+FADE_START=$(python3 -c "print(float('${OUTRO_DUR}')+1)")
+PAD_DUR=$(python3 -c "print(float('${OUTRO_DUR}')+2.5)")
 
 # Hold Leo 1s after talking, fade out 1.5s
 ffmpeg -y -i leo-outro.mp4 \
-  -vf "tpad=stop_mode=clone:stop_duration=1,fade=t=out:st=$(python3 -c 'print(float(OUTRO_DUR)+1)'):d=1.5" \
-  -af "apad=whole_dur=$(python3 -c 'print(float(OUTRO_DUR)+2.5)')" \
+  -vf "tpad=stop_mode=clone:stop_duration=1,fade=t=out:st=${FADE_START}:d=1.5" \
+  -af "apad=whole_dur=${PAD_DUR}" \
   -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
   -c:a aac -ar 44100 -ac 2 leo-outro-fade.mp4
 
@@ -420,7 +449,17 @@ Create the companion blog post. Can be done via admin UI or direct database inse
 <p><a href="https://orchestratoracademy.com/courses">Start the free course →</a></p>
 ```
 
-**Content is HTML** (not markdown). Use the `</>` source toggle in the WYSIWYG editor to paste/edit raw HTML, or insert directly via the database API.
+**Content is HTML** (not markdown). Use the `</>` source toggle in the WYSIWYG editor to paste/edit raw HTML, or insert directly via the Supabase REST API:
+
+```bash
+curl -X POST "${SB_URL}/rest/v1/blog_posts" \
+  -H "apikey: ${SB_KEY}" -H "Authorization: Bearer ${SB_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "...", "slug": "...", "content": "<iframe ...>...</iframe><h2>...</h2>...",
+       "excerpt": "...", "meta_description": "...", "tags": ["ai", "topic"],
+       "author_name": "Orchestrator Academy", "status": "draft", "published": false,
+       "featured_image_url": "https://oxsiajjnbnedimblidrs.supabase.co/storage/v1/object/public/assets/blog/SLUG.png"}'
+```
 
 **SEO fields:**
 - **Title:** Match the YouTube video title
@@ -431,8 +470,13 @@ Create the companion blog post. Can be done via admin UI or direct database inse
 - **Excerpt:** 1-2 sentences for blog listing cards
 
 **Featured image:**
-- Upload the video thumbnail to Supabase Storage (`assets/blog/slug.png`)
-- Set `featured_image_url` on the blog post
+- Upload the video thumbnail to Supabase Storage:
+```bash
+curl -X POST "${SB_URL}/storage/v1/object/assets/blog/${SLUG}.png" \
+  -H "Authorization: Bearer ${SB_KEY}" -H "Content-Type: image/png" \
+  --data-binary "@thumbnail.png"
+```
+- Set `featured_image_url` to `${SB_URL}/storage/v1/object/public/assets/blog/${SLUG}.png` on the blog post
 - **Featured image auto-hides on posts with YouTube embeds** — the video is the visual, no need for a duplicate thumbnail
 - Featured image still shows on the `/blog` listing page as the card image
 
@@ -444,20 +488,41 @@ Create the companion blog post. Can be done via admin UI or direct database inse
 
 ### 16. Go Live — Publish Blog + Set Video Public
 
-Blog post and YouTube video go live at the same time:
+**The video stays unlisted until this step.** Blog post and YouTube video go live at the same time.
 
-1. **Set blog post status to "published"** in admin dashboard
-2. **Set YouTube video to public** via API:
+1. **Publish the blog post** — set status to "published" via admin dashboard or API:
+```bash
+curl -X PATCH "${SB_URL}/rest/v1/blog_posts?slug=eq.${SLUG}" \
+  -H "apikey: ${SB_KEY}" -H "Authorization: Bearer ${SB_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"published": true, "status": "published", "published_at": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+```
 
+2. **Set YouTube video to public** — this is when the video goes live:
 ```javascript
+// Using the googleapis library (same auth as youtube-upload.mjs)
 youtube.videos.update({
   part: 'status',
   requestBody: { id: 'VIDEO_ID', status: { privacyStatus: 'public' } }
 })
 ```
+Or via node one-liner:
+```bash
+node -e "
+const{google}=require('googleapis');const{readFileSync,existsSync}=require('fs');
+if(existsSync('.env.local')){for(const l of readFileSync('.env.local','utf-8').split('\n')){const t=l.trim();if(!t||t.startsWith('#'))continue;const e=t.indexOf('=');if(e>0)process.env[t.slice(0,e)]=t.slice(e+1);}}
+const token=JSON.parse(readFileSync('video-pipeline/scripts/.youtube-token.json','utf-8'));
+const auth=new google.auth.OAuth2(process.env.YOUTUBE_CLIENT_ID,process.env.YOUTUBE_CLIENT_SECRET);
+auth.setCredentials(token);const yt=google.youtube({version:'v3',auth});
+yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus:'public'}}})
+.then(()=>console.log('Public')).catch(e=>console.error(e.message));
+"
+```
 
 3. **Cross-post** — use the LinkedIn and X share buttons in the admin Blog tab
 4. **Verify** — check the public blog URL and YouTube URL both work
+
+**IMPORTANT:** Never set a video to public before the blog post is published. The video URL in the blog post must be accessible when readers click through.
 
 ## Tools
 
