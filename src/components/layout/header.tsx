@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/client"
 
 const publicLinks = [
   { href: "/courses", label: "Courses" },
-  { href: "/blog", label: "Blog" },
   { href: "/for-companies", label: "For Companies" },
   { href: "/#pricing", label: "Pricing" },
 ]
@@ -18,7 +17,6 @@ const studentLinks = [
   { href: "/courses", label: "Courses" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/courses", label: "My Courses" },
-  { href: "/blog", label: "Blog" },
 ]
 
 function ThemeToggle() {

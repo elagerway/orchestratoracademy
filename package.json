@@ -19,6 +19,7 @@
     "@stripe/stripe-js": "^9.0.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-heading": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",
     "@tiptap/extension-link": "^3.22.3",
