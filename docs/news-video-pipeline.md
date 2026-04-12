@@ -363,6 +363,60 @@ ffmpeg -y -f concat -safe 0 -i concat.txt \
   final.mp4
 ```
 
+### 11b. Build YouTube Short (9:16 vertical)
+
+Produce a vertical Short from the same content. Must be under 60 seconds. YouTube auto-detects Shorts from vertical aspect ratio + duration.
+
+**Steps:**
+
+1. **Vertical opener** — crop existing opener to center:
+```bash
+ffmpeg -y -i opener.mp4 -vf "crop=608:1080:656:0,scale=1080:1920" \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 short/opener.mp4
+```
+
+2. **Vertical Leo** — center crop all Leo segments:
+```bash
+ffmpeg -y -i leo-segment.mp4 -t 8 \
+  -vf "crop=608:1080:656:0,scale=1080:1920" \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 short/leo-intro.mp4
+```
+
+3. **Vertical tweet card** — re-render at 1080x1920 using Puppeteer with all highlights applied. Use the same tweet-card styling but with `width: 1080px; height: 1920px` body and `width: 900px` tweet card. Show all highlights at once (no progressive reveal — Shorts are too short for that).
+
+4. **Tweet segment** — loop tweet image with first voiceover section (max 25s):
+```bash
+ffmpeg -y -loop 1 -i tweet-vertical.png -i vo-section1.mp3 \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 -t ${VO_DUR} short/tweet.mp4
+```
+
+5. **Stitch** — opener + Leo intro (8s max) + tweet (25s max) + Leo outro (6s max):
+```bash
+ffmpeg -y -f concat -safe 0 -i short/concat.txt \
+  -c:v libx264 -preset medium -crf 18 -r 25 -pix_fmt yuv420p \
+  -c:a aac -ar 44100 -ac 2 short.mp4
+```
+
+**Target: 30-55 seconds.** If over 60s, trim Leo segments shorter.
+
+**Upload as Short:**
+```bash
+node video-pipeline/scripts/youtube-upload.mjs \
+  --file short.mp4 \
+  --title "Video Title #shorts #ai #topic" \
+  --description "This is your daily dose of AI. https://orchestratoracademy.com" \
+  --tags ai,topic,shorts
+```
+
+**Important:**
+- `#shorts` in the title helps YouTube classify it
+- Shorts live only on YouTube — they are NOT embedded in blog posts
+- The regular 16:9 video is what gets embedded in the blog post
+- Shorts stay unlisted until the regular video + blog go public
+
 ### 12. Generate Thumbnail
 
 Leo on the left, big bold text on the right. 1280x720.
@@ -567,3 +621,10 @@ yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus
 25. **Tweet embeds via blockquote:** Use Twitter's blockquote embed code — the `TwitterEmbed` component loads the widget JS
 26. **Blog + video titles match:** Blog post title should match or closely mirror the YouTube video title
 27. **Featured image = video thumbnail:** Upload the same thumbnail used for YouTube as the blog featured image
+28. **Always produce both formats:** Every video gets a 16:9 regular version AND a 9:16 Short
+29. **Shorts under 60s:** Target 30-55 seconds. Trim Leo segments if needed.
+30. **Shorts show all highlights at once:** No progressive reveal — too short for that
+31. **Shorts NOT in blog posts:** Only the 16:9 regular video is embedded in the blog. Shorts live only on YouTube.
+32. **#shorts in Short title:** Include `#shorts` and 1-2 keyword hashtags in the Short title
+33. **Shorts go public with the regular video:** Both versions go live at the same time as the blog post
+34. **Vertical crop for Leo:** Center crop 1920x1080 → 1080x1920 using `crop=608:1080:656:0,scale=1080:1920`
