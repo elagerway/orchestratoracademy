@@ -578,6 +578,21 @@ yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus
 
 **IMPORTANT:** Never set a video to public before the blog post is published. The video URL in the blog post must be accessible when readers click through.
 
+### 17. Update Social Strategy Doc
+
+After producing new content or after content goes live, update `docs/social-strategy.md`:
+
+**When producing new content:**
+- Add a new row to the Publishing Schedule table with date, blog slug, video IDs, and status "Scheduled"
+- Add file locations to the File Locations table
+- Add YouTube video IDs to the Video IDs section
+
+**When content goes live:**
+- Update the status column from "Scheduled" to "Published"
+- Note any issues or metrics worth tracking
+
+**This doc is the source of truth** for what's been produced, what's scheduled, and what's live. Any agent producing new content must update it.
+
 ## Tools
 
 | Tool | Purpose |
@@ -628,3 +643,4 @@ yt.videos.update({part:'status',requestBody:{id:'VIDEO_ID',status:{privacyStatus
 32. **#shorts in Short title:** Include `#shorts` and 1-2 keyword hashtags in the Short title
 33. **Shorts go public with the regular video:** Both versions go live at the same time as the blog post
 34. **Vertical crop for Leo:** Center crop 1920x1080 → 1080x1920 using `crop=608:1080:656:0,scale=1080:1920`
+35. **Update social-strategy.md:** Every new batch of content must be added to the publishing schedule. Every go-live must update status to "Published".
