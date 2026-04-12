@@ -392,25 +392,72 @@ In YouTube Studio, add end screen elements to the last 5-8 seconds of the video:
 
 This must be done manually in YouTube Studio after upload — the API doesn't support end screen creation.
 
-### 15. Create Blog Post + Go Live
+### 15. Create Blog Post
 
-In the admin dashboard (`/dashboard/admin` → Blog tab):
-1. Create new post with WYSIWYG editor
-2. Embed the source tweet(s) using blockquote embed code
-3. Embed the YouTube video: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen></iframe>`
-4. Write a summary with the key takeaways
-5. Add SEO meta description, tags, author
-6. Set featured image (use thumbnail or generate via Gemini)
-7. **Publish the blog post**
-8. **Set the YouTube video to public** — video and blog go live together
+Create the companion blog post. Can be done via admin UI or direct database insert.
 
-To set a video public via API:
+**Blog post structure:**
+
+```html
+<!-- 1. YouTube video embed at the top -->
+<iframe width="100%" height="400" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+
+<!-- 2. "What Happened" section — context -->
+<h2>What Happened</h2>
+<p>One paragraph explaining who/what/why.</p>
+
+<!-- 3. Embedded source tweet(s) -->
+<blockquote class="twitter-tweet">...</blockquote>
+
+<!-- 4. Analysis sections with H2/H3 headings -->
+<h2>Section Title</h2>
+<p>Key points, stats, quotes...</p>
+<ul><li>Bullet points for scanability</li></ul>
+
+<!-- 5. "What This Means for You" — always end with this -->
+<h2>What This Means for You</h2>
+<p>Takeaway + CTA link to courses</p>
+<p><a href="https://orchestratoracademy.com/courses">Start the free course →</a></p>
+```
+
+**Content is HTML** (not markdown). Use the `</>` source toggle in the WYSIWYG editor to paste/edit raw HTML, or insert directly via the database API.
+
+**SEO fields:**
+- **Title:** Match the YouTube video title
+- **Slug:** kebab-case, include primary keyword
+- **Meta description:** Under 300 chars, include key stat or claim
+- **Tags:** 6-8 keyword tags (lowercase, hyphenated)
+- **Author:** "Orchestrator Academy"
+- **Excerpt:** 1-2 sentences for blog listing cards
+
+**Featured image:**
+- Upload the video thumbnail to Supabase Storage (`assets/blog/slug.png`)
+- Set `featured_image_url` on the blog post
+- **Featured image auto-hides on posts with YouTube embeds** — the video is the visual, no need for a duplicate thumbnail
+- Featured image still shows on the `/blog` listing page as the card image
+
+**Blog post rendering:**
+- Content renders via `dangerouslySetInnerHTML` with Tailwind `prose` classes (`@tailwindcss/typography`)
+- Twitter embeds render via `TwitterEmbed` component (loads `platform.twitter.com/widgets.js`)
+- YouTube iframes render natively in the HTML
+- Blog link is in the **footer** (not header)
+
+### 16. Go Live — Publish Blog + Set Video Public
+
+Blog post and YouTube video go live at the same time:
+
+1. **Set blog post status to "published"** in admin dashboard
+2. **Set YouTube video to public** via API:
+
 ```javascript
 youtube.videos.update({
   part: 'status',
   requestBody: { id: 'VIDEO_ID', status: { privacyStatus: 'public' } }
 })
 ```
+
+3. **Cross-post** — use the LinkedIn and X share buttons in the admin Blog tab
+4. **Verify** — check the public blog URL and YouTube URL both work
 
 ## Tools
 
@@ -448,3 +495,10 @@ youtube.videos.update({
 18. **Blog + video go live together:** Embed YouTube video in blog post, publish blog, then set video to public
 19. **End screen cards:** Add subscribe button + video cards in YouTube Studio for last 5-8 seconds
 20. **Subscribe CTA in video:** Leo says "Subscribe and hit the bell for your daily dose of AI" with subscribe/bell animation overlay
+21. **Blog content is HTML:** Use `dangerouslySetInnerHTML` + `@tailwindcss/typography` prose classes — not ReactMarkdown
+22. **Featured image hides on video posts:** If blog content contains a YouTube embed, the featured image is hidden on the post page (still shows on `/blog` listing)
+23. **Blog in footer, not header:** Blog link lives in the site footer
+24. **YouTube embed at top of blog post:** Always the first element in the blog content
+25. **Tweet embeds via blockquote:** Use Twitter's blockquote embed code — the `TwitterEmbed` component loads the widget JS
+26. **Blog + video titles match:** Blog post title should match or closely mirror the YouTube video title
+27. **Featured image = video thumbnail:** Upload the same thumbnail used for YouTube as the blog featured image
