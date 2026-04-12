@@ -337,6 +337,29 @@ ffmpeg -y -f concat -safe 0 -i concat.txt \
 
 Upload to YouTube, create blog post with embedded tweet, schedule both.
 
+## 12. Upload to YouTube
+
+Upload using the youtube-upload script. OAuth token is cached after first auth.
+
+```bash
+node video-pipeline/scripts/youtube-upload.mjs --file video.mp4 --title "Title" --description "Description" --tags ai,topic --privacy public
+```
+
+Requires `YOUTUBE_CLIENT_ID` and `YOUTUBE_CLIENT_SECRET` in `.env.local`.
+
+First run opens a browser for Google OAuth. Token saved to `video-pipeline/scripts/.youtube-token.json` for future uploads.
+
+**Privacy options:** `public`, `unlisted`, `private`
+**Category:** Science & Technology (28)
+
+## 13. Create Blog Post
+
+Create a companion blog post in the admin dashboard (`/dashboard/admin` → Blog tab):
+- Embed the tweet using the blockquote embed code
+- Embed the YouTube video
+- Add SEO meta description and tags
+- Publish or schedule
+
 ## Tools
 
 | Tool | Purpose | Config |
@@ -344,6 +367,7 @@ Upload to YouTube, create blog post with embedded tweet, schedule both.
 | `tweet-card.mjs` | Render tweet as styled card with highlights | White bg, yellow highlights, real X styling |
 | `tweet-screenshot.mjs` | Screenshot real tweet via oembed (no login) | White bg, centered |
 | `text-card.mjs` | Render styled text cards | Dark bg, green highlights (for non-tweet content) |
+| `youtube-upload.mjs` | Upload video to YouTube | OAuth, cached token |
 | ElevenLabs | Voice generation | Voice: WQcQveC0hbQNvI69FWyU, Model: eleven_turbo_v2_5 |
 | HeyGen | Avatar video | Avatar: Silas_expressive_2024120201, Dark bg |
 | Puppeteer | Frame generation, screenshots | Headless, no-sandbox |
