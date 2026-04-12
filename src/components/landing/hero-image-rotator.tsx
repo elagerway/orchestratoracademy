@@ -18,12 +18,12 @@ export function HeroImageRotator() {
   const image = useMemo(() => images[Math.floor(Math.random() * images.length)], []);
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white dark:bg-transparent">
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white dark:bg-background dark:border-border/20">
       <Image
         src={image.src}
         alt={image.alt}
         fill
-        className="object-contain p-4"
+        className="object-contain p-4 dark:invert dark:hue-rotate-180"
         priority
       />
     </div>
