@@ -68,6 +68,7 @@ function ToolbarDivider() {
 
 export function RichEditor({ content, onChange, placeholder }: RichEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
