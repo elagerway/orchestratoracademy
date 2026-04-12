@@ -18,7 +18,7 @@ export function HeroImageRotator() {
   const image = useMemo(() => images[Math.floor(Math.random() * images.length)], []);
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white">
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/40 bg-white dark:bg-transparent">
       <Image
         src={image.src}
         alt={image.alt}
