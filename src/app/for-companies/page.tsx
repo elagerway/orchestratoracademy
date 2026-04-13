@@ -63,7 +63,7 @@ const steps = [
     step: "01",
     title: "Assess",
     description:
-      "We evaluate your team's current AI maturity and identify the highest-impact skills gaps to close first.",
+      "We evaluate your team's current AI readiness and identify the highest-impact skills gaps to close first.",
   },
   {
     icon: GraduationCap,

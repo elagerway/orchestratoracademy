@@ -64,7 +64,7 @@ function formatDate(d: string) {
   });
 }
 
-function MaturityBar({ score }: { score: number }) {
+function ReadinessBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex gap-0.5">
@@ -86,7 +86,7 @@ function MaturityBar({ score }: { score: number }) {
 
 function OverviewTab({ data }: { data: AdminData }) {
   const verifiedLabs = data.labs.filter((l) => l.verified === true).length;
-  const avgMaturity =
+  const avgReadiness =
     data.assessments.length > 0
       ? (
           data.assessments.reduce(
@@ -108,7 +108,7 @@ function OverviewTab({ data }: { data: AdminData }) {
     { label: "Assessments", value: data.assessments.length, icon: ClipboardCheck },
     { label: "Labs Completed", value: verifiedLabs, icon: FlaskConical },
     { label: "Projects Deployed", value: data.deploys.length, icon: Rocket },
-    { label: "Avg Maturity", value: avgMaturity, icon: BarChart3 },
+    { label: "Avg Readiness", value: avgReadiness, icon: BarChart3 },
   ];
 
   return (
@@ -361,10 +361,10 @@ function UserDetail({
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Maturity Level</p>
+          <p className="text-xs text-muted-foreground">Readiness</p>
           <div className="mt-1">
             {profile.maturity_level ? (
-              <MaturityBar score={profile.maturity_level as number} />
+              <ReadinessBar score={profile.maturity_level as number} />
             ) : (
               <span className="text-sm text-muted-foreground">Not assessed</span>
             )}
@@ -390,12 +390,12 @@ function UserDetail({
           <h3 className="mb-2 font-medium">Assessments ({userAssessments.length})</h3>
           <div className="space-y-2">
             {userAssessments.map((a) => {
-              const tools = a.tool_checks as Record<string, boolean>;
-              const apis = a.api_checks as Record<string, boolean>;
+              const tools = (a.tool_checks as Record<string, boolean>) ?? {};
+              const apis = (a.api_checks as Record<string, boolean>) ?? {};
               return (
                 <div key={a.id as string} className="rounded-lg border border-border p-4">
                   <div className="flex items-center justify-between">
-                    <MaturityBar score={a.maturity_score as number} />
+                    <ReadinessBar score={a.maturity_score as number} />
                     <span className="text-xs text-muted-foreground">
                       {formatDate(a.created_at as string)}
                     </span>
@@ -610,7 +610,7 @@ function UsersTab({ data }: { data: AdminData }) {
               <th className="px-4 py-3 font-medium">Role</th>
               <th className="px-4 py-3 font-medium text-right">XP</th>
               <th className="px-4 py-3 font-medium text-right">Level</th>
-              <th className="px-4 py-3 font-medium">Maturity</th>
+              <th className="px-4 py-3 font-medium">Readiness</th>
               <th className="px-4 py-3 font-medium">Last Activity</th>
               <th className="px-4 py-3 font-medium">Last Sign In</th>
               <th className="px-4 py-3 font-medium">Region</th>
@@ -657,7 +657,7 @@ function UsersTab({ data }: { data: AdminData }) {
                   </td>
                   <td className="px-4 py-3">
                     {p.maturity_level ? (
-                      <MaturityBar score={p.maturity_level as number} />
+                      <ReadinessBar score={p.maturity_level as number} />
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
@@ -748,14 +748,14 @@ function TeamsTab({ data }: { data: AdminData }) {
 
   const teams = Array.from(teamMap.entries())
     .map(([name, info]) => {
-      const avgMaturity =
+      const avgReadiness =
         info.assessments.length > 0
           ? info.assessments.reduce(
               (sum, a) => sum + (a.maturity_score as number),
               0
             ) / info.assessments.length
           : 0;
-      return { name, ...info, avgMaturity };
+      return { name, ...info, avgReadiness };
     })
     .sort((a, b) => b.members.length - a.members.length);
 
@@ -785,8 +785,8 @@ function TeamsTab({ data }: { data: AdminData }) {
                     <span>{team.members.length} member{team.members.length !== 1 ? "s" : ""}</span>
                     <span>{team.assessments.length} assessment{team.assessments.length !== 1 ? "s" : ""}</span>
                     <span>{team.deploys.length} deploy{team.deploys.length !== 1 ? "s" : ""}</span>
-                    {team.avgMaturity > 0 && (
-                      <MaturityBar score={Math.round(team.avgMaturity)} />
+                    {team.avgReadiness > 0 && (
+                      <ReadinessBar score={Math.round(team.avgReadiness)} />
                     )}
                     <ChevronUp className={`size-4 transition-transform ${isExpanded ? "" : "rotate-180"}`} />
                   </div>
@@ -802,7 +802,7 @@ function TeamsTab({ data }: { data: AdminData }) {
                           <th className="pb-2 font-medium">Role</th>
                           <th className="pb-2 font-medium text-right">XP</th>
                           <th className="pb-2 font-medium text-right">Level</th>
-                          <th className="pb-2 font-medium">Maturity</th>
+                          <th className="pb-2 font-medium">Readiness</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -827,7 +827,7 @@ function TeamsTab({ data }: { data: AdminData }) {
                               </td>
                               <td className="py-2">
                                 {m.maturity_level ? (
-                                  <MaturityBar score={m.maturity_level as number} />
+                                  <ReadinessBar score={m.maturity_level as number} />
                                 ) : (
                                   <span className="text-xs text-muted-foreground">—</span>
                                 )}
@@ -864,7 +864,7 @@ function AssessmentsTab({ data }: { data: AdminData }) {
           <tr className="border-b bg-muted/50 text-left">
             <th className="px-4 py-3 font-medium">User</th>
             <th className="px-4 py-3 font-medium">Company</th>
-            <th className="px-4 py-3 font-medium">Maturity</th>
+            <th className="px-4 py-3 font-medium">Readiness</th>
             <th className="px-4 py-3 font-medium">Tools</th>
             <th className="px-4 py-3 font-medium">APIs</th>
             <th className="px-4 py-3 font-medium">Date</th>
@@ -873,8 +873,8 @@ function AssessmentsTab({ data }: { data: AdminData }) {
         <tbody>
           {data.assessments.map((a) => {
             const profile = a.profiles as Record<string, unknown> | null;
-            const tools = a.tool_checks as Record<string, boolean>;
-            const apis = a.api_checks as Record<string, boolean>;
+            const tools = (a.tool_checks as Record<string, boolean>) ?? {};
+            const apis = (a.api_checks as Record<string, boolean>) ?? {};
             const toolsPassing = Object.values(tools).filter(Boolean).length;
             const toolsTotal = Object.keys(tools).length;
             const apisPassing = Object.values(apis).filter(Boolean).length;
@@ -889,7 +889,7 @@ function AssessmentsTab({ data }: { data: AdminData }) {
                   {(profile?.company_name as string) || "—"}
                 </td>
                 <td className="px-4 py-3">
-                  <MaturityBar score={a.maturity_score as number} />
+                  <ReadinessBar score={a.maturity_score as number} />
                 </td>
                 <td className="px-4 py-3">
                   <span className={toolsPassing === toolsTotal ? "text-emerald-400" : "text-amber-400"}>
