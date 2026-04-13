@@ -85,9 +85,20 @@ async function getAdminData() {
 
   // Build enrollment counts per course
   const enrollmentCounts: Record<string, number> = {};
+  // Build per-user enrollment sets (which courses each user has access to)
+  const enrollmentsByUser: Record<string, Set<string>> = {};
   for (const e of enrollments ?? []) {
     const cid = e.course_id as string;
+    const uid = e.user_id as string;
     enrollmentCounts[cid] = (enrollmentCounts[cid] ?? 0) + 1;
+    if (!enrollmentsByUser[uid]) enrollmentsByUser[uid] = new Set();
+    enrollmentsByUser[uid].add(cid);
+  }
+
+  // Convert Sets to arrays for serialization
+  const enrolledCoursesByUser: Record<string, string[]> = {};
+  for (const [uid, courseSet] of Object.entries(enrollmentsByUser)) {
+    enrolledCoursesByUser[uid] = Array.from(courseSet);
   }
 
   return {
@@ -101,6 +112,7 @@ async function getAdminData() {
     xpLogsByUser,
     courses: courses ?? [],
     enrollmentCounts,
+    enrolledCoursesByUser,
     blogPosts: blogPosts ?? [],
   };
 }

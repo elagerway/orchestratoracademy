@@ -52,6 +52,7 @@ interface AdminData {
   xpLogsByUser: Record<string, Record<string, unknown>[]>;
   courses: Record<string, unknown>[];
   enrollmentCounts: Record<string, number>;
+  enrolledCoursesByUser: Record<string, string[]>;
   blogPosts: Record<string, unknown>[];
 }
 
@@ -137,13 +138,16 @@ function GrantAccessPanel({
   userIds,
   label,
   courses,
+  enrolledCourseIds = [],
   onGranted,
 }: {
   userIds: string[];
   label: string;
   courses: Record<string, unknown>[];
+  enrolledCourseIds?: string[];
   onGranted?: () => void;
 }) {
+  const enrolledSet = new Set(enrolledCourseIds);
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
   const [granting, setGranting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -196,20 +200,28 @@ function GrantAccessPanel({
         Select courses to grant access for {label}
       </p>
       <div className="space-y-2">
-        {proCourses.map((c) => (
-          <label key={c.id as string} className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selectedCourses.has(c.id as string)}
-              onChange={() => toggleCourse(c.id as string)}
-              className="accent-emerald-500"
-            />
-            <span className="text-sm">{c.title as string}</span>
-            {!(c.active as boolean) && (
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">inactive</span>
-            )}
-          </label>
-        ))}
+        {proCourses.map((c) => {
+          const cid = c.id as string;
+          const alreadyEnrolled = enrolledSet.has(cid);
+          return (
+            <label key={cid} className={`flex items-center gap-3 ${alreadyEnrolled ? "opacity-60" : "cursor-pointer"}`}>
+              <input
+                type="checkbox"
+                checked={alreadyEnrolled || selectedCourses.has(cid)}
+                disabled={alreadyEnrolled}
+                onChange={() => toggleCourse(cid)}
+                className="accent-emerald-500"
+              />
+              <span className="text-sm">{c.title as string}</span>
+              {alreadyEnrolled && (
+                <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-500">granted</span>
+              )}
+              {!(c.active as boolean) && !alreadyEnrolled && (
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">inactive</span>
+              )}
+            </label>
+          );
+        })}
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -496,6 +508,7 @@ function UserDetail({
         userIds={[userId]}
         label={profile.full_name as string || "this user"}
         courses={data.courses}
+        enrolledCourseIds={data.enrolledCoursesByUser[userId] ?? []}
       />
 
       {/* XP Activity Log */}
