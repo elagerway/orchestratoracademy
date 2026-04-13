@@ -150,7 +150,17 @@ video-pipeline/                                # Video production (separate from
 ├── scripts/
 │   ├── generate-scripts.ts                  # Claude API script generator
 │   ├── generate-module-video.ts            # Per-module orchestrator
-│   └── generate-all.ts                     # Batch runner
+│   ├── generate-all.ts                     # Batch runner
+│   ├── generate-thumb-backgrounds.py       # Gemini AI background generation (step 12a)
+│   ├── composite-thumbnails.py             # Leo + background alpha blend (step 12b)
+│   ├── news-thumbnail.mjs                  # Puppeteer text overlay (step 12c)
+│   ├── update-thumbnails.mjs               # Re-upload thumbnails to YouTube
+│   ├── batch-upload.mjs                    # Batch YouTube upload (video + Short + thumbnail)
+│   ├── batch2-blog-posts.mjs              # Batch blog post creation via Supabase REST
+│   ├── tweet-card.mjs                      # Tweet card renderer (highlighted text)
+│   ├── text-card.mjs                       # Text card renderer
+│   ├── youtube-upload.mjs                  # Single YouTube upload with OAuth
+│   └── x-auth.mjs                          # One-time X OAuth token generation
 └── output/
     └── Module {N}/Lesson {N}/               # Final videos, transcripts, thumbnails
 
@@ -221,12 +231,15 @@ supabase/
 - **Segment types**: Talking head (raw HeyGen), Claude Code screen (Remotion), Full-screen graphic (Gemini images + Remotion)
 - **Outro**: PNG overlay composited via ffmpeg (avoids Remotion jitter)
 - **Brand intro**: 1.5s OA icon fade prepended to every video
-- **Thumbnails**: Leo frame + title + CSS diagram (rendered at 850×480 display size, uploaded via Vimeo API)
+- **Course thumbnails**: Leo frame + title + CSS diagram (rendered at 850×480 display size, uploaded via Vimeo API)
+- **News thumbnails**: 3-step process — (a) Gemini AI background, (b) Leo alpha-blend composite, (c) Puppeteer text overlay with hero backing + glow
 - **End screen**: CSS overlay on video end (Replay + Next Lesson) via @vimeo/player SDK
 - **Watermark**: CSS overlay in web player linking to course overview
 - **Hosting**: Vimeo (private, whitelist embed, hidden details, OA folder)
 - **77 foundation lessons** produced (M1-M28, all on Vimeo with thumbnails)
-- Full pipeline documented in `docs/video-pipeline.md`
+- **14 news videos** produced (Daily Dose of AI, on YouTube with AI thumbnails)
+- Full pipeline documented in `docs/news-video-pipeline.md`
+- Thumbnail design guide in `docs/thumbnail/` (SKILL.md, FORMATS.md, PROMPT_TEMPLATE.md, EXAMPLES.md)
 
 ## Email
 - **Provider**: Postmark (SMTP via Supabase Auth + Postmark SDK for drip)

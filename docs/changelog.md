@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.11.1] - 2026-04-13
+
+### Added
+- **3-step thumbnail pipeline** for news videos — AI backgrounds (Gemini) → Leo composite (PIL alpha blend) → text overlay (Puppeteer)
+  - `generate-thumb-backgrounds.py` — structured Gemini prompts per topic (cinematic, photo-realistic, 16:9)
+  - `composite-thumbnails.py` — extracts unique Leo expression per video, gradient alpha mask blend onto AI background
+  - `news-thumbnail.mjs` — hero text with dark backing, 14px outlines, color glow, drop shadows
+  - `update-thumbnails.mjs` — batch re-upload thumbnails to YouTube
+- **Thumbnail design guide** translated to English at `docs/thumbnail/` — SKILL.md, FORMATS.md, PROMPT_TEMPLATE.md, EXAMPLES.md
+- **`/youtube-thumbnail` skill** installed at `.claude/commands/youtube-thumbnail.md`
+- Rules 36-38 added to news video pipeline (X auto-post, unique Leo expressions, hero text dominance)
+
+### Changed
+- News video pipeline step 12 rewritten as 3-step process (was single-step CSS-only thumbnails)
+- Rule 16 updated to reference the full 3-step thumbnail workflow
+- Thumbnail backgrounds are now AI-generated (Gemini) instead of CSS gradients
+- Leo frames are now per-video expressions instead of a single reused neutral frame
+- Hero text now has semi-transparent dark backing + color glow + thicker outlines for readability over rich backgrounds
+
 ## [0.11.0] - 2026-04-12
 
 ### Added

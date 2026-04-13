@@ -417,18 +417,94 @@ node video-pipeline/scripts/youtube-upload.mjs \
 - The regular 16:9 video is what gets embedded in the blog post
 - Shorts stay unlisted until the regular video + blog go public
 
-### 12. Generate Thumbnail
+### 12. Generate Thumbnail (3-step process)
 
-Leo on the left, big bold text on the right. 1280x720.
+**Every thumbnail must look visually distinct.** No two thumbnails should have the same layout, color, or composition. YouTube penalizes repetitive thumbnails. Reference `docs/thumbnail/` for templates, formats, and examples.
 
-- Leo's face extracted from a HeyGen video frame (`ffmpeg -ss 2 -vframes 1`)
-- Leo occupies the left ~40% of frame, slightly cropped
-- Text is right-aligned, 86-90px Inter Black
-- Key number/word in accent color (yellow, red, green)
-- Text must NOT overlap Leo's shoulders or body
-- OA icon badge (50x50) in top-right corner
-- Dark background (#0f0f0f)
-- Max 4-5 words total — no sentences
+#### Step 12a: Generate AI backgrounds (Gemini)
+
+```bash
+python3 video-pipeline/scripts/generate-thumb-backgrounds.py
+```
+
+- Uses structured prompts from `docs/thumbnail/PROMPT_TEMPLATE.md`
+- Each background is topic-specific — no generic gradients
+- Cinematic, photo-realistic, 16:9 at 1K resolution
+- No text, no people in the background image
+- Leave dark space on one side for Leo overlay and text
+- Backgrounds saved as `bg.jpg` in each video's directory
+
+**Prompt structure per background:**
+```
+[Format] YouTube thumbnail background (1280x720)
+[Main Visual] Scene description matching the topic
+[Background] Lighting and atmosphere
+[Color Scheme] Topic-appropriate colors
+[Style] Concept / Comparison
+[Layout] Where to leave space for text/Leo overlay
+[Additional Instructions] Photo realistic, no text, no people
+```
+
+#### Step 12b: Composite Leo onto backgrounds
+
+```bash
+python3 video-pipeline/scripts/composite-thumbnails.py
+```
+
+- Extracts unique Leo expression from each video's HeyGen intro (`leo-expressive.jpg`)
+- NOT the same neutral frame for every thumbnail
+- Alpha gradient blend — Leo fades smoothly into the AI background (no hard edges)
+- Uses PIL with gaussian-blurred alpha mask for natural blending
+- Composites saved as `thumb-base.png`
+
+**Variety rules — mix across the batch:**
+- **Leo LEFT** on some thumbnails
+- **Leo RIGHT** on others
+- **NO Leo** on some (background-only thumbnails)
+- Leo takes 38-45% of frame width depending on layout
+
+**Extracting Leo frames from HeyGen videos:**
+```bash
+ffmpeg -ss 1.8 -i assets_v2/leo-intro.mp4 -vframes 1 -q:v 2 leo-expressive.jpg
+```
+
+#### Step 12c: Add text overlays (Puppeteer)
+
+```bash
+node video-pipeline/scripts/news-thumbnail.mjs
+```
+
+- Loads `thumb-base.png` as the background image
+- Adds bold text with Sora font via Puppeteer screenshot
+
+**Text hierarchy — hero number must ALWAYS dominate the background:**
+- **Hero number** (e.g. "75%", "$852B", "97M"): 150-180px, accent color, 14px black outline, dark semi-transparent backing with subtle border, color glow/bloom effect (`drop-shadow`), heavy `paint-order: stroke fill`
+- **Sub-text** (e.g. "BEATS HUMANS", "JOBS CUT"): 50-60px, white, 6px outline, drop shadow
+- **Label text** (e.g. "GPT-5.4 COMPUTER USE"): 20px, muted white, 2px outline, drop shadow
+- **Badge pill** (e.g. "BREAKING", "RECORD"): 14px, white on colored background, box shadow
+- **Stat cards** (secondary numbers): Dark backing with border, used for supporting stats
+
+**Accent color per topic:**
+- Red for alarming (layoffs, vulnerabilities)
+- Green/emerald for money (valuations, revenue)
+- Blue for tech brands (Meta, GPT)
+- Purple/violet for innovation (MCP, ChatGPT)
+- Amber/gold for warning or investment
+- Teal for growth (Perplexity)
+
+**Specs:**
+- 1280x720 (YouTube standard)
+- Sora font (Google Fonts, weights 700-900)
+- OA watermark bottom corner (subtle, 13px, 15% opacity)
+- Max 4-5 words of title text — no sentences
+
+#### Upload thumbnails to YouTube
+
+```bash
+node video-pipeline/scripts/update-thumbnails.mjs
+```
+
+YouTube rate-limits thumbnail uploads — if blocked, wait 30-60 minutes or upload manually from YouTube Studio.
 
 ### 13. Upload to YouTube (UNLISTED)
 
@@ -624,7 +700,7 @@ After producing new content or after content goes live, update `docs/social-stra
 13. **Re-encode on concat:** Never use `-c copy` — causes audio dropout
 14. **Exact duration match:** Tweet section video duration must exactly match audio duration (`-t` flag)
 15. **Pronunciation:** Test audio before HeyGen — uppercase terms get misread, spell phonetically if needed
-16. **Thumbnails:** Leo left, text right, no overlap on body, max 5 words, accent color on key word
+16. **Thumbnails (3-step):** (a) Generate AI background with Gemini using structured prompts, (b) composite Leo with gradient alpha blend (vary left/right/none per video, unique expression per video), (c) add text overlays with Puppeteer — hero numbers get dark backing + color glow + 14px outlines so they dominate the background. Every thumbnail visually distinct. See `docs/thumbnail/` for templates.
 17. **Upload unlisted:** Videos are always uploaded as unlisted — go public only when companion blog post publishes
 18. **Blog + video go live together:** Embed YouTube video in blog post, publish blog, then set video to public
 19. **End screen cards:** Add subscribe button + video cards in YouTube Studio for last 5-8 seconds
@@ -644,3 +720,6 @@ After producing new content or after content goes live, update `docs/social-stra
 33. **Shorts go public with the regular video:** Both versions go live at the same time as the blog post
 34. **Vertical crop for Leo:** Center crop 1920x1080 → 1080x1920 using `crop=608:1080:656:0,scale=1080:1920`
 35. **Update social-strategy.md:** Every new batch of content must be added to the publishing schedule. Every go-live must update status to "Published".
+36. **X auto-posts on publish:** The publish-scheduled cron automatically posts to X (Twitter) when a blog goes live. Title + excerpt + URL + hashtags. Manual re-post available in admin Blog tab.
+37. **Leo expression per thumbnail:** Extract a unique mid-speech frame from each video's HeyGen intro (`ffmpeg -ss 1.8 -vframes 1`). Never reuse the same neutral frame across thumbnails.
+38. **Hero text must dominate background:** AI-generated backgrounds are visually rich — text needs dark semi-transparent backing, thick outlines (14px), and color glow to stay readable. If the number doesn't pop at 120x68px, it fails.
