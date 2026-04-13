@@ -22,6 +22,7 @@ export interface Course {
   price: number | null;
   order: number;
   active: boolean;
+  level: "entry" | "intermediate" | "advanced";
   created_at: string;
 }
 

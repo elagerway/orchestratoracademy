@@ -12,6 +12,7 @@ const images = [
   { src: "/images/courses/paperclip.jpg", alt: "Paperclip A2A" },
   { src: "/images/courses/security.jpg", alt: "AI Security" },
   { src: "/images/courses/self-improving.jpg", alt: "Self-Improving Agents" },
+  { src: "/images/courses/claude-code-superpowers.jpg", alt: "Claude Code Superpowers" },
 ];
 
 export function HeroImageRotator() {

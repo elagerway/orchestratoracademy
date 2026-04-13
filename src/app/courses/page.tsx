@@ -61,7 +61,18 @@ export default async function CourseCatalogPage() {
                       {course.is_free ? "Free" : `$${course.price ?? ""}`}
                     </Badge>
                   </div>
-                  <CardDescription className="line-clamp-2 text-sm">
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      course.level === "entry"
+                        ? "bg-emerald-500/10 text-emerald-500"
+                        : course.level === "advanced"
+                        ? "bg-red-500/10 text-red-500"
+                        : "bg-amber-500/10 text-amber-500"
+                    }`}>
+                      {course.level === "entry" ? "Entry Level" : course.level === "advanced" ? "Advanced" : "Intermediate"}
+                    </span>
+                  </div>
+                  <CardDescription className="line-clamp-2 text-sm mt-2">
                     {course.description}
                   </CardDescription>
                 </CardHeader>

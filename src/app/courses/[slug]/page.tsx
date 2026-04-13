@@ -190,6 +190,15 @@ export default async function CoursePage({ params }: CoursePageProps) {
             <Badge variant="default">
               {`$${typedCourse.price ?? ""}`}
             </Badge>
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+              typedCourse.level === "entry"
+                ? "bg-emerald-500/10 text-emerald-500"
+                : typedCourse.level === "advanced"
+                ? "bg-red-500/10 text-red-500"
+                : "bg-amber-500/10 text-amber-500"
+            }`}>
+              {typedCourse.level === "entry" ? "Entry Level" : typedCourse.level === "advanced" ? "Advanced" : "Intermediate"}
+            </span>
             <span className="text-sm text-muted-foreground">
               {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
             </span>
@@ -215,6 +224,15 @@ export default async function CoursePage({ params }: CoursePageProps) {
           <Badge variant={typedCourse.is_free ? "secondary" : "default"}>
             {typedCourse.is_free ? "Free" : `$${typedCourse.price ?? ""}`}
           </Badge>
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+            typedCourse.level === "entry"
+              ? "bg-emerald-500/10 text-emerald-500"
+              : typedCourse.level === "advanced"
+              ? "bg-red-500/10 text-red-500"
+              : "bg-amber-500/10 text-amber-500"
+          }`}>
+            {typedCourse.level === "entry" ? "Entry Level" : typedCourse.level === "advanced" ? "Advanced" : "Intermediate"}
+          </span>
           <span className="text-sm text-muted-foreground">
             {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
           </span>

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.12.0] - 2026-04-13
+
+### Added
+- **New course: Claude Code Superpowers** — 8 modules, 16 lessons, 8 quizzes ($29/mo)
+  - Covers Context7 (real-time docs), Chrome DevTools MCP (browser automation), OpenSpec (spec-first dev), Superpowers plugin (structured workflows + subagent TDD)
+  - Module 8 is a complete skills reference for all 26+ commands and 29 MCP tools
+  - Gemini-generated hero image in whiteboard sketch style matching existing courses
+  - Seed file: `supabase/seed_claude_code_superpowers.sql`
+- **Course level system** — `level` column on courses table (entry, intermediate, advanced)
+  - Entry: Foundations (free)
+  - Intermediate: Claude Code Superpowers, Context & Memory
+  - Advanced: CrewAI, LangGraph, Magpipe, Security, Self-Improving, Paperclip
+  - Level badges displayed on course catalog and course detail pages (green/amber/red pills)
+  - Migration 014: `ALTER TABLE courses ADD COLUMN level`
+- `level` field added to TypeScript `Course` interface
+
+### Changed
+- Course catalog table in architecture docs updated with Level column and all 9 courses (199 total lessons)
+
 ## [0.11.1] - 2026-04-13
 
 ### Added

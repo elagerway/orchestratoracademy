@@ -183,7 +183,7 @@ supabase/
 
 ## Database Schema
 - **profiles**: User profiles + XP, level, streak, username, leaderboard_display, company info (auto-created on signup)
-- **courses**: Course catalog (title, slug, description, is_free, price)
+- **courses**: Course catalog (title, slug, description, is_free, price, level [entry/intermediate/advanced])
 - **modules**: Course modules (ordered within a course)
 - **lessons**: Module lessons (video, text, interactive, quiz content types)
 - **user_enrollments**: Tracks which courses a user is enrolled in
@@ -205,15 +205,18 @@ supabase/
 - **blog_posts**: Blog CMS with WYSIWYG content, SEO fields, scheduling, YouTube video/short IDs, social posting timestamps
 
 ## Course Content
-| Course | Modules | Lessons | Free |
-|--------|---------|---------|------|
-| AI Orchestration Foundations | 28 | 77 | Yes |
-| CrewAI Mastery | 7 | 14 | No ($29/mo) |
-| LangGraph Advanced | 7 | 14 | No ($29/mo) |
-| AI Communications with Magpipe | 9 | 18 | No ($29/mo) |
-| Supercharging Context & Memory | 7 | 14 | No ($29/mo) |
-| Multi-Agent Systems with Paperclip | 9 | 18 | No ($29/mo) |
-| **Total** | **67** | **155** | |
+| Course | Level | Modules | Lessons | Free |
+|--------|-------|---------|---------|------|
+| AI Orchestration Foundations | Entry | 28 | 77 | Yes |
+| Claude Code Superpowers | Intermediate | 8 | 16 | No ($29/mo) |
+| Supercharging Context & Memory | Intermediate | 7 | 14 | No ($29/mo) |
+| CrewAI Mastery | Advanced | 7 | 14 | No ($29/mo) |
+| LangGraph Advanced | Advanced | 7 | 14 | No ($29/mo) |
+| AI Communications with Magpipe | Advanced | 9 | 18 | No ($29/mo) |
+| AI Agent Security & Governance | Advanced | 7 | 14 | No ($29/mo) |
+| Autonomous Self-Improving Agents | Advanced | 7 | 14 | No ($29/mo) |
+| Multi-Agent Systems with Paperclip | Advanced | 9 | 18 | No ($29/mo) |
+| **Total** | | **89** | **199** | |
 
 ## Learning Flow
 1. Browse courses → Enroll (free or paid)
