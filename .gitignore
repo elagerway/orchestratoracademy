@@ -55,3 +55,6 @@ video-pipeline/public/*.mp4
 video-pipeline/public/*.mp3
 video-pipeline/public/
 video-pipeline/output/
+
+# YouTube OAuth token
+video-pipeline/scripts/.youtube-token.json
