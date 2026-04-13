@@ -27,6 +27,15 @@ export default async function DashboardLayout({
     avatarUrl = profile?.avatar_url ?? null;
   }
 
+  // Fetch latest published blog post for sidebar news card
+  const { data: latestPost } = await supabase
+    .from("blog_posts")
+    .select("title, slug, excerpt, published_at")
+    .eq("published", true)
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const nameParts = (fullName || user?.email || "").split(" ").filter(Boolean);
   const initials =
     nameParts.length >= 2
@@ -43,6 +52,12 @@ export default async function DashboardLayout({
           avatarUrl,
           initials,
         }}
+        latestPost={latestPost ? {
+          title: latestPost.title,
+          slug: latestPost.slug,
+          excerpt: latestPost.excerpt,
+          publishedAt: latestPost.published_at,
+        } : null}
       />
 
       {/* Main content */}

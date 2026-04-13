@@ -115,7 +115,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!enrollment) {
+  const paywallDisabled = process.env.NEXT_PUBLIC_DISABLE_PAYWALL === "true";
+
+  if (!enrollment && (paywallDisabled || typedCourse.is_free)) {
+    // Auto-enroll for free courses or when paywall is disabled (testing mode)
+    await supabase
+      .from("user_enrollments")
+      .insert({ course_id: typedCourse.id, user_id: user.id });
+  } else if (!enrollment) {
     redirect(`/courses/${slug}`);
   }
 

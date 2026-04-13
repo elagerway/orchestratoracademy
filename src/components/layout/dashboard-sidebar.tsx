@@ -15,6 +15,10 @@ import {
   Moon,
   Key,
   ChevronUp,
+  MessageCircle,
+  Newspaper,
+  X,
+  Inbox,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/app/auth/actions";
@@ -24,7 +28,8 @@ const sidebarLinks = [
   { href: "/dashboard/courses", label: "My Courses", icon: BookOpen },
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
   { href: "/dashboard/certificates", label: "Certificates", icon: Award },
-  { href: "/dashboard/api-token", label: "API Token", icon: Key },
+  { href: "/dashboard/messages", label: "Messages", icon: Inbox },
+  { href: "/dashboard/support", label: "Community", icon: MessageCircle },
 ];
 
 interface DashboardSidebarProps {
@@ -35,11 +40,22 @@ interface DashboardSidebarProps {
     avatarUrl: string | null;
     initials: string;
   };
+  latestPost: {
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    publishedAt: string;
+  } | null;
 }
 
-export function DashboardSidebar({ isAdmin, user }: DashboardSidebarProps) {
+export function DashboardSidebar({ isAdmin, user, latestPost }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [newsDismissed, setNewsDismissed] = useState(() =>
+    typeof window !== "undefined" && latestPost
+      ? localStorage.getItem(`news-dismissed-${latestPost.slug}`) === "1"
+      : false
+  );
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [dark, setDark] = useState(false);
@@ -121,6 +137,40 @@ export function DashboardSidebar({ isAdmin, user }: DashboardSidebarProps) {
         )}
       </nav>
 
+      {/* Recent News */}
+      {latestPost && !newsDismissed && (
+        <div className="mx-3 mb-2 rounded-lg border border-border/60 bg-background p-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Newspaper className="size-3" />
+              Recent News
+            </span>
+            <button
+              onClick={() => {
+                setNewsDismissed(true);
+                if (latestPost) localStorage.setItem(`news-dismissed-${latestPost.slug}`, "1");
+              }}
+              className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+          <Link
+            href={`/blog/${latestPost.slug}`}
+            className="group block"
+          >
+            <p className="line-clamp-2 text-sm font-medium leading-snug transition-colors group-hover:text-emerald-accent">
+              {latestPost.title}
+            </p>
+            {latestPost.excerpt && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                {latestPost.excerpt}
+              </p>
+            )}
+          </Link>
+        </div>
+      )}
+
       {/* User section */}
       <div className="relative border-t border-border/60 p-3" ref={menuRef}>
         {/* Popover menu */}
@@ -133,6 +183,14 @@ export function DashboardSidebar({ isAdmin, user }: DashboardSidebarProps) {
             >
               <User className="size-4" />
               Profile
+            </Link>
+            <Link
+              href="/dashboard/api-token"
+              onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Key className="size-4" />
+              API Token
             </Link>
             {mounted && (
               <button

@@ -6,6 +6,19 @@ import { ModuleVideo } from "./compositions/ModuleVideo";
 export const Root: React.FC = () => {
   return (
     <>
+      {/* Generic ModuleVideo composition — used by generate-module-video.ts */}
+      <Composition
+        id="ModuleVideo"
+        component={ModuleVideo}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          segments: [],
+          transitionDurationInFrames: 15,
+        }}
+      />
       <Composition
         id="BrandIntro"
         component={BrandIntro}

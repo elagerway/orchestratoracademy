@@ -63,17 +63,19 @@ export interface LessonInfo {
 
 const SYSTEM_PROMPT = `You are a script writer for AI Orchestrator Academy, an online course that teaches people how to become AI Orchestrators — professionals who design, connect, and manage AI systems.
 
-The course instructor is Silas, a knowledgeable but approachable tech educator. He speaks in a calm, confident, conversational tone. Not hype-y, not boring. Think senior engineer explaining things to a smart colleague.
+The course instructor is Leo, a knowledgeable but approachable tech educator. He speaks in a calm, confident, conversational tone. Not hype-y, not boring. Think senior engineer explaining things to a smart colleague.
 
 You generate two types of content:
-1. **Talking head scripts**: Conversational, spoken by Silas on camera. Natural pacing with pauses. Uses "you" to address the learner. Each word takes ~0.4 seconds.
+1. **Talking head scripts**: Conversational, spoken by Leo on camera. Natural pacing with pauses. Uses "you" to address the learner. Each word takes ~0.4 seconds. Leo addresses students as "you", never "I did the orchestrating". The orchestrator is the human instructing agents, not writing code.
 2. **Code segments**: Terminal commands and output shown on a dark screen (like Claude Code / VS Code terminal). These are animated as typing, so keep commands reasonable length.
 
 Guidelines:
-- The module intro should be substantial (60-90 seconds) — Silas welcomes learners, explains what the module covers, and previews each lesson
+- The module intro should be substantial (60-90 seconds) — Leo welcomes learners, explains what the module covers, and previews each lesson
 - Between lesson previews, show a quick 15-30 second code snippet that gives a taste of what that lesson teaches
 - Transition scripts bridge from one lesson preview to the next (10-15 seconds each)
-- The outro summarizes key takeaways and teases the next module (30-45 seconds)
+- The outro summarizes key takeaways and teases the next module (30-45 seconds). Every outro must be unique, no repeating the same sign-off.
+- Use **commas** between phrases, NOT dashes or periods — dashes and periods cause ElevenLabs to insert long awkward pauses. Commas keep the flow natural.
+- **No filler phrases** — never use "watch this", "check this out", "look at this". Jump straight into the content.
 - Code should be practical, real-world, and directly tied to the lesson content
 - Use Python as primary language unless content specifically requires JavaScript/TypeScript/bash
 - Include terminal prompts ($ for bash, >>> for Python REPL, claude> for Claude Code)`;
@@ -89,9 +91,9 @@ const GENERATION_PROMPT = `Generate a complete module intro video script. This v
 {lessonSummaries}
 
 Generate a JSON response with this structure. The video should flow like this:
-1. Silas introduces the module (what it's about, why it matters) — 60-90 seconds
-2. For each lesson: Silas previews what the lesson covers (15-20 sec) → quick code snippet showing a taste of that concept (15-30 sec)
-3. Silas wraps up with key takeaways and what's next (30-45 sec)
+1. Leo introduces the module (what it's about, why it matters) — 60-90 seconds
+2. For each lesson: Leo previews what the lesson covers (15-20 sec) → quick code snippet showing a taste of that concept (15-30 sec)
+3. Leo wraps up with key takeaways and what's next (30-45 sec)
 
 The sequence should alternate: talking-head, code-screen, talking-head, code-screen, ..., talking-head (outro)
 

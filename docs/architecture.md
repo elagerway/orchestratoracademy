@@ -62,13 +62,16 @@ src/
 │   │           └── [lessonSlug]/page.tsx     # Lesson player (own sidebar, no header/footer)
 │   ├── certificates/
 │   │   └── [number]/page.tsx                # Public certificate verification
+│   │   ├── link-preview/route.ts            # GET: OG meta tag fetcher for URL previews (SSRF-safe)
 │   ├── dashboard/
-│   │   ├── layout.tsx                        # Dashboard layout (uses DashboardSidebar)
+│   │   ├── layout.tsx                        # Dashboard layout (sidebar + latest blog post)
 │   │   ├── page.tsx                          # Student dashboard (leaderboard + stats + courses)
 │   │   ├── achievements/page.tsx            # Achievements grid
 │   │   ├── certificates/page.tsx            # User's certificates
 │   │   ├── profile/page.tsx                 # User profile + leaderboard display settings
 │   │   ├── api-token/page.tsx               # CLI API token display
+│   │   ├── messages/page.tsx                # Direct messages (Discord-style)
+│   │   ├── support/page.tsx                 # Community forum (categories, posts, replies)
 │   │   └── admin/page.tsx                   # Admin dashboard (role-gated)
 │   └── for-companies/
 │       └── page.tsx                          # B2B landing page
@@ -96,9 +99,10 @@ src/
 │   │   ├── header.tsx                        # Global header (context-aware: student vs public nav)
 │   │   ├── footer.tsx                        # Global footer
 │   │   ├── conditional-chrome.tsx           # Client-side header/footer toggle (hidden on dashboard + lessons)
-│   │   ├── dashboard-sidebar.tsx            # Dashboard sidebar (OA logo, nav, user popover)
+│   │   ├── dashboard-sidebar.tsx            # Dashboard sidebar (nav, user popover, Recent News card)
 │   │   ├── lesson-sidebar-user.tsx          # Lesson sidebar user popover (profile, theme, sign out)
 │   │   └── impersonation-banner.tsx         # Admin impersonation return banner
+│   ├── rich-text.tsx                         # Shared rich text renderer (URLs, link previews, images)
 │   └── ui/                                   # shadcn/ui components
 ├── components/
 │   └── lab-challenge.tsx                     # In-lesson hands-on lab submission
@@ -203,6 +207,11 @@ supabase/
 - **deploy_completions**: Project scaffold deployment milestones
 - **drip_log**: Tracks sent drip campaign emails per user (prevents re-sending)
 - **blog_posts**: Blog CMS with WYSIWYG content, SEO fields, scheduling, YouTube video/short IDs, social posting timestamps
+- **forum_categories**: Community forum categories (hierarchical: parent + subcategories)
+- **forum_posts**: Community forum posts (title, body, pinned, per-category)
+- **forum_replies**: Threaded replies on forum posts
+- **forum_reactions**: Emoji reactions on forum posts (unique per user+post+emoji)
+- **direct_messages**: Private DMs between users (sender, recipient, read status)
 
 ## Course Content
 | Course | Level | Modules | Lessons | Free |
@@ -286,4 +295,5 @@ supabase/
 4. **Video Production**: 77 foundation lesson videos (M1-M28), all on Vimeo ✅
 5. **B2B Pipeline**: Assess → Train → Deploy, CLI tools, admin dashboard, drip campaign ✅
 6. **Blog & Content**: Blog CMS, Daily Dose of AI news videos, X auto-posting, scheduled publishing ✅
-7. **Job Board**: Graduate profiles, company directory, messaging (next)
+7. **Community & Messaging**: Forum (categories, posts, replies, reactions), DMs, member profiles, link previews ✅
+8. **Job Board**: Graduate profiles, company directory (next)

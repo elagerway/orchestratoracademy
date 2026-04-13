@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.13.0] - 2026-04-13
+
+### Added
+- **Community forum** — full forum at `/dashboard/support` with category sidebar (Onboarding, Community), posts with likes/replies, threaded replies, rich text (URL detection, link previews with OG metadata, inline image previews)
+  - Categories: Start here, Say hello, Announcements (admin-only posting), General Discussion, Show & Tell, Help & Support
+  - Member profiles modal with public info (username, level, XP, company, join date)
+  - Database: `forum_categories`, `forum_posts`, `forum_replies`, `forum_reactions` tables with RLS
+- **Direct messaging** — Discord-style DM system at `/dashboard/messages`
+  - Conversation list with search, unread badges, last message preview
+  - Chat view with message bubbles, timestamps, delete own messages
+  - New conversation from member search or Community member profiles
+  - Database: `direct_messages` table with RLS (sender/recipient read, sender delete)
+- **Rich text component** (`src/components/rich-text.tsx`) — shared URL/image/link-preview renderer used in both Community and Messages
+- **Link preview API** (`/api/link-preview`) — fetches OG meta tags for URL cards, with SSRF protection (blocks private IPs, localhost, metadata endpoints)
+- **Recent News sidebar card** — shows latest blog post above user section in dashboard sidebar, dismissible (persisted to localStorage)
+- **Messages nav link** in dashboard sidebar (Inbox icon)
+- **Community nav link** in dashboard sidebar (replaces Support, MessageCircle icon)
+- **Paywall feature flag** — `NEXT_PUBLIC_DISABLE_PAYWALL=true` in `.env.local` bypasses paywalls and auto-enrolls for testing
+- **Free course auto-enroll** — direct lesson links now auto-enroll users for free courses (no redirect to course page)
+- **Generic ModuleVideo composition** in Remotion Root.tsx for automated video pipeline
+
+### Changed
+- "Support" renamed to "Community" in dashboard sidebar
+- "API Token" moved from sidebar nav to user popover menu (alongside Profile, Dark Mode, Sign Out)
+- Announcements category gated to admin-only posting (non-admins can read but not create)
+- Members panel shows usernames (not "Anonymous") with generic user icon avatars
+- Video pipeline `generate-scripts.ts` updated: Silas → Leo, added comma-over-dash rule, no filler phrases, unique outros
+- `/update-docs-commit` skill now includes mandatory code review step before committing
+
+### Fixed
+- SSRF vulnerability in link-preview API — now validates URLs and blocks private/internal addresses
+- N+1 database queries on forum page — replaced per-post loop with single joined Supabase query
+- Null crash on `lastMessage` access in messages conversation list
+- Stateful regex bug in `RichText` — fresh regex instance per render to avoid `lastIndex` issues
+- News card dismissal resets on navigation — now persisted to localStorage by post slug
+
 ## [0.12.0] - 2026-04-13
 
 ### Added

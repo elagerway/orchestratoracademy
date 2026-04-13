@@ -179,7 +179,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
   }, 0);
 
   // Show paywall for paid courses when user has no active pro/team subscription
-  const showPaywall = !typedCourse.is_free && !hasActiveSubscription;
+  const paywallDisabled = process.env.NEXT_PUBLIC_DISABLE_PAYWALL === "true";
+  const showPaywall = !paywallDisabled && !typedCourse.is_free && !hasActiveSubscription;
 
   if (showPaywall) {
     return (
