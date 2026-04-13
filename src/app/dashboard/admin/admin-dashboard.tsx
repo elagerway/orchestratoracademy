@@ -48,7 +48,7 @@ interface AdminData {
   deploys: Record<string, unknown>[];
   totalUsers: number;
   lastActivityMap: Record<string, string>;
-  authMap: Record<string, { email: string; last_sign_in_at: string | null }>;
+  authMap: Record<string, { email: string; last_sign_in_at: string | null; created_at: string | null }>;
   xpLogsByUser: Record<string, Record<string, unknown>[]>;
   courses: Record<string, unknown>[];
   enrollmentCounts: Record<string, number>;
@@ -613,6 +613,7 @@ function UsersTab({ data }: { data: AdminData }) {
               <th className="px-4 py-3 font-medium">Maturity</th>
               <th className="px-4 py-3 font-medium">Last Activity</th>
               <th className="px-4 py-3 font-medium">Last Sign In</th>
+              <th className="px-4 py-3 font-medium">Region</th>
               <th className="px-4 py-3 font-medium">Joined</th>
             </tr>
           </thead>
@@ -679,15 +680,21 @@ function UsersTab({ data }: { data: AdminData }) {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {formatDate(p.created_at as string)}
+                  <td className="px-4 py-3 text-muted-foreground text-xs">
+                    {(p.signup_region as string) || "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                    {new Date(p.created_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}{" "}
+                    <span className="text-xs opacity-60">
+                      {new Date(p.created_at as string).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                    </span>
                   </td>
                 </tr>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={11} className="px-4 py-8 text-center text-muted-foreground">
                   No users found
                 </td>
               </tr>

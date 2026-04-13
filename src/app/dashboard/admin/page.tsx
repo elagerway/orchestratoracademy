@@ -67,11 +67,12 @@ async function getAdminData() {
   }
 
   // Build auth info map (email, last_sign_in_at)
-  const authMap: Record<string, { email: string; last_sign_in_at: string | null }> = {};
+  const authMap: Record<string, { email: string; last_sign_in_at: string | null; created_at: string | null }> = {};
   for (const u of authUsers ?? []) {
     authMap[u.id] = {
       email: u.email ?? "",
       last_sign_in_at: u.last_sign_in_at ?? null,
+      created_at: u.created_at ?? null,
     };
   }
 
