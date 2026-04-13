@@ -22,7 +22,10 @@ export async function GET(request: Request) {
           .eq("user_id", data.user.id)
           .single();
 
-        if (!profile?.full_name) {
+        const name = (profile?.full_name ?? "").trim();
+        // Require a real name: non-empty, contains a space (first + last), no camelCase gibberish
+        const looksReal = name.length >= 3 && name.includes(" ") && !/[a-z][A-Z]/.test(name);
+        if (!looksReal) {
           return NextResponse.redirect(`${origin}/dashboard/profile?welcome=true`);
         }
       }

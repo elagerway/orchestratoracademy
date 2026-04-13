@@ -40,6 +40,12 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
 
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("First and last name are required.");
+      setLoading(false);
+      return;
+    }
+
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
     const { error } = await supabase.auth.signUp({
       email,
