@@ -1542,15 +1542,28 @@ function BlogTab({ data }: { data: AdminData }) {
               <>
                 <div>
                   <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Twitter / X</label>
-                  <a
-                    href={xUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={async () => {
+                      if (!editing?.id) return;
+                      try {
+                        const res = await fetch("/api/admin/social", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ postId: editing.id, platform: "x" }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error);
+                        alert(`Posted to X! Tweet ID: ${data.tweetId}`);
+                        setEditing({ ...editing, twitter_posted_at: new Date().toISOString() });
+                      } catch (err: any) {
+                        alert(`X post failed: ${err.message}`);
+                      }
+                    }}
                     className="flex items-center gap-2 rounded-md bg-neutral-800 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
                   >
                     <XIcon className="size-3.5" />
-                    Post to X
-                  </a>
+                    {typeof editing?.twitter_posted_at === "string" ? "Re-post to X" : "Post to X"}
+                  </button>
                   {typeof editing?.twitter_posted_at === "string" && (
                     <p className="mt-1 text-[10px] text-muted-foreground">
                       Last posted: {new Date(editing.twitter_posted_at).toLocaleString()}

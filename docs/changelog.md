@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.11.0] - 2026-04-12
+
+### Added
+- **X (Twitter) auto-posting** — publish-scheduled cron now auto-posts to X when a blog goes live
+  - Posts title + excerpt + blog URL + hashtags via X API v2 (OAuth 1.0a)
+  - Tracks `twitter_posted_at` timestamp to prevent double-posting
+  - Env vars: `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`
+- **Admin "Post to X" button** — in Blog tab, posts directly via API (replaces browser share link)
+  - Shows "Re-post to X" with last-posted timestamp if already posted
+  - `POST /api/admin/social` endpoint (admin-gated)
+- **Social posting utility** (`src/lib/social/post-to-x.ts`) — reusable X posting with auto-truncation to 280 chars
+- **Batch 2 news videos** — 10 new Daily Dose of AI videos produced, uploaded, and scheduled
+  - Topics: GPT-5.4, Amazon layoffs, MCP 97M, OWASP Top 10, OpenAI $852B, Perplexity $450M, $242B AI investment, Meta Muse Spark, 92% devs AI code, ChatGPT super app
+  - 10 regular (16:9) + 10 Shorts (9:16) uploaded to YouTube as unlisted
+  - 10 thumbnails generated (Leo + bold headline + green highlight)
+  - 10 blog posts created with YouTube embeds, scheduled Apr 25 – May 22 (every 3 days)
+- **News thumbnail generator** (`video-pipeline/scripts/news-thumbnail.mjs`) — reusable Puppeteer script
+- **Batch YouTube uploader** (`video-pipeline/scripts/batch-upload.mjs`) — uploads regular + Short + thumbnail in sequence
+- **Batch blog post creator** (`video-pipeline/scripts/batch2-blog-posts.mjs`) — creates scheduled blog posts via Supabase REST API
+- **X OAuth auth script** (`video-pipeline/scripts/x-auth.mjs`) — one-time OAuth 1.0a flow for access tokens
+- `oauth` and `@types/oauth` packages added
+
+### Changed
+- `docs/social-strategy.md` updated with batch 2 schedule, video IDs, and file locations
+- Publish-scheduled cron now selects `excerpt` and `tags` columns for X post content
+- Admin Blog tab X button changed from browser share link to API-powered direct post
+
 ## [0.10.2] - 2026-04-11
 
 ### Added

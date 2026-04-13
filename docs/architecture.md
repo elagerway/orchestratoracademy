@@ -37,7 +37,11 @@ src/
 │   │   ├── learning-path/
 │   │   │   ├── [userId]/route.ts            # GET: User learning path (web)
 │   │   │   └── me/route.ts                  # GET: Learning path from Bearer token (CLI)
+│   │   ├── admin/
+│   │   │   ├── social/route.ts              # POST: Manual X/LinkedIn posting from admin
+│   │   │   └── ...
 │   │   ├── cron/
+│   │   │   ├── publish-scheduled/route.ts   # GET: Hourly blog publish + YouTube public + X auto-post
 │   │   │   └── drip-campaign/route.ts       # GET: Daily drip email cron (Vercel cron)
 │   │   ├── assessments/
 │   │   │   └── submit/route.ts              # Submit certification exam
@@ -109,6 +113,8 @@ src/
 │   │   ├── server.ts                         # Server Stripe (lazy init)
 │   │   ├── config.ts                         # Plan/price configuration
 │   │   └── helpers.ts                        # getUserSubscription helper
+│   ├── social/
+│   │   └── post-to-x.ts                     # X (Twitter) API v2 posting via OAuth 1.0a
 │   ├── email/
 │   │   ├── client.ts                         # Postmark send helper
 │   │   └── templates.ts                     # Branded drip email templates (day 3/7/14)
@@ -186,6 +192,7 @@ supabase/
 - **lab_verifications**: Hands-on lab evidence submissions (API response, terminal output, config, file hash)
 - **deploy_completions**: Project scaffold deployment milestones
 - **drip_log**: Tracks sent drip campaign emails per user (prevents re-sending)
+- **blog_posts**: Blog CMS with WYSIWYG content, SEO fields, scheduling, YouTube video/short IDs, social posting timestamps
 
 ## Course Content
 | Course | Modules | Lessons | Free |
@@ -241,12 +248,20 @@ supabase/
 
 ## Admin Dashboard
 - **Route**: `/dashboard/admin` (role-gated, admin only)
-- **Tabs**: Overview stats, Users, Teams, Assessments, Labs, Deploys, Courses
+- **Tabs**: Overview stats, Users, Teams, Assessments, Labs, Deploys, Courses, Blog
 - **User detail**: Full activity log, assessments, labs, deployments, XP history, grant course access, impersonate
 - **Teams**: Expandable detail with member table + bulk grant course access for entire team
 - **Courses**: Activate/deactivate toggle with affected-user warning before deactivation
 - **Impersonation**: Swap to user's session, amber banner to return to admin (session preserved)
+- **Blog**: WYSIWYG editor (Tiptap), YouTube embed, scheduling, "Post to X" API button
 - **Data**: Fetched server-side via service role (bypasses RLS)
+
+## Social Publishing
+- **X (Twitter)**: Auto-posts via X API v2 (OAuth 1.0a) when cron publishes a blog post
+- **Admin override**: Manual "Post to X" / "Re-post to X" button in Blog tab
+- **Post format**: Title + excerpt + blog URL + hashtags (under 280 chars)
+- **Tracking**: `twitter_posted_at` and `linkedin_posted_at` timestamps on `blog_posts`
+- **LinkedIn**: Browser share link (manual) — API integration planned
 
 ## Milestones
 1. **MVP**: Landing page, auth, free course, progress tracking ✅
@@ -254,4 +269,5 @@ supabase/
 3. **Gamification**: XP, quizzes, achievements, streaks ✅
 4. **Video Production**: 77 foundation lesson videos (M1-M28), all on Vimeo ✅
 5. **B2B Pipeline**: Assess → Train → Deploy, CLI tools, admin dashboard, drip campaign ✅
-6. **Job Board**: Graduate profiles, company directory, messaging (next)
+6. **Blog & Content**: Blog CMS, Daily Dose of AI news videos, X auto-posting, scheduled publishing ✅
+7. **Job Board**: Graduate profiles, company directory, messaging (next)

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
+import { postToX } from "@/lib/social/post-to-x";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
     })
     .eq("status", "scheduled")
     .lte("scheduled_at", now)
-    .select("id, title, slug, youtube_video_id, youtube_short_id");
+    .select("id, title, slug, excerpt, tags, youtube_video_id, youtube_short_id");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -71,9 +72,31 @@ export async function GET(request: Request) {
 
   const publicized = await setYouTubePublic(videoIds);
 
+  // Post to X for each newly published post
+  const xPosted: string[] = [];
+  for (const post of due ?? []) {
+    if (!process.env.X_ACCESS_TOKEN) continue;
+    try {
+      const tweetId = await postToX({
+        title: post.title,
+        excerpt: post.excerpt ?? "",
+        url: `https://orchestratoracademy.com/blog/${post.slug}`,
+        tags: post.tags as string[] | undefined,
+      });
+      await supa
+        .from("blog_posts")
+        .update({ twitter_posted_at: new Date().toISOString() })
+        .eq("id", post.id);
+      xPosted.push(tweetId);
+    } catch {
+      // Don't fail the cron if X post fails
+    }
+  }
+
   return NextResponse.json({
     published: (due ?? []).length,
     posts: (due ?? []).map((p) => p.slug),
     youtube_publicized: publicized,
+    x_posted: xPosted,
   });
 }
