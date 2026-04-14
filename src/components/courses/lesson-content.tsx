@@ -5,7 +5,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
-import { ChevronRight, Play, RotateCcw } from "lucide-react";
+import { ChevronRight, Play, RotateCcw, Copy, Check } from "lucide-react";
 
 interface LessonContentProps {
   content: string;
@@ -16,6 +16,35 @@ interface LessonContentProps {
   courseSlug: string;
   nextLessonSlug?: string | null;
   nextLessonTitle?: string | null;
+}
+
+function CodeBlock({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    const text = typeof children === "string"
+      ? children
+      : (children as any)?.props?.children ?? "";
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <pre
+      className="group relative my-6 overflow-x-auto rounded-lg border border-border/60 bg-neutral-900 p-5 pr-12 text-sm text-emerald-accent"
+      {...props}
+    >
+      <button
+        onClick={handleCopy}
+        className="absolute right-3 top-3 rounded-md p-1.5 text-neutral-500 opacity-0 transition-all hover:bg-neutral-800 hover:text-emerald-accent group-hover:opacity-100"
+        title="Copy"
+      >
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+      </button>
+      {children}
+    </pre>
+  );
 }
 
 const GREEN = "#00C853";
@@ -295,14 +324,7 @@ const markdownComponents: Components = {
     </blockquote>
   ),
   hr: (props) => <hr className="my-10 border-border/60" {...props} />,
-  pre: ({ children, ...props }) => (
-    <pre
-      className="my-6 overflow-x-auto rounded-lg border border-border/60 bg-secondary p-5 text-sm"
-      {...props}
-    >
-      {children}
-    </pre>
-  ),
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
   table: ({ children, ...props }) => (
     <div className="my-6 overflow-x-auto rounded-lg border border-border/60">
       <table className="w-full text-sm" {...props}>
