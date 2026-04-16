@@ -239,8 +239,10 @@ supabase/
 6. Pass exam (70%) → Earn certificate + 100 XP
 
 ## Video Pipeline
-- **Process**: Transcript → ElevenLabs audio → HeyGen avatar → Remotion graphics → ffmpeg stitch
+- **Process**: Transcript → ElevenLabs audio → HeyGen avatar → Remotion graphics → ffmpeg filter_complex stitch
+- **Automation**: `generate-module-video.ts` — fully automated per-module pipeline, `generate-all-scripts.ts` — batch script+audio generation
 - **Segment types**: Talking head (raw HeyGen), Claude Code screen (Remotion), Full-screen graphic (Gemini images + Remotion)
+- **Audio rule**: Talking heads use HeyGen audio (lip-synced). Code screens use raw ElevenLabs mp3 applied at ffmpeg stitch (NOT Remotion audio). This ensures consistent voice.
 - **Outro**: PNG overlay composited via ffmpeg (avoids Remotion jitter)
 - **Brand intro**: 1.5s OA icon fade prepended to every video
 - **Course thumbnails**: Leo frame + title + CSS diagram (rendered at 850×480 display size, uploaded via Vimeo API)

@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.13.1] - 2026-04-16
+
+### Added
+- **Admin course access revocation** — admins can now uncheck granted courses to revoke access (red "Revoke" button with strikethrough preview)
+  - `DELETE /api/admin/enroll` endpoint for bulk revocation
+  - Grant Access panel renamed to "Manage Pro Course Access" with grant + revoke in one UI
+- **Video pipeline batch script** (`generate-all-scripts.ts`) — generates scripts + ElevenLabs audio for all modules without HeyGen/Remotion
+- **Code screen voiceover validation** — batch script warns when voiceover is too short for target duration
+
+### Changed
+- **`generate-module-video.ts` rewritten from scratch** to follow `docs/video-pipeline.md` exactly:
+  - Code screen audio: raw ElevenLabs mp3 applied at ffmpeg stitch via filter_complex concat (NOT baked into Remotion, NOT processed through HeyGen)
+  - Talking head audio: HeyGen-processed (lip-synced to avatar)
+  - Code screen duration driven by voiceover audio length
+  - Remotion renders code screens with voiceover for timing only — audio discarded at stitch
+  - Assets cached in `output/{slug}-assets/` — re-runs skip existing files
+  - HeyGen timeout increased to 20 minutes
+  - Audio uploaded to Supabase Storage for public URLs (fixes HeyGen upload API issues)
+- Video pipeline script generator updated: longer voiceover narrations (120-200 words per code screen), line delays for animation pacing
+- `CodeScreen.tsx` uses `staticFile()` for voiceover URL resolution
+
+### Fixed
+- Voice inconsistency between talking head and code screen segments — ffmpeg now uses raw ElevenLabs mp3 for code screens (same voice throughout)
+- Code screen animation cut off before voiceover finished — duration now matches audio length
+- Remotion `[0,0]` interpolation crash — transition duration set to 10 frames minimum
+- Brand intro missing audio track broke ffmpeg concat
+
 ## [0.13.0] - 2026-04-13
 
 ### Added

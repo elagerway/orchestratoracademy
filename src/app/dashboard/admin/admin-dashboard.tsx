@@ -147,29 +147,44 @@ function GrantAccessPanel({
   enrolledCourseIds?: string[];
   onGranted?: () => void;
 }) {
-  const enrolledSet = new Set(enrolledCourseIds);
-  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
-  const [granting, setGranting] = useState(false);
+  const [enrolledSet, setEnrolledSet] = useState(new Set(enrolledCourseIds));
+  const [selectedToGrant, setSelectedToGrant] = useState<Set<string>>(new Set());
+  const [selectedToRevoke, setSelectedToRevoke] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   const proCourses = courses.filter((c) => !(c.is_free as boolean));
 
   function toggleCourse(id: string) {
-    setSelectedCourses((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+    if (enrolledSet.has(id)) {
+      // Toggle revoke
+      setSelectedToRevoke((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    } else {
+      // Toggle grant
+      setSelectedToGrant((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
   }
 
   function selectAll() {
-    setSelectedCourses(new Set(proCourses.map((c) => c.id as string)));
+    const ungrantedIds = proCourses
+      .map((c) => c.id as string)
+      .filter((id) => !enrolledSet.has(id));
+    setSelectedToGrant(new Set(ungrantedIds));
   }
 
   async function handleGrant() {
-    if (selectedCourses.size === 0) return;
-    setGranting(true);
+    if (selectedToGrant.size === 0) return;
+    setBusy(true);
     setResult(null);
 
     const res = await fetch("/api/admin/enroll", {
@@ -177,46 +192,87 @@ function GrantAccessPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_ids: userIds,
-        course_ids: Array.from(selectedCourses),
+        course_ids: Array.from(selectedToGrant),
       }),
     });
 
     const data = await res.json();
-    setGranting(false);
+    setBusy(false);
 
     if (data.success) {
-      setResult(`Granted access to ${selectedCourses.size} course${selectedCourses.size !== 1 ? "s" : ""} for ${label}`);
-      setSelectedCourses(new Set());
+      setResult(`Granted access to ${selectedToGrant.size} course${selectedToGrant.size !== 1 ? "s" : ""}`);
+      setEnrolledSet((prev) => {
+        const next = new Set(prev);
+        selectedToGrant.forEach((id) => next.add(id));
+        return next;
+      });
+      setSelectedToGrant(new Set());
       onGranted?.();
     } else {
       setResult(`Error: ${data.error}`);
     }
   }
 
+  async function handleRevoke() {
+    if (selectedToRevoke.size === 0) return;
+    setBusy(true);
+    setResult(null);
+
+    const res = await fetch("/api/admin/enroll", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_ids: userIds,
+        course_ids: Array.from(selectedToRevoke),
+      }),
+    });
+
+    const data = await res.json();
+    setBusy(false);
+
+    if (data.success) {
+      setResult(`Revoked access to ${selectedToRevoke.size} course${selectedToRevoke.size !== 1 ? "s" : ""}`);
+      setEnrolledSet((prev) => {
+        const next = new Set(prev);
+        selectedToRevoke.forEach((id) => next.delete(id));
+        return next;
+      });
+      setSelectedToRevoke(new Set());
+      onGranted?.();
+    } else {
+      setResult(`Error: ${data.error}`);
+    }
+  }
+
+  const totalSelected = selectedToGrant.size + selectedToRevoke.size;
+
   return (
     <div className="rounded-lg border border-border p-4 space-y-3">
-      <h4 className="text-sm font-medium">Grant Pro Course Access</h4>
+      <h4 className="text-sm font-medium">Manage Pro Course Access</h4>
       <p className="text-xs text-muted-foreground">
-        Select courses to grant access for {label}
+        Grant or revoke course access for {label}
       </p>
       <div className="space-y-2">
         {proCourses.map((c) => {
           const cid = c.id as string;
-          const alreadyEnrolled = enrolledSet.has(cid);
+          const isEnrolled = enrolledSet.has(cid);
+          const markedForRevoke = selectedToRevoke.has(cid);
           return (
-            <label key={cid} className={`flex items-center gap-3 ${alreadyEnrolled ? "opacity-60" : "cursor-pointer"}`}>
+            <label key={cid} className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={alreadyEnrolled || selectedCourses.has(cid)}
-                disabled={alreadyEnrolled}
+                checked={isEnrolled ? !markedForRevoke : selectedToGrant.has(cid)}
                 onChange={() => toggleCourse(cid)}
                 className="accent-emerald-500"
               />
-              <span className="text-sm">{c.title as string}</span>
-              {alreadyEnrolled && (
+              <span className={`text-sm ${markedForRevoke ? "line-through text-muted-foreground" : ""}`}>{c.title as string}</span>
+              {isEnrolled && !markedForRevoke && (
                 <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-500">granted</span>
               )}
-              {!(c.active as boolean) && !alreadyEnrolled && (
+              {markedForRevoke && (
+                <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-500">will revoke</span>
+              )}
+              {!(c.active as boolean) && !isEnrolled && (
                 <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">inactive</span>
               )}
             </label>
@@ -231,16 +287,29 @@ function GrantAccessPanel({
           Select all
         </button>
         <span className="text-xs text-muted-foreground">
-          {selectedCourses.size} selected
+          {totalSelected} selected
         </span>
       </div>
-      <button
-        onClick={handleGrant}
-        disabled={selectedCourses.size === 0 || granting}
-        className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
-      >
-        {granting ? "Granting..." : `Grant Access`}
-      </button>
+      <div className="flex gap-2">
+        {selectedToGrant.size > 0 && (
+          <button
+            onClick={handleGrant}
+            disabled={busy}
+            className="rounded-md bg-emerald-accent px-4 py-2 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
+          >
+            {busy ? "..." : `Grant ${selectedToGrant.size}`}
+          </button>
+        )}
+        {selectedToRevoke.size > 0 && (
+          <button
+            onClick={handleRevoke}
+            disabled={busy}
+            className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+          >
+            {busy ? "..." : `Revoke ${selectedToRevoke.size}`}
+          </button>
+        )}
+      </div>
       {result && (
         <p className={`text-xs ${result.startsWith("Error") ? "text-red-400" : "text-emerald-400"}`}>
           {result}

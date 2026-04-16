@@ -78,7 +78,9 @@ Guidelines:
 - **No filler phrases** — never use "watch this", "check this out", "look at this". Jump straight into the content.
 - Code should be practical, real-world, and directly tied to the lesson content
 - Use Python as primary language unless content specifically requires JavaScript/TypeScript/bash
-- Include terminal prompts ($ for bash, >>> for Python REPL, claude> for Claude Code)`;
+- Include terminal prompts ($ for bash, >>> for Python REPL, claude> for Claude Code)
+- **Code screen voiceovers are MANDATORY and LONG** — Leo narrates every code screen with a full line-by-line walkthrough (120-200 words per segment, ~20-25 seconds of speech). The voiceover describes what each command does and what the output means as it appears. This is NOT a summary — it is a detailed narration synchronized with the terminal animation. Each word takes ~0.4 seconds.
+- Code lines should include delay values (in frames at 25fps) to pace the animation to match the voiceover narration. Use delays of 10-30 frames between lines.`;
 
 const GENERATION_PROMPT = `Generate a complete module intro video script. This video introduces the module and previews each lesson with interweaved code snippets.
 
@@ -129,12 +131,13 @@ JSON structure:
       "title": "Preview: Lesson 1 concept",
       "lessonTitle": "Lesson 1 title",
       "lines": [
-        { "type": "comment", "text": "# Quick preview of the concept" },
-        { "type": "command", "text": "actual code example" },
-        { "type": "output", "text": "expected output" }
+        { "type": "comment", "text": "# Quick preview of the concept", "delay": 0 },
+        { "type": "command", "text": "actual code example", "delay": 20 },
+        { "type": "output", "text": "expected output", "delay": 15 },
+        { "type": "output", "text": "more output", "delay": 10 }
       ],
       "estimatedDurationSeconds": 20,
-      "voiceoverScript": "Optional brief narration over the code"
+      "voiceoverScript": "REQUIRED. Full narration Leo speaks over the code screen (MUST be 120-160 words for a 20-sec segment, or 150-200 words for a 25-sec segment). Narrate what each command does and what the output means as it appears on screen. This is NOT a summary — it is a line-by-line walkthrough. Use commas between phrases, not periods or dashes. Example: 'First you run the setup command, which authenticates with the service and generates your API key, then you can test it by asking a question, and you will see the response come back with fresh documentation pulled directly from the source'"
     },
     ... one per lesson ...
   ],

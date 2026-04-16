@@ -3,6 +3,7 @@ import {
   AbsoluteFill,
   Audio,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -162,7 +163,7 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
 
   return (
     <AbsoluteFill style={{ opacity, backgroundColor: BG }}>
-      {voiceoverUrl && <Audio src={voiceoverUrl} />}
+      {voiceoverUrl && <Audio src={voiceoverUrl.startsWith("http") ? voiceoverUrl : staticFile(voiceoverUrl)} />}
 
       {/* Terminal window — full screen with padding */}
       <div
@@ -272,7 +273,6 @@ export const CodeScreen: React.FC<CodeScreenProps> = ({
 
             if (layout.line.type === "command") {
               // User input line — green > prompt
-              const displayText = layout.line.text.replace(/^\$ /, "").replace(/^\$ claude /, "");
               const isClaudeCommand = layout.line.text.startsWith("$ claude");
               const promptText = isClaudeCommand
                 ? layout.line.text.replace(/^\$ claude /, "")
