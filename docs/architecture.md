@@ -155,7 +155,8 @@ video-pipeline/                                # Video production (separate from
 │   ├── generate-scripts.ts                  # Claude API script generator
 │   ├── generate-module-video.ts            # Per-module orchestrator
 │   ├── regen-outros-m8.ts                  # Targeted outro rewrite + re-stitch (sample-rate-safe)
-│   ├── upload-m8-to-vimeo.ts               # Vimeo tus upload + OA folder + DB patch
+│   ├── upload-m8-to-vimeo.ts               # Vimeo tus upload + OA folder + DB patch (per-lesson)
+│   ├── upload-m29-to-vimeo.ts              # Vimeo tus upload + OA folder + DB patch (one video → N lessons)
 │   ├── generate-all.ts                     # Batch runner
 │   ├── generate-thumb-backgrounds.py       # Gemini AI background generation (step 12a)
 │   ├── composite-thumbnails.py             # Leo + background alpha blend (step 12b)

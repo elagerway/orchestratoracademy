@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.3] - 2026-04-20
+
+### Added
+- **M29 OpenRouter video** — full pipeline run for the Foundations "OpenRouter — Universal AI Gateway" module (3 lessons: what-is-openrouter, model-routing-fallbacks-openrouter, openrouter-in-practice). Single module video (36.2 MB, 260s), uploaded to Vimeo `1184960004` + OA folder. All 3 lesson `video_url` fields patched to the same Vimeo embed URL
+- **`upload-m29-to-vimeo.ts`** — one-shot Vimeo tus uploader that patches multiple lesson slugs to the same Vimeo ID (for module-level videos that serve across a module's lessons)
+
 ## [0.13.2] - 2026-04-20
 
 ### Added
