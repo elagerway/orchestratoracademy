@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.2] - 2026-04-20
+
+### Added
+- **Claude Code Superpowers videos (M1–M8)** — full 8-module video set produced via the rewritten pipeline, uploaded to Supabase Storage (`videos/module-videos/{slug}/`)
+- **Foundations M8 outro refresh** — new unique outros for M8L1/L2/L3 that explicitly point to the next lesson/module (completes the M1–M8 outro-variety pass)
+- **`regen-outros-m8.ts`** — script to rewrite + regenerate a lesson's outro (ElevenLabs → HeyGen → ffmpeg re-stitch with sample-rate-safe concat via `filter_complex`)
+- **`upload-m8-to-vimeo.ts`** — Vimeo tus uploader that creates the video, waits for transcode, applies OA embed/privacy settings, adds to the OA folder, uploads thumbnail, and patches `lessons.video_url` in Supabase
+
+### Changed
+- Paperclip A2A course (`multi-agent-paperclip`) flipped to `active=true` and publicly visible
+- M8L1/L2/L3 in Foundations now point to freshly-uploaded Vimeo videos with outros that tease the next lesson (improves session flow for students watching back-to-back)
+
+### Fixed
+- Sample-rate mismatch in outro concat — HeyGen outputs 48 kHz, pre-outro segments are 44.1 kHz; concat demuxer silently duplicated audio producing 2× durations. Now resamples to 44.1 kHz stereo + 25 fps before concat and uses `filter_complex` concat (handles param mismatches safely)
+
 ## [0.13.1] - 2026-04-16
 
 ### Added
