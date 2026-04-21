@@ -149,36 +149,43 @@ async function downloadFile(url: string, dest: string): Promise<void> {
 function parseArgs() {
   const args = process.argv.slice(2);
   let moduleSlug = "";
+  let lessonSlug = "";
   let skipHeyGen = false;
   let skipUpload = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--module" && args[i + 1]) { moduleSlug = args[++i]; }
+    else if (args[i] === "--lesson" && args[i + 1]) { lessonSlug = args[++i]; }
     else if (args[i] === "--skip-heygen") { skipHeyGen = true; }
     else if (args[i] === "--skip-upload") { skipUpload = true; }
   }
-  if (!moduleSlug) { console.error("Usage: --module <slug>"); process.exit(1); }
+  if (!moduleSlug) { console.error("Usage: --module <slug> [--lesson <lessonSlug>]"); process.exit(1); }
   if (!/^[a-z0-9-]+$/.test(moduleSlug)) {
     console.error("Invalid module slug — only lowercase letters, numbers, and hyphens allowed");
     process.exit(1);
   }
-  return { moduleSlug, skipHeyGen, skipUpload };
+  if (lessonSlug && !/^[a-z0-9-]+$/.test(lessonSlug)) {
+    console.error("Invalid lesson slug — only lowercase letters, numbers, and hyphens allowed");
+    process.exit(1);
+  }
+  return { moduleSlug, lessonSlug, skipHeyGen, skipUpload };
 }
 
 // ── Main Pipeline ───────────────────────────────────────────────────────────
 
 async function main() {
-  const { moduleSlug, skipHeyGen, skipUpload } = parseArgs();
+  const { moduleSlug, lessonSlug, skipHeyGen, skipUpload } = parseArgs();
   const FPS = 25;
+  const jobSlug = lessonSlug ? `${moduleSlug}-${lessonSlug}` : moduleSlug;
   const outputDir = path.resolve(__dirname, "../output");
-  const assetsDir = path.join(outputDir, `${moduleSlug}-assets`);
+  const assetsDir = path.join(outputDir, `${jobSlug}-assets`);
   const publicDir = path.resolve(__dirname, "../public");
-  const publicModuleDir = path.join(publicDir, moduleSlug);
+  const publicModuleDir = path.join(publicDir, jobSlug);
 
   for (const d of [assetsDir, publicModuleDir]) {
     if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
   }
 
-  console.log(`\n=== Video Pipeline: ${moduleSlug} ===\n`);
+  console.log(`\n=== Video Pipeline: ${jobSlug} ===\n`);
 
   // ── Step 1: Fetch module data + generate scripts ────────────────────────
 
@@ -187,9 +194,14 @@ async function main() {
   const { data: mod } = await supabase.from("modules").select("*").eq("slug", moduleSlug).single();
   if (!mod) throw new Error(`Module not found: ${moduleSlug}`);
 
-  const { data: lessons } = await supabase.from("lessons").select("*").eq("module_id", mod.id).order("order");
-  const lessonInfos: LessonInfo[] = (lessons || []).map((l: any) => ({ title: l.title, slug: l.slug, content: l.content || "" }));
-  console.log(`  Module: ${mod.title} (${lessonInfos.length} lessons)`);
+  const { data: allLessons } = await supabase.from("lessons").select("*").eq("module_id", mod.id).order("order");
+  let lessons = allLessons || [];
+  if (lessonSlug) {
+    lessons = lessons.filter((l: any) => l.slug === lessonSlug);
+    if (lessons.length === 0) throw new Error(`Lesson ${lessonSlug} not found in module ${moduleSlug}`);
+  }
+  const lessonInfos: LessonInfo[] = lessons.map((l: any) => ({ title: l.title, slug: l.slug, content: l.content || "" }));
+  console.log(`  Module: ${mod.title} (${lessonInfos.length} lesson${lessonInfos.length === 1 ? '' : 's'})`);
 
   const scriptsPath = path.join(assetsDir, "scripts.json");
   let scripts: ModuleScripts;
@@ -274,7 +286,7 @@ async function main() {
         type: "code-screen" as const,
         durationInFrames,
         lines: seg.lines,
-        voiceoverUrl: voiceoverPaths[i] ? `${moduleSlug}/voiceover-code${i}.mp3` : undefined,
+        voiceoverUrl: voiceoverPaths[i] ? `${jobSlug}/voiceover-code${i}.mp3` : undefined,
       }],
       transitionDurationInFrames: 10,
     };
@@ -316,10 +328,10 @@ async function main() {
       console.log(`  [${i + 1}/${scripts.talkingHeadSegments.length}] ${seg.purpose}...`);
       try {
         // Upload audio to Supabase for public URL
-        const publicUrl = await uploadToSupabase(thAudioPaths[i], `heygen-audio/${moduleSlug}/${seg.purpose}-${i}.mp3`);
+        const publicUrl = await uploadToSupabase(thAudioPaths[i], `heygen-audio/${jobSlug}/${seg.purpose}-${i}.mp3`);
         console.log(`    Audio URL: ${publicUrl}`);
 
-        const videoId = await createHeyGenVideo(publicUrl, `${moduleSlug} - ${seg.purpose}`);
+        const videoId = await createHeyGenVideo(publicUrl, `${jobSlug} - ${seg.purpose}`);
         console.log(`    Video ID: ${videoId}`);
         const videoUrl = await waitForHeyGen(videoId);
 
@@ -409,7 +421,7 @@ async function main() {
     `${concatInputs.join("")}concat=n=${segCount}:v=1:a=1[vout][aout]`,
   ].join(";\n    ");
 
-  const outputPath = path.join(outputDir, `${moduleSlug}.mp4`);
+  const outputPath = path.join(outputDir, `${jobSlug}.mp4`);
   const ffmpegCmd = `ffmpeg -y \
   ${inputs.join(" \\\n  ")} \
   -filter_complex "
@@ -441,14 +453,14 @@ async function main() {
   } else {
     console.log("[8] Uploading to Supabase Storage...");
     const videoBuffer = fs.readFileSync(outputPath);
-    const storagePath = `module-videos/${moduleSlug}/${moduleSlug}.mp4`;
+    const storagePath = `module-videos/${jobSlug}/${jobSlug}.mp4`;
     const { error } = await supabase.storage.from("assets").upload(storagePath, videoBuffer, { contentType: "video/mp4", upsert: true });
     if (error) throw new Error(`Supabase storage upload failed (assets/${storagePath}): ${error.message}`);
     const { data: { publicUrl } } = supabase.storage.from("assets").getPublicUrl(storagePath);
     console.log(`  Uploaded: ${publicUrl}`);
   }
 
-  console.log(`\n=== Pipeline complete: ${moduleSlug} ===\n`);
+  console.log(`\n=== Pipeline complete: ${jobSlug} ===\n`);
 }
 
 main().catch((e) => {

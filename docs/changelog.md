@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.9] - 2026-04-21
+
+### Added
+- **Superpowers course — L2 lessons now have videos** — all 8 L2 lessons produced via the new single-lesson pipeline mode and published to Vimeo, then patched to `content_type=video`. Every Superpowers lesson (16/16) now has video
+- **`generate-module-video.ts --lesson <slug>`** — new flag filters a module to a single lesson so the pipeline produces a short per-lesson video instead of a module-level overview. Asset cache, output filename, and Supabase storage path all use the `{moduleSlug}-{lessonSlug}` job slug
+- **`upload-superpowers-l2-to-vimeo.ts`** — batch Vimeo uploader for the 8 L2 mp4s (same tus-with-retries pattern as the L1 uploader, patches `lessons.video_url` + `content_type` for each)
+
 ## [0.13.8] - 2026-04-21
 
 ### Added
