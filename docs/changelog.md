@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.6] - 2026-04-21
+
+### Fixed
+- **Bot gibberish names in admin table** (second pass) — the prior OAuth-callback fix (`72d04ed`) didn't cover email signups, so bots were submitting random camelCase strings like `mzmjRGpElsBPImqAM ISDBkhgKVEVQZmfBWKV` as first/last name. Now enforced at the DB trigger level (`handle_new_user`) — any non-real name is stored as empty string, which the admin UI already handles with "Unnamed User" / "—" fallbacks. Existing gibberish scrubbed in the migration
+- **Signup form client-side guard** — rejects camelCase input with "Please enter your real name — unusual capitalization detected."
+
+### Added
+- **`public.looks_real_name(text)` function** — shared heuristic (length >= 3, contains space, no camelCase run). Reusable from other validation paths
+
 ## [0.13.5] - 2026-04-20
 
 ### Fixed

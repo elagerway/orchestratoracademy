@@ -46,7 +46,13 @@ export default function SignupPage() {
       return;
     }
 
+    // Reject camelCase gibberish (bots fill random alpha into name fields)
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
+    if (/[a-z][A-Z]/.test(fullName)) {
+      setError("Please enter your real name — unusual capitalization detected.");
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
