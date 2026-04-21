@@ -157,6 +157,8 @@ video-pipeline/                                # Video production (separate from
 │   ├── regen-outros-m8.ts                  # Targeted outro rewrite + re-stitch (sample-rate-safe)
 │   ├── upload-m8-to-vimeo.ts               # Vimeo tus upload + OA folder + DB patch (per-lesson)
 │   ├── upload-m29-to-vimeo.ts              # Vimeo tus upload + OA folder + DB patch (one video → N lessons)
+│   ├── upload-superpowers-to-vimeo.ts      # Batch Vimeo tus upload for Superpowers course (per-chunk retries)
+│   ├── upload-superpowers-mp4s-to-assets.ts # Uploads module mp4s to Supabase assets bucket
 │   ├── generate-all.ts                     # Batch runner
 │   ├── generate-thumb-backgrounds.py       # Gemini AI background generation (step 12a)
 │   ├── composite-thumbnails.py             # Leo + background alpha blend (step 12b)

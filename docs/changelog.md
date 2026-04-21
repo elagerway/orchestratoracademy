@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.4] - 2026-04-20
+
+### Added
+- **Superpowers course videos now served to students** — all 8 module videos uploaded to Vimeo (OA folder) and patched into each module's L1 lesson as `content_type=video`. Previously the mp4s sat in Supabase Storage with no DB linkage, so students couldn't see them
+- **`upload-superpowers-to-vimeo.ts`** — batch Vimeo tus uploader with per-chunk retries, server-offset verification after each chunk, HEAD-based resume, and per-module try/catch so one bad mp4 doesn't abort the rest
+- **`upload-superpowers-mp4s-to-assets.ts`** — uploads module mp4s to the `assets` bucket (the `videos` bucket doesn't exist; `generate-module-video.ts` was silently failing storage uploads)
+
+### Fixed
+- Corrupt M2 mp4 (missing `moov` atom) — re-stitched from cached HeyGen + ElevenLabs assets
+- `generate-module-video.ts` Supabase upload was swallowing errors and reporting success when the target bucket didn't exist. The Vimeo-pull attempts that followed failed because the public URLs returned 400 Bucket not found
+
 ## [0.13.3] - 2026-04-20
 
 ### Added
