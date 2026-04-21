@@ -101,7 +101,8 @@ async function heygenFetch(urlPath: string, options: RequestInit = {}) {
 async function uploadToSupabase(filePath: string, storagePath: string): Promise<string> {
   const supabase = getSupabase();
   const buffer = fs.readFileSync(filePath);
-  await supabase.storage.from("assets").upload(storagePath, buffer, { contentType: "audio/mpeg", upsert: true });
+  const { error } = await supabase.storage.from("assets").upload(storagePath, buffer, { contentType: "audio/mpeg", upsert: true });
+  if (error) throw new Error(`Supabase audio upload failed (assets/${storagePath}): ${error.message}`);
   const { data: { publicUrl } } = supabase.storage.from("assets").getPublicUrl(storagePath);
   return publicUrl;
 }
