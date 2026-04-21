@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.14.0] - 2026-04-21
+
+### Added
+- **Drip emails now include a "What's new at the Academy" block** — the daily cron fetches the latest 3 Announcements forum posts and surfaces them in every day3 / day7 / day14 email, so dormant users see ships when they come back. Any new post in the Announcements category automatically flows through on the next run
+- `AnnouncementEntry` type exported from `@/lib/email/templates` for reuse
+- **Supercharging Context & Memory is now free** (`is_free=true`) — announced via forum post + blog post
+- **Superpowers L2 launch announced** — forum post + blog post
+- **`publish-whats-new.ts`** — batch script that publishes announcements to both the Announcements forum category and the blog in one run (pattern for future `/whats-new` invocations)
+
+### Changed
+- `/whats-new` slash command now documents the automatic drip integration
+
 ## [0.13.9] - 2026-04-21
 
 ### Added

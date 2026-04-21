@@ -137,6 +137,38 @@ function leaderboardBlock(leaders: LeaderboardEntry[], currentDisplayName: strin
     </table>`;
 }
 
+// ── Shared: What's New announcements block ───────────────────────────────────
+
+export interface AnnouncementEntry {
+  title: string;
+  excerpt: string;
+  url: string; // absolute URL to read more
+}
+
+function announcementsBlock(announcements: AnnouncementEntry[]) {
+  if (!announcements || announcements.length === 0) return "";
+  const items = announcements
+    .slice(0, 3)
+    .map(
+      (a) => `<tr>
+        <td style="padding:14px 16px;border-bottom:1px solid ${BRAND.border};">
+          <a href="${a.url}" style="color:${BRAND.white};font-weight:600;font-size:14px;text-decoration:none;">${a.title}</a>
+          <p style="margin:4px 0 0;font-size:13px;color:${BRAND.mutedText};line-height:1.5;">${a.excerpt}</p>
+        </td>
+      </tr>`
+    )
+    .join("");
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BRAND.darkBg};border:1px solid ${BRAND.border};border-radius:8px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid ${BRAND.border};font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:${BRAND.mutedText};font-weight:600;">
+          What's new at the Academy
+        </td>
+      </tr>
+      ${items}
+    </table>`;
+}
+
 // ── Day 3: Pick up where you left off ─────────────────────────────────────────
 
 export function day3Email(params: {
@@ -150,8 +182,9 @@ export function day3Email(params: {
   level: number;
   rank: number;
   leaderboard: LeaderboardEntry[];
+  announcements?: AnnouncementEntry[];
 }) {
-  const { name, displayName, lessonTitle, courseSlug, lessonSlug, completedCount, xp, level, rank, leaderboard } = params;
+  const { name, displayName, lessonTitle, courseSlug, lessonSlug, completedCount, xp, level, rank, leaderboard, announcements = [] } = params;
   const firstName = name.split(" ")[0] || "there";
   const continueUrl = `${BRAND.url}/courses/${courseSlug}/lessons/${lessonSlug}`;
 
@@ -187,6 +220,8 @@ export function day3Email(params: {
       </tr>
     </table>
 
+    ${announcementsBlock(announcements)}
+
     ${leaderboard.length > 1 ? leaderboardBlock(leaderboard, displayName) : ""}
   `;
 
@@ -210,8 +245,9 @@ export function day7Email(params: {
   level: number;
   rank: number;
   leaderboard: LeaderboardEntry[];
+  announcements?: AnnouncementEntry[];
 }) {
-  const { name, displayName, courseTitle, courseSlug, completedCount, totalLessons, percentComplete, xp, level, rank, leaderboard } = params;
+  const { name, displayName, courseTitle, courseSlug, completedCount, totalLessons, percentComplete, xp, level, rank, leaderboard, announcements = [] } = params;
   const firstName = name.split(" ")[0] || "there";
   const courseUrl = `${BRAND.url}/courses/${courseSlug}`;
 
@@ -267,6 +303,8 @@ export function day7Email(params: {
       </tr>
     </table>
 
+    ${announcementsBlock(announcements)}
+
     ${leaderboard.length > 1 ? leaderboardBlock(leaderboard, displayName) : ""}
   `;
 
@@ -289,8 +327,9 @@ export function day14Email(params: {
   level: number;
   rank: number;
   leaderboard: LeaderboardEntry[];
+  announcements?: AnnouncementEntry[];
 }) {
-  const { name, displayName, courseSlug, totalStudents, avgLessonsCompleted, completedCount, xp, level, rank, leaderboard } = params;
+  const { name, displayName, courseSlug, totalStudents, avgLessonsCompleted, completedCount, xp, level, rank, leaderboard, announcements = [] } = params;
   const firstName = name.split(" ")[0] || "there";
   const courseUrl = `${BRAND.url}/courses/${courseSlug}`;
   const ahead = completedCount >= avgLessonsCompleted;
@@ -344,6 +383,8 @@ export function day14Email(params: {
         </td>
       </tr>
     </table>
+
+    ${announcementsBlock(announcements)}
 
     ${leaderboard.length > 1 ? leaderboardBlock(leaderboard, displayName) : ""}
   `;

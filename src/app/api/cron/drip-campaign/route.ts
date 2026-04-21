@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email/client";
-import { day3Email, day7Email, day14Email } from "@/lib/email/templates";
+import { day3Email, day7Email, day14Email, type AnnouncementEntry } from "@/lib/email/templates";
 
 const CRON_SECRET = process.env.CRON_SECRET;
+const ANNOUNCEMENTS_CATEGORY_ID = "771a903d-9f65-4aeb-acb2-7b9309469513";
+
+// Strip markdown to a plain excerpt (max ~140 chars). Good enough for email snippets.
+function toExcerpt(body: string): string {
+  const plain = body
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/^#+\s*/gm, "")
+    .replace(/[-*]\s+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.length > 140 ? plain.slice(0, 137) + "…" : plain;
+}
 
 export async function GET(request: Request) {
   // Verify cron secret (Vercel cron sends this header)
@@ -51,6 +66,21 @@ export async function GET(request: Request) {
   const { data: dripLogs } = await supa
     .from("drip_log")
     .select("user_id, drip_type");
+
+  // Latest Announcements forum posts — shown in every drip email so dormant
+  // users see what they've missed when they come back
+  const { data: recentAnnouncements } = await supa
+    .from("forum_posts")
+    .select("id, title, body, created_at")
+    .eq("category_id", ANNOUNCEMENTS_CATEGORY_ID)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const announcements: AnnouncementEntry[] = (recentAnnouncements ?? []).map((p) => ({
+    title: p.title,
+    excerpt: toExcerpt(p.body),
+    url: `https://orchestratoracademy.com/dashboard/support?post=${p.id}`,
+  }));
 
   const sentSet = new Set(
     (dripLogs ?? []).map((d) => `${d.user_id}:${d.drip_type}`)
@@ -166,6 +196,7 @@ export async function GET(request: Request) {
         level: userLevel,
         rank: userRank,
         leaderboard,
+        announcements,
       });
     } else if (daysSinceActivity >= 7 && sentSet.has(`${userId}:day3`) && !sentSet.has(`${userId}:day7`)) {
       dripType = "day7";
@@ -181,6 +212,7 @@ export async function GET(request: Request) {
         level: userLevel,
         rank: userRank,
         leaderboard,
+        announcements,
       });
     } else if (daysSinceActivity >= 14 && sentSet.has(`${userId}:day7`) && !sentSet.has(`${userId}:day14`)) {
       dripType = "day14";
@@ -195,6 +227,7 @@ export async function GET(request: Request) {
         level: userLevel,
         rank: userRank,
         leaderboard,
+        announcements,
       });
     }
 

@@ -45,6 +45,10 @@ await supabase.from("forum_posts").insert({
 
 If the user explicitly asks, also post a tweet using the X client setup (`VIMEO_ACCESS_TOKEN`-style creds in `.env.local`, see `video-pipeline/scripts/x-auth.mjs` pattern). One sentence + link to the blog post. Default: **do not tweet** unless asked.
 
+## Drip campaign — automatic
+
+The daily drip cron at `/api/cron/drip-campaign` pulls the latest 3 Announcements forum posts and surfaces them as a **"What's new at the Academy"** block in every day3 / day7 / day14 email. You don't need to do anything extra — the moment the forum post lands, the next cron run includes it.
+
 ## Required calls at the end
 
 1. Print all three URLs (forum post, blog post, tweet) so the user can verify.
