@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.13.5] - 2026-04-20
+
+### Fixed
+- **`generate-module-video.ts` silent storage upload failure** — the pipeline was uploading to a non-existent `videos` bucket and silently swallowing the error in a try/catch. Every "Uploaded: ..." log this session was a lie. Now uploads to `assets/module-videos/{slug}/{slug}.mp4` (the bucket that actually exists and is public), and throws loudly on any storage error
+
 ## [0.13.4] - 2026-04-20
 
 ### Added

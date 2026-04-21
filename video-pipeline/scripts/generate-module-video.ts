@@ -439,15 +439,12 @@ async function main() {
     console.log("[8] Skipping upload.");
   } else {
     console.log("[8] Uploading to Supabase Storage...");
-    try {
-      const videoBuffer = fs.readFileSync(outputPath);
-      const storagePath = `module-videos/${moduleSlug}/${moduleSlug}.mp4`;
-      await supabase.storage.from("videos").upload(storagePath, videoBuffer, { contentType: "video/mp4", upsert: true });
-      const { data: { publicUrl } } = supabase.storage.from("videos").getPublicUrl(storagePath);
-      console.log(`  Uploaded: ${publicUrl}`);
-    } catch (e: any) {
-      console.warn(`  Upload failed: ${e.message}`);
-    }
+    const videoBuffer = fs.readFileSync(outputPath);
+    const storagePath = `module-videos/${moduleSlug}/${moduleSlug}.mp4`;
+    const { error } = await supabase.storage.from("assets").upload(storagePath, videoBuffer, { contentType: "video/mp4", upsert: true });
+    if (error) throw new Error(`Supabase storage upload failed (assets/${storagePath}): ${error.message}`);
+    const { data: { publicUrl } } = supabase.storage.from("assets").getPublicUrl(storagePath);
+    console.log(`  Uploaded: ${publicUrl}`);
   }
 
   console.log(`\n=== Pipeline complete: ${moduleSlug} ===\n`);
