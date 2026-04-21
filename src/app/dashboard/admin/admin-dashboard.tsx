@@ -339,6 +339,41 @@ function UserDetail({
   const lastActivity = data.lastActivityMap[userId];
   const [impersonating, setImpersonating] = useState(false);
 
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [editFullName, setEditFullName] = useState((profile.full_name as string) || "");
+  const [editCompanyName, setEditCompanyName] = useState((profile.company_name as string) || "");
+  const [editCompanyRole, setEditCompanyRole] = useState((profile.company_role as string) || "");
+  const displayedFullName = (profile.full_name as string) || "";
+  const displayedCompanyName = (profile.company_name as string) || "";
+  const displayedCompanyRole = (profile.company_role as string) || "";
+
+  async function handleSaveEdit() {
+    setSaving(true);
+    setSaveError(null);
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        updates: {
+          full_name: editFullName,
+          company_name: editCompanyName,
+          company_role: editCompanyRole,
+        },
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Save failed" }));
+      setSaveError(err.error || "Save failed");
+      setSaving(false);
+      return;
+    }
+    // Reload page to pick up fresh profile data
+    window.location.reload();
+  }
+
   async function handleImpersonate() {
     setImpersonating(true);
 
@@ -387,13 +422,81 @@ function UserDetail({
 
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-xl font-bold">
-            {(profile.full_name as string) || "Unnamed User"}
-          </h2>
-          <p className="text-sm text-muted-foreground">{auth?.email || "—"}</p>
+        <div className="flex-1 space-y-2">
+          {editing ? (
+            <div className="space-y-2 rounded-lg border border-border p-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Full name</label>
+                <input
+                  type="text"
+                  value={editFullName}
+                  onChange={(e) => setEditFullName(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-emerald-accent/50"
+                />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Company</label>
+                  <input
+                    type="text"
+                    value={editCompanyName}
+                    onChange={(e) => setEditCompanyName(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-emerald-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Role at company</label>
+                  <input
+                    type="text"
+                    value={editCompanyRole}
+                    onChange={(e) => setEditCompanyRole(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-emerald-accent/50"
+                  />
+                </div>
+              </div>
+              {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                  className="rounded-md bg-emerald-accent px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-accent/90 disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditing(false);
+                    setSaveError(null);
+                    setEditFullName(displayedFullName);
+                    setEditCompanyName(displayedCompanyName);
+                    setEditCompanyRole(displayedCompanyRole);
+                  }}
+                  disabled={saving}
+                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-xl font-bold">
+                {displayedFullName || "Unnamed User"}
+              </h2>
+              <p className="text-sm text-muted-foreground">{auth?.email || "—"}</p>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {!editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+            >
+              <Pencil className="size-3.5" />
+              Edit
+            </button>
+          )}
           <button
             onClick={handleImpersonate}
             disabled={impersonating}

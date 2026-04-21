@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.8] - 2026-04-21
+
+### Added
+- **Admin — edit user profile inline** — click a user row → new Edit button on the detail page lets admins update `full_name`, `company_name`, and `company_role` with Save/Cancel. Useful after the gibberish scrub since some accounts are left with blank names
+- `/api/admin/users` PATCH route — admin-only, whitelists allowed fields (`full_name`, `company_name`, `company_role`), trims strings, rejects unknown keys
+
 ## [0.13.7] - 2026-04-21
 
 ### Added
