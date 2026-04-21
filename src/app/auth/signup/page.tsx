@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Turnstile, TurnstileHandle } from "@/components/turnstile";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,9 +26,18 @@ export default function SignupPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
+  const handleCaptchaExpire = useCallback(() => setCaptchaToken(""), []);
+  const resetCaptcha = useCallback(() => {
+    setCaptchaToken("");
+    turnstileRef.current?.reset();
+  }, []);
 
   const supabase = createClient();
 
@@ -53,6 +65,13 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
+
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError("Please complete the captcha.");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -60,12 +79,14 @@ export default function SignupPage() {
         data: {
           full_name: fullName,
         },
+        captchaToken: captchaToken || undefined,
       },
     });
 
     if (error) {
       setError(error.message);
       setLoading(false);
+      resetCaptcha();
       return;
     }
 
@@ -224,6 +245,12 @@ export default function SignupPage() {
                 minLength={6}
               />
             </div>
+
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex justify-center">
+                <Turnstile ref={turnstileRef} siteKey={TURNSTILE_SITE_KEY} onToken={handleCaptchaToken} onExpire={handleCaptchaExpire} />
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-destructive">{error}</p>

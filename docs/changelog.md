@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.7] - 2026-04-21
+
+### Added
+- **Cloudflare Turnstile captcha on signup + login** — `<Turnstile>` React wrapper lazy-loads the Cloudflare widget and passes the token via Supabase Auth's `options.captchaToken`. Token verification happens inside Supabase (secret key configured in the Supabase dashboard). Widget resets on failed submission so the user can retry with a fresh token
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` env var (public), `TURNSTILE_SECRET_KEY` in `.env.local` (for reference — Supabase holds the enforcing copy in dashboard config)
+
+### Fixed
+- **Open-redirect on login** — `?redirect=https://evil.com` could send users off-origin after login. Now only accepts same-origin relative paths (matches the pattern already used in `auth/callback`)
+- Turnstile script-load race: if the `<script>` tag existed but the global wasn't populated yet, the widget could silently fail to render on second mount
+- Single-use captcha tokens re-submitted after error: token and widget now reset on failure so Supabase doesn't reject the second attempt with an already-consumed token
+
 ## [0.13.6] - 2026-04-21
 
 ### Fixed

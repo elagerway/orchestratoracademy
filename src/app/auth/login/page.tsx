@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Turnstile, TurnstileHandle } from "@/components/turnstile";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
 export default function LoginPage() {
   return (
@@ -27,13 +30,24 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/dashboard";
+  const rawRedirect = searchParams.get("redirect") || "/dashboard";
+  // Only accept same-origin relative paths; block open-redirect attacks
+  const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/dashboard";
   const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
   const [error, setError] = useState<string | null>(authError);
   const [loading, setLoading] = useState(false);
+
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const handleCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
+  const handleCaptchaExpire = useCallback(() => setCaptchaToken(""), []);
+  const resetCaptcha = useCallback(() => {
+    setCaptchaToken("");
+    turnstileRef.current?.reset();
+  }, []);
 
   const supabase = createClient();
 
@@ -48,14 +62,22 @@ function LoginForm() {
     setError(null);
     setLoading(true);
 
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError("Please complete the captcha.");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken: captchaToken || undefined },
     });
 
     if (error) {
       setError(error.message);
       setLoading(false);
+      resetCaptcha();
       return;
     }
 
@@ -160,6 +182,12 @@ function LoginForm() {
                 required
               />
             </div>
+
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex justify-center">
+                <Turnstile ref={turnstileRef} siteKey={TURNSTILE_SITE_KEY} onToken={handleCaptchaToken} onExpire={handleCaptchaExpire} />
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-destructive">{error}</p>
