@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CourseProgress } from "@/components/courses/course-progress";
 import { EnrollButton } from "@/components/courses/enroll-button";
-import { PaywallBanner } from "@/components/courses/paywall-banner";
+import { BuyMeCoffeeButton } from "@/components/buy-me-coffee";
+import { BookCallButton } from "@/components/book-call";
 import { BookOpen, CheckCircle2, ChevronRight, Clock, PlayCircle, Zap, Trophy, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CourseWithModules, Lesson, UserProgress } from "@/lib/types/database";
@@ -178,53 +179,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
     return sum + lessonMinutes + quizMinutes;
   }, 0);
 
-  // Show paywall for paid courses when user has no active pro/team subscription
-  const paywallDisabled = process.env.NEXT_PUBLIC_DISABLE_PAYWALL === "true";
-  const showPaywall = !paywallDisabled && !typedCourse.is_free && !hasActiveSubscription;
-
-  if (showPaywall) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        {/* Course header (visible even behind paywall) */}
-        <div className="mb-4 mx-auto max-w-3xl">
-          <div className="mb-3 flex items-center gap-2">
-            <Badge variant="default">
-              {`$${typedCourse.price ?? ""}`}
-            </Badge>
-            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-              typedCourse.level === "entry"
-                ? "bg-emerald-500/10 text-emerald-500"
-                : typedCourse.level === "advanced"
-                ? "bg-red-500/10 text-red-500"
-                : "bg-amber-500/10 text-amber-500"
-            }`}>
-              {typedCourse.level === "entry" ? "Entry Level" : typedCourse.level === "advanced" ? "Advanced" : "Intermediate"}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
-            </span>
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <Clock className="size-3.5" />
-              {formatDuration(totalMinutes)}
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">{typedCourse.title}</h1>
-          <p className="mt-3 text-lg text-muted-foreground">{typedCourse.description}</p>
-        </div>
-
-        <PaywallBanner courseName={typedCourse.title} />
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Course header */}
       <div className="mb-8 mx-auto max-w-3xl">
         <div className="mb-3 flex items-center gap-2">
-          <Badge variant={typedCourse.is_free ? "secondary" : "default"}>
-            {typedCourse.is_free ? "Free" : `$${typedCourse.price ?? ""}`}
-          </Badge>
+          <Badge variant="secondary">Free</Badge>
           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
             typedCourse.level === "entry"
               ? "bg-emerald-500/10 text-emerald-500"
@@ -402,6 +362,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
             </Card>
           );
         })}
+
+        {/* Support the Academy + 1:1 option */}
+        <div className="mt-10 space-y-3">
+          <BuyMeCoffeeButton variant="card" />
+          <BookCallButton variant="card" />
+        </div>
       </div>
     </div>
   );

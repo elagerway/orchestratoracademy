@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import { ChevronRight, Play, RotateCcw, Copy, Check } from "lucide-react";
+import { BuyMeCoffeeButton } from "@/components/buy-me-coffee";
 
 interface LessonContentProps {
   content: string;
@@ -458,6 +459,11 @@ export function LessonContent({ content, videoUrl, contentType, lessonSlug, less
         >
           {content}
         </ReactMarkdown>
+      </div>
+
+      {/* Support the Academy — every lesson footer */}
+      <div className="mt-10 border-t border-border pt-6">
+        <BuyMeCoffeeButton variant="card" />
       </div>
     </div>
   );

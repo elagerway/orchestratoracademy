@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/app/auth/actions";
+import { BuyMeCoffeeButton } from "@/components/buy-me-coffee";
+import { BookCallButton } from "@/components/book-call";
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -170,6 +172,12 @@ export function DashboardSidebar({ isAdmin, user, latestPost }: DashboardSidebar
           </Link>
         </div>
       )}
+
+      {/* Book a call + Buy us a coffee */}
+      <div className="mx-3 mb-2 space-y-2">
+        <BookCallButton variant="card" />
+        <BuyMeCoffeeButton variant="card" />
+      </div>
 
       {/* User section */}
       <div className="relative border-t border-border/60 p-3" ref={menuRef}>

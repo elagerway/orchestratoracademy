@@ -30,6 +30,8 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
+import { BuyMeCoffeeButton } from "@/components/buy-me-coffee"
+import { BookCallButton } from "@/components/book-call"
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -166,9 +168,9 @@ const faqItems = [
       "No. The foundations course is designed for complete beginners. We start with concepts and no-code tools, then gradually introduce light scripting in the Pro courses.",
   },
   {
-    question: "Is the free course really free?",
+    question: "Is everything really free?",
     answer:
-      "Yes. The AI Orchestration Foundations course (7 modules) is completely free with no credit card required. Upgrade to Pro or Team anytime.",
+      "Yes. Every course — Foundations, Superpowers, the advanced courses — is free with no credit card required. If the Academy helps you, you can tip us via Buy Me a Coffee.",
   },
   {
     question: "How long does the free course take?",
@@ -176,9 +178,9 @@ const faqItems = [
       "Most learners complete it in 4\u20136 hours. Go at your own pace and pick up where you left off.",
   },
   {
-    question: "Can I cancel my Pro subscription?",
+    question: "Can I work with Erik directly?",
     answer:
-      "Absolutely. Cancel anytime from your account settings. You keep access through the end of your billing period.",
+      "Yes. You can book a 1:1 consultation for help applying AI orchestration to your own project, team, or business. See the scheduling link on the home page or in your dashboard.",
   },
   {
     question: "Do I get a certificate?",
@@ -336,78 +338,37 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ---- Pricing ---- */}
+      {/* ---- Pricing (free, tip jar, 1:1 paid) ---- */}
       <section id="pricing" className="border-t border-border/60 bg-secondary/50 dark:bg-secondary/30">
-        <div className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
-          <div className="mx-auto max-w-lg text-center">
+        <div className="mx-auto max-w-4xl px-5 py-24 sm:px-8 sm:py-32">
+          <div className="text-center">
             <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-              Simple pricing
+              Every course is free
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              Start free. Upgrade when you&rsquo;re ready.
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              Every course, every lesson, every quiz. No paywall, no credit card, no trial.
+              If the Academy helped you, a coffee goes a long way toward the next course.
             </p>
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <BuyMeCoffeeButton />
+              <Link href="/courses" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                or browse the courses &rarr;
+              </Link>
+            </div>
           </div>
 
-          <div className="mt-14 grid gap-5 lg:grid-cols-3">
-            {pricingPlans.map((plan) => (
-              <Card
-                key={plan.name}
-                className={cn(
-                  "flex flex-col border-border/60 bg-background",
-                  plan.highlighted && "border-emerald-accent/60 ring-1 ring-emerald-accent/20"
-                )}
-              >
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base font-semibold">{plan.name}</CardTitle>
-                    {plan.highlighted && (
-                      <span className="rounded-full bg-emerald-accent/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-accent">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  <CardDescription className="mt-1">{plan.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="mb-7">
-                    <span className="font-heading text-5xl font-bold tracking-tight">
-                      {plan.price}
-                    </span>
-                    {plan.period && (
-                      <span className="ml-1 text-sm text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    )}
-                  </div>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-3 text-sm text-muted-foreground"
-                      >
-                        <Check className="mt-0.5 size-4 shrink-0 text-emerald-accent" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Link href={plan.href} className="w-full">
-                    <Button
-                      className={cn(
-                        "w-full",
-                        plan.highlighted
-                          ? "bg-emerald-accent text-emerald-accent-foreground hover:bg-emerald-accent/90"
-                          : ""
-                      )}
-                      variant={plan.highlighted ? "default" : "outline"}
-                    >
-                      {plan.cta}
-                    </Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
+          <div className="mx-auto mt-16 max-w-2xl rounded-xl border border-border bg-background p-6">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <h3 className="font-heading text-xl font-semibold">Want 1:1 help?</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Book a paid consultation for hands-on help applying AI orchestration to
+                  your project, team, or business. Free courses for everyone; paid time
+                  for teams that want it applied to their specific situation.
+                </p>
+              </div>
+              <BookCallButton />
+            </div>
           </div>
         </div>
       </section>

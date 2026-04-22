@@ -57,9 +57,7 @@ export default async function CourseCatalogPage() {
                     <CardTitle className="text-xl group-hover:text-primary transition-colors">
                       {course.title}
                     </CardTitle>
-                    <Badge variant={course.is_free ? "secondary" : "default"} className="shrink-0">
-                      {course.is_free ? "Free" : `$${course.price ?? ""}`}
-                    </Badge>
+                    <Badge variant="secondary" className="shrink-0">Free</Badge>
                   </div>
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
