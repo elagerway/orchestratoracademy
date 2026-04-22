@@ -38,16 +38,16 @@ export default async function CourseCatalogPage() {
           {(courses as Course[]).map((course) => (
             <Link key={course.id} href={`/courses/${course.slug}`} className="group">
               <Card className="h-full overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
-                <div className="aspect-video bg-muted">
+                <div className="aspect-video bg-white dark:bg-background">
                   {course.thumbnail_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={course.thumbnail_url}
                       alt={course.title}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover dark:invert dark:hue-rotate-180"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center">
+                    <div className="flex h-full items-center justify-center bg-muted">
                       <BookOpen className="size-12 text-muted-foreground" />
                     </div>
                   )}

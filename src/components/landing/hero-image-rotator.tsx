@@ -13,6 +13,7 @@ const images = [
   { src: "/images/courses/security.jpg", alt: "AI Security" },
   { src: "/images/courses/self-improving.jpg", alt: "Self-Improving Agents" },
   { src: "/images/courses/claude-code-superpowers.jpg", alt: "Claude Code Superpowers" },
+  { src: "/images/courses/monitoring-self-healing.jpg", alt: "Application Monitoring & Self-Healing Systems" },
 ];
 
 export function HeroImageRotator() {
