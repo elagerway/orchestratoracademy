@@ -5,7 +5,7 @@ import Link from "next/link";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { CalendarClock, Zap, Shield, CheckCircle2 } from "lucide-react";
 
-const CAL_LINK = process.env.NEXT_PUBLIC_CAL_LINK || "erik-lagerway/consult";
+const CAL_LINK = process.env.NEXT_PUBLIC_CAL_LINK || "robotfood/consult";
 
 export default function BookPage() {
   const [mounted, setMounted] = useState(false);

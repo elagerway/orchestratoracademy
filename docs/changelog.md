@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.15.0] - 2026-04-22
+
+### Added
+- **New course: Application Monitoring & Self-Healing Systems** — 7 modules, 14 lessons, 7 quizzes, thumbnail, all lessons have video. Covers Sentry (capture/observability/alerting), Dependabot, Claude Routines-driven self-healing, and the weekly review + SLO discipline. Seed at `supabase/seed_monitoring_self_healing.sql`
+- **Job board V1** at `/jobs` — admin-curated listings, `jobs` table with RLS (public read active, no direct writes), admin POST/PATCH/DELETE/GET API, Jobs tab in admin dashboard, footer link
+- **Course thumbnail pipeline** — `video-pipeline/scripts/generate-course-thumbnail.py` uses Gemini 3 Pro image-preview to produce hand-drawn whiteboard-style thumbnails matching the existing course family. Saves to `public/images/courses/{slug}.jpg` + patches DB
+- **All courses flipped to free** (`is_free=true` for all 10) + `<BuyMeCoffeeButton>` + `<BookCallButton>` components (3 variants: button/inline/card) placed on home page, course detail footer, every lesson footer, and dashboard sidebar. Stripe tier marketing retired
+- **`/book` page with inline Cal.com embed** — 60-min $220 consult, rolling 7-day window. Uses `@calcom/embed-react`. API key + event type ID also stored for future custom slot picker if embed continues to behave weird
+- **`/jobs` dark mode** — `dark:invert dark:hue-rotate-180` filter pattern applied to course thumbnails + hero rotator, matching home page methodology
+- **`upload-monitoring-to-vimeo.ts`** — batch Vimeo tus uploader for the monitoring course
+
+### Fixed
+- **Quiz answer distribution** — all 276 existing module quiz questions had the correct answer at index 1 (87% option B). One-shot Fisher-Yates shuffle with correct-index remapping redistributed to ~25% per option. Now 297 questions total (monitoring course quizzes included) stay balanced
+- **Typo in Cal link** — was `erik-lagerway/consult`, actual Cal handle is `robotfood/consult`. Fixed in env + hardcoded fallback in `src/app/book/page.tsx`
+- **Monitoring course seed mismatch** — `seed_monitoring_self_healing.sql` still had `is_free=false, price=29.00` from pre-free-flip. Updated to `is_free=true, price=0` so re-seeding a fresh DB doesn't paywall the course
+
+### Environment
+- `NEXT_PUBLIC_BMAC_URL` — Buy Me a Coffee destination (placeholder set; register real handle)
+- `NEXT_PUBLIC_CAL_LINK` — Cal.com event path (`robotfood/consult`)
+- `NEXT_PUBLIC_CAL_EVENT_TYPE_ID` — `5458431`
+- `CAL_API_KEY` — server-side Cal.com API key (secret, not public)
+
 ## [0.14.0] - 2026-04-21
 
 ### Added

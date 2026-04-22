@@ -5,7 +5,8 @@
 - **Hosting**: Vercel
 - **Database**: Supabase (PostgreSQL + Auth + Storage + Edge Functions)
 - **Auth**: Supabase Auth (Email, Google, GitHub)
-- **Payments**: Stripe (subscriptions, checkout, webhooks, billing portal)
+- **Payments**: Stripe (legacy — retained for refund/portal flow; new revenue via Buy Me a Coffee + Cal.com 1:1 bookings)
+- **Booking**: Cal.com (`@calcom/embed-react`, 1-hour $220 consult, 7-day rolling window)
 - **AI Communications**: Magpipe (course content)
 - **Styling**: Tailwind CSS 4 + shadcn/ui
 - **Fonts**: Sora (headings), Geist Sans (body)
@@ -39,6 +40,7 @@ src/
 │   │   │   └── me/route.ts                  # GET: Learning path from Bearer token (CLI)
 │   │   ├── admin/
 │   │   │   ├── social/route.ts              # POST: Manual X/LinkedIn posting from admin
+│   │   │   ├── jobs/route.ts                # Admin CRUD for job listings (POST/PATCH/DELETE/GET)
 │   │   │   └── ...
 │   │   ├── cron/
 │   │   │   ├── publish-scheduled/route.ts   # GET: Hourly blog publish + YouTube public + X auto-post
@@ -73,8 +75,12 @@ src/
 │   │   ├── messages/page.tsx                # Direct messages (Discord-style)
 │   │   ├── support/page.tsx                 # Community forum (categories, posts, replies)
 │   │   └── admin/page.tsx                   # Admin dashboard (role-gated)
-│   └── for-companies/
-│       └── page.tsx                          # B2B landing page
+│   ├── for-companies/
+│   │   └── page.tsx                          # B2B landing page
+│   ├── book/
+│   │   └── page.tsx                          # 1:1 booking (inline Cal.com embed, $220/hr)
+│   └── jobs/
+│       └── page.tsx                          # Public job board (admin-curated listings)
 ├── components/
 │   ├── auth/
 │   │   └── auth-button.tsx                   # Auth state-aware header button
@@ -93,8 +99,10 @@ src/
 │   │   ├── confetti.tsx                     # CSS confetti animation
 │   │   └── achievement-toast.tsx            # Achievement unlock notification
 │   ├── stripe/
-│   │   ├── upgrade-button.tsx               # Checkout CTA
-│   │   └── manage-subscription-button.tsx   # Billing portal CTA
+│   │   ├── upgrade-button.tsx               # Checkout CTA (legacy, courses now free)
+│   │   └── manage-subscription-button.tsx   # Billing portal CTA (existing subscribers)
+│   ├── buy-me-coffee.tsx                    # BMaC CTA (button/inline/card variants)
+│   ├── book-call.tsx                        # Cal.com booking CTA (button/inline/card variants)
 │   ├── layout/
 │   │   ├── header.tsx                        # Global header (context-aware: student vs public nav)
 │   │   ├── footer.tsx                        # Global footer
@@ -158,7 +166,11 @@ video-pipeline/                                # Video production (separate from
 │   ├── upload-m8-to-vimeo.ts               # Vimeo tus upload + OA folder + DB patch (per-lesson)
 │   ├── upload-m29-to-vimeo.ts              # Vimeo tus upload + OA folder + DB patch (one video → N lessons)
 │   ├── upload-superpowers-to-vimeo.ts      # Batch Vimeo tus upload for Superpowers course (per-chunk retries)
+│   ├── upload-superpowers-l2-to-vimeo.ts   # Batch Vimeo upload for Superpowers L2 lessons
+│   ├── upload-monitoring-to-vimeo.ts       # Batch Vimeo upload for monitoring course
 │   ├── upload-superpowers-mp4s-to-assets.ts # Uploads module mp4s to Supabase assets bucket
+│   ├── generate-course-thumbnail.py        # Gemini 3 Pro whiteboard-style course thumbnails
+│   ├── shuffle-quiz-answers.ts             # Fisher-Yates shuffle to avoid skewed correct-answer distribution
 │   ├── generate-all.ts                     # Batch runner
 │   ├── generate-thumb-backgrounds.py       # Gemini AI background generation (step 12a)
 │   ├── composite-thumbnails.py             # Leo + background alpha blend (step 12b)
@@ -180,13 +192,15 @@ supabase/
 │   ├── 003_gamification.sql                 # XP, module quizzes, achievements, streaks
 │   ├── 006_b2b_assess_train_deploy.sql      # Team assessments, lab verifications, deploy completions
 │   ├── 007_drip_campaign_log.sql            # Drip email tracking
-│   └── 008_leaderboard_display_preferences.sql  # Username + leaderboard display preference
+│   ├── 008_leaderboard_display_preferences.sql  # Username + leaderboard display preference
+│   └── 017_jobs.sql                         # Job board table (RLS: public read active, no direct writes)
 ├── seed.sql                                  # Free course content (7 original modules)
 ├── seed_foundations_expanded.sql             # Modules 8-20 (APIs, MCP, Claude Code, etc.)
 ├── seed_foundations_infra.sql                # Modules 21-28 (Next.js, Supabase, Vercel, etc.)
 ├── seed_premium_courses.sql                 # CrewAI, LangGraph, Magpipe modules
 ├── seed_assessments.sql                     # Certification exams (4 courses, 40 questions)
 ├── seed_module_quizzes.sql                  # Module quizzes (51 modules, 153 questions)
+├── seed_monitoring_self_healing.sql         # Application Monitoring & Self-Healing course (7 modules, 14 lessons, 7 quizzes)
 └── update_*.sql                             # Content expansion scripts
 ```
 
@@ -217,20 +231,24 @@ supabase/
 - **forum_replies**: Threaded replies on forum posts
 - **forum_reactions**: Emoji reactions on forum posts (unique per user+post+emoji)
 - **direct_messages**: Private DMs between users (sender, recipient, read status)
+- **jobs**: Admin-curated job listings (title, company, salary range, remote, employment_type, seniority, apply_url, active). Public SELECT on `active=true` via RLS; writes only via admin API (service role)
 
 ## Course Content
+All courses are now free (`is_free=true`). Revenue comes from Buy Me a Coffee tips and paid 1:1 consults via `/book`. Existing Stripe subscribers are grandfathered.
+
 | Course | Level | Modules | Lessons | Free |
 |--------|-------|---------|---------|------|
 | AI Orchestration Foundations | Entry | 28 | 77 | Yes |
-| Claude Code Superpowers | Intermediate | 8 | 16 | No ($29/mo) |
-| Supercharging Context & Memory | Intermediate | 7 | 14 | No ($29/mo) |
-| CrewAI Mastery | Advanced | 7 | 14 | No ($29/mo) |
-| LangGraph Advanced | Advanced | 7 | 14 | No ($29/mo) |
-| AI Communications with Magpipe | Advanced | 9 | 18 | No ($29/mo) |
-| AI Agent Security & Governance | Advanced | 7 | 14 | No ($29/mo) |
-| Autonomous Self-Improving Agents | Advanced | 7 | 14 | No ($29/mo) |
-| Multi-Agent Systems with Paperclip | Advanced | 9 | 18 | No ($29/mo) |
-| **Total** | | **89** | **199** | |
+| Claude Code Superpowers | Intermediate | 8 | 16 | Yes |
+| Supercharging Context & Memory | Intermediate | 7 | 14 | Yes |
+| Application Monitoring & Self-Healing | Intermediate | 7 | 14 | Yes |
+| CrewAI Mastery | Advanced | 7 | 14 | Yes |
+| LangGraph Advanced | Advanced | 7 | 14 | Yes |
+| AI Communications with Magpipe | Advanced | 9 | 18 | Yes |
+| AI Agent Security & Governance | Advanced | 7 | 14 | Yes |
+| Autonomous Self-Improving Agents | Advanced | 7 | 14 | Yes |
+| Multi-Agent Systems with Paperclip | Advanced | 9 | 18 | Yes (deactivated in admin) |
+| **Total** | | **96** | **213** | |
 
 ## Learning Flow
 1. Browse courses → Enroll (free or paid)
@@ -288,6 +306,18 @@ supabase/
 - **Blog**: WYSIWYG editor (Tiptap), YouTube embed, scheduling, "Post to X" API button
 - **Data**: Fetched server-side via service role (bypasses RLS)
 
+## Monetization
+- **Courses**: All free as of 2026-04-22. Stripe subscription code path retained for existing subscribers (billing portal, webhook). `upgrade-button.tsx` + `manage-subscription-button.tsx` kept; paid-tier marketing removed
+- **Tips**: Buy Me a Coffee — `<BuyMeCoffeeButton>` component (button / inline / card variants) on home, course detail footer, every lesson footer, dashboard sidebar. Destination in `NEXT_PUBLIC_BMAC_URL`
+- **Consults**: `/book` — inline Cal.com embed (1 hour, $220, 7-day rolling window). `<BookCallButton>` surfaces the page throughout the app. Env: `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_CAL_EVENT_TYPE_ID`, `CAL_API_KEY`
+
+## Job Board
+- **Route**: `/jobs` (public, admin-curated V1)
+- **Admin**: Jobs tab in `/dashboard/admin` + `/api/admin/jobs` (POST/PATCH/DELETE/GET, service-role-bypassed RLS)
+- **Schema**: `jobs` table with active/posted_at indexes, RLS allows public `SELECT` on `active=true`, all client writes denied
+- **Dark mode**: course thumbnails + hero rotator use the `dark:invert dark:hue-rotate-180` filter pattern from the home page
+- **V2 (planned)**: applications, featured paid posts, AI matching, employer self-serve
+
 ## Social Publishing
 - **X (Twitter)**: Auto-posts via X API v2 (OAuth 1.0a) when cron publishes a blog post
 - **Admin override**: Manual "Post to X" / "Re-post to X" button in Blog tab
@@ -303,4 +333,6 @@ supabase/
 5. **B2B Pipeline**: Assess → Train → Deploy, CLI tools, admin dashboard, drip campaign ✅
 6. **Blog & Content**: Blog CMS, Daily Dose of AI news videos, X auto-posting, scheduled publishing ✅
 7. **Community & Messaging**: Forum (categories, posts, replies, reactions), DMs, member profiles, link previews ✅
-8. **Job Board**: Graduate profiles, company directory (next)
+8. **Job Board V1**: Admin-curated listings at `/jobs`, admin CRUD, dark mode ✅
+9. **Free pivot**: All courses free, Buy Me a Coffee + paid 1:1 booking at `/book` ✅
+10. **Job Board V2**: Applications, featured paid posts, AI matching, employer self-serve (next)

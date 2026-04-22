@@ -1,5 +1,5 @@
 -- Seed: Application Monitoring & Self-Healing Systems (7 modules, 14 lessons)
--- Premium course ($29) — Sentry + Dependabot, with self-healing automation via Claude Code
+-- Free course — Sentry + Dependabot, with self-healing automation via Claude Code
 
 -- ============================================================================
 -- COURSE
@@ -10,8 +10,8 @@ values (
   'Application Monitoring & Self-Healing Systems',
   'monitoring-self-healing',
   'Most apps fail silently until a user complains. This course shows you how to catch problems the moment they happen with Sentry, close the dependency-security gap with GitHub Dependabot, and wire Claude Code in as an on-call engineer that fixes issues for you. Monitoring is not a one-time setup — it is a discipline, and self-healing is the compounding payoff.',
-  false,
-  29.00,
+  true,
+  0,
   10,
   'intermediate'
 );
