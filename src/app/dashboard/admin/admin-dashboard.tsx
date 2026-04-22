@@ -19,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { RichEditor } from "@/components/blog/rich-editor";
+import { JobsTab } from "./jobs-tab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -1908,6 +1909,7 @@ export function AdminDashboard({ data }: { data: AdminData }) {
           <TabsTrigger value="deploys">Deploys</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
+          <TabsTrigger value="jobs">Jobs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -1933,6 +1935,9 @@ export function AdminDashboard({ data }: { data: AdminData }) {
         </TabsContent>
         <TabsContent value="blog">
           <BlogTab data={data} />
+        </TabsContent>
+        <TabsContent value="jobs">
+          <JobsTab />
         </TabsContent>
       </Tabs>
     </div>
