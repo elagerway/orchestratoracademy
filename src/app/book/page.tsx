@@ -1,30 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import Cal, { getCalApi } from "@calcom/embed-react";
-import { CalendarClock, Zap, Shield, CheckCircle2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { CalendarClock, Zap, Shield, CheckCircle2, CreditCard } from "lucide-react";
 
-const CAL_LINK = process.env.NEXT_PUBLIC_CAL_LINK || "robotfood/consult";
+function CanceledBanner() {
+  const searchParams = useSearchParams();
+  const canceled = searchParams.get("canceled") === "1";
+  if (!canceled) return null;
+  return (
+    <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+      Checkout canceled. Try again when you&rsquo;re ready — no charge was made.
+    </p>
+  );
+}
+
+function PayCTA() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handlePay() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/stripe/book-checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Could not start checkout. Try again.");
+        setLoading(false);
+      }
+    } catch {
+      setError("Could not start checkout. Try again.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-card p-8 text-center">
+      <p className="text-sm font-medium text-muted-foreground">Reserve your session</p>
+      <p className="mt-2 font-heading text-3xl font-bold tracking-tight">
+        $220 <span className="text-base font-normal text-muted-foreground">/ 1 hour</span>
+      </p>
+      <button
+        type="button"
+        onClick={handlePay}
+        disabled={loading}
+        className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-emerald-accent px-6 text-sm font-medium text-emerald-accent-foreground transition-colors hover:bg-emerald-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <CreditCard className="size-4" />
+        {loading ? "Redirecting to Stripe…" : "Pay $220 — then pick a slot"}
+      </button>
+      <p className="mt-3 text-xs text-muted-foreground">
+        You&rsquo;ll be taken to a secure Stripe checkout. After paying you land on the scheduling page.
+      </p>
+
+      <Suspense fallback={null}>
+        <CanceledBanner />
+      </Suspense>
+      {error && (
+        <p className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function BookPage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    (async () => {
-      const cal = await getCalApi({});
-      cal("ui", {
-        theme: "auto",
-        cssVarsPerTheme: {
-          light: { "cal-brand": "#22c55e" },
-          dark: { "cal-brand": "#34d399" },
-        },
-        hideEventTypeDetails: false,
-      });
-    })();
-  }, []);
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-16">
       <div className="mb-10 text-center">
@@ -59,7 +104,7 @@ export default function BookPage() {
           </div>
           <p className="text-sm font-semibold">$220 per session</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Paid at booking via Cal.com + Stripe. No surprise invoices.
+            Paid up front. Scheduling unlocks immediately after checkout.
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
@@ -68,28 +113,13 @@ export default function BookPage() {
           </div>
           <p className="text-sm font-semibold">Available this week</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Slots open for the next 7 days. Pick what works, book in one step.
+            Slots open for the next 7 days. Pick what works right after you pay.
           </p>
         </div>
       </div>
 
-      {/* Cal.com inline booking */}
-      <div className="mx-auto max-w-4xl">
-        {mounted ? (
-          <Cal
-            namespace="consult"
-            calLink={CAL_LINK}
-            style={{ width: "100%", height: "720px", overflow: "scroll" }}
-            config={{
-              layout: "month_view",
-            }}
-          />
-        ) : (
-          <div className="flex h-[720px] items-center justify-center text-sm text-muted-foreground">
-            Loading booking calendar…
-          </div>
-        )}
-      </div>
+      {/* Pay CTA */}
+      <PayCTA />
 
       {/* What we'll cover */}
       <div className="mx-auto mt-12 max-w-3xl">
@@ -114,7 +144,7 @@ export default function BookPage() {
           <Link href="/courses" className="font-medium text-emerald-accent hover:underline">
             free courses
           </Link>{" "}
-          first — they'll give you the vocabulary and mental models that make a 1:1
+          first — they&rsquo;ll give you the vocabulary and mental models that make a 1:1
           session most productive.
         </div>
       </div>

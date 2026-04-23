@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.3] - 2026-04-23
+
+### Added
+- **Payment-gated consult booking** — `/book` now starts with a $220 Stripe Checkout (one-time, payment mode) instead of dropping the user straight into the Cal.com embed. After checkout, Stripe redirects to `/book/confirmed?session_id=…`, which server-verifies `payment_status === "paid"` via `stripe.checkout.sessions.retrieve` and only then renders the scheduler. Canceled checkouts return to `/book?canceled=1` with a non-blocking banner. Charged via inline `price_data` ($220 USD, "1-hour AI Orchestrator consult") — no Stripe product/price setup required
+- `src/app/api/stripe/book-checkout/route.ts` — no-auth POST endpoint; metadata `{ type: "consult_booking" }` so the existing subscription webhook skips it via the `!userId` guard
+- `src/app/book/confirmed/page.tsx` + `embed.tsx` — split into server (verification) + client (Cal.com iframe) components
+
+### Changed
+- `/book` Cal.com embed drops the fixed `height: 720px` — lets the iframe auto-resize so the container no longer leaves a huge white block after the "meeting scheduled" confirmation state shrinks
+
+### Known gap
+- A determined user could still navigate directly to `cal.com/robotfood/consult` and book without paying (the Cal.com event type is still public). Full gating requires marking the event type private in Cal.com — flagged for follow-up
+
 ## [0.15.2] - 2026-04-23
 
 ### Changed

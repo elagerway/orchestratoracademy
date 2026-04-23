@@ -29,7 +29,8 @@ src/
 │   │   └── actions.ts                        # Server actions (signOut)
 │   ├── api/
 │   │   ├── stripe/
-│   │   │   ├── checkout/route.ts            # Create Stripe checkout session
+│   │   │   ├── checkout/route.ts            # Create Stripe checkout session (legacy subscription flow)
+│   │   │   ├── book-checkout/route.ts       # Create Stripe checkout session for $220 consult (payment mode)
 │   │   │   ├── webhook/route.ts             # Stripe webhook handler
 │   │   │   └── portal/route.ts              # Stripe billing portal
 │   │   ├── assess/route.ts                  # POST: CLI team assessment results
@@ -78,7 +79,10 @@ src/
 │   ├── for-companies/
 │   │   └── page.tsx                          # B2B landing page
 │   ├── book/
-│   │   └── page.tsx                          # 1:1 booking (inline Cal.com embed, $220/hr)
+│   │   ├── page.tsx                          # 1:1 booking landing — Stripe Checkout CTA ($220/hr)
+│   │   └── confirmed/
+│   │       ├── page.tsx                      # Server-verifies Stripe session, renders Cal.com embed
+│   │       └── embed.tsx                     # Client embed component (Cal.com)
 │   └── jobs/
 │       └── page.tsx                          # Public job board (admin-curated listings)
 ├── components/
@@ -308,7 +312,7 @@ All courses are now free (`is_free=true`). Revenue comes from Buy Me a Coffee ti
 ## Monetization
 - **Courses**: All free as of 2026-04-22. Stripe subscription code path retained for existing subscribers (billing portal, webhook). `upgrade-button.tsx` + `manage-subscription-button.tsx` kept; paid-tier marketing removed
 - **Tips**: Buy Me a Coffee — `<BuyMeCoffeeButton>` component (button / inline / card variants) on home, course detail footer, every lesson footer, dashboard sidebar. Destination in `NEXT_PUBLIC_BMAC_URL`
-- **Consults**: `/book` — inline Cal.com embed (1 hour, $220, 7-day rolling window). `<BookCallButton>` surfaces the page throughout the app. Env: `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_CAL_EVENT_TYPE_ID`, `CAL_API_KEY`
+- **Consults**: `/book` — Stripe Checkout ($220 one-time, payment mode) **before** scheduling. On paid redirect, `/book/confirmed?session_id=...` server-verifies `payment_status === "paid"` via `stripe.checkout.sessions.retrieve` and only then renders the Cal.com embed. Canceled checkouts return to `/book?canceled=1` with a dismissable banner. `<BookCallButton>` surfaces `/book` throughout the app. Payment API at `src/app/api/stripe/book-checkout/route.ts` (no auth, inline `price_data`, metadata `{ type: "consult_booking" }` so the existing subscription webhook skips it via the `if (!userId) break` guard). Env: `NEXT_PUBLIC_CAL_LINK`, `NEXT_PUBLIC_CAL_EVENT_TYPE_ID`, `CAL_API_KEY`, `STRIPE_SECRET_KEY`
 
 ## Job Board
 - **Route**: `/jobs` (public, admin-curated V1)
