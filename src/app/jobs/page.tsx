@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Briefcase, MapPin, Building2, DollarSign, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
@@ -188,9 +187,12 @@ export default async function JobsPage() {
 
       <div className="mt-12 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
         Hiring AI orchestrators?{" "}
-        <Link href="/contact" className="font-medium text-emerald-accent hover:underline">
-          Let us know
-        </Link>{" "}
+        <a
+          href="mailto:hello@orchestratoracademy.com?subject=Job%20board%20submission"
+          className="font-medium text-emerald-accent hover:underline"
+        >
+          Email us
+        </a>{" "}
         — we post curated roles here.
       </div>
     </div>
