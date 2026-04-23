@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import { ChevronRight, Play, RotateCcw, Copy, Check } from "lucide-react";
 import { BuyMeCoffeeButton } from "@/components/buy-me-coffee";
+import { BookCallButton } from "@/components/book-call";
 
 interface LessonContentProps {
   content: string;
@@ -462,8 +463,9 @@ export function LessonContent({ content, videoUrl, contentType, lessonSlug, less
       </div>
 
       {/* Support the Academy — every lesson footer */}
-      <div className="mt-10 border-t border-border pt-6">
+      <div className="mt-10 space-y-3 border-t border-border pt-6">
         <BuyMeCoffeeButton variant="card" />
+        <BookCallButton variant="card" />
       </div>
     </div>
   );

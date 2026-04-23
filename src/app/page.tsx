@@ -5,7 +5,6 @@ import {
   Workflow,
   MessageSquare,
   Bot,
-  Check,
   ArrowRight,
   Shield,
   Database,
@@ -102,58 +101,6 @@ const courseModules = [
   "Next.js, Supabase & Vercel",
   "TypeScript, Git & Deployment",
   "Building Full-Stack AI Apps",
-]
-
-const pricingPlans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "",
-    description: "Start with the foundations.",
-    features: [
-      "AI Orchestration Foundations (28 modules)",
-      "Community discussion access",
-      "Course completion certificate",
-      "Basic prompt templates",
-    ],
-    cta: "Start Free Course",
-    href: "/auth/signup",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "$29",
-    period: "/mo",
-    description: "Unlock every course and project.",
-    features: [
-      "Everything in Free",
-      "All current & future courses",
-      "Hands-on projects & labs",
-      "Downloadable resources & templates",
-      "Priority community support",
-      "Monthly live Q&A sessions",
-    ],
-    cta: "Go Pro",
-    href: "/auth/signup?plan=pro",
-    highlighted: true,
-  },
-  {
-    name: "Team",
-    price: "$99",
-    period: "/mo",
-    description: "Upskill your entire team.",
-    features: [
-      "Everything in Pro",
-      "Up to 10 team members",
-      "Team progress dashboard",
-      "Admin & reporting tools",
-      "Custom learning paths",
-      "Dedicated onboarding call",
-    ],
-    cta: "Contact Us",
-    href: "/auth/signup?plan=team",
-    highlighted: false,
-  },
 ]
 
 const faqItems = [

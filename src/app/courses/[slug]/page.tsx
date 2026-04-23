@@ -77,8 +77,6 @@ export default async function CoursePage({ params }: CoursePageProps) {
   let completedLessonIds: Set<string> = new Set();
   let firstLessonSlug: string | null = null;
   let nextLessonSlug: string | null = null;
-  let nextLessonCourseSlug: string = slug;
-  let hasActiveSubscription = false;
 
   // Find first lesson
   if (typedCourse.modules.length > 0 && typedCourse.modules[0].lessons.length > 0) {
@@ -86,17 +84,6 @@ export default async function CoursePage({ params }: CoursePageProps) {
   }
 
   if (user) {
-    // Check subscription status for paid courses
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .eq("user_id", user.id)
-      .in("plan", ["pro", "team"])
-      .eq("status", "active")
-      .maybeSingle();
-
-    hasActiveSubscription = !!subscription;
-
     const { data: enrollment } = await supabase
       .from("user_enrollments")
       .select("*")

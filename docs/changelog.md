@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.1] - 2026-04-22
+
+### Added
+- **Book a Call card on every lesson footer** — `<BookCallButton variant="card" />` now sits below the existing `<BuyMeCoffeeButton>` in `lesson-content.tsx`, so paid 1:1 Cal.com scheduling is surfaced at the bottom of every lesson (matching the course-detail footer pattern)
+
+### Removed
+- **SaaS subscription gating from the lesson/course flow**
+  - `src/app/courses/[slug]/page.tsx` — dropped the dead `hasActiveSubscription` query; it was still hitting `subscriptions` on every course page load even though all courses are now `is_free=true` and the result was never read in the JSX
+  - `src/components/courses/paywall-banner.tsx` — deleted (orphaned after free-pivot; no importers)
+  - `src/app/page.tsx` — deleted the orphaned `pricingPlans` array (Free / Pro $29 / Team $99 data, no longer rendered; the `#pricing` section was swapped to BMaC + 1:1 copy in 0.15.0) and the now-unused `Check` icon import
+
+### Notes
+- Stripe API routes (`/api/stripe/*`), `components/stripe/*`, and the for-companies B2B subscription pitch are **kept** — existing grandfathered subscribers still need billing-portal access, and the team SaaS pricing still applies
+
 ## [0.15.0] - 2026-04-22
 
 ### Added

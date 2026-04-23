@@ -88,8 +88,7 @@ src/
 │   │   ├── course-progress.tsx              # Progress bar wrapper
 │   │   ├── enroll-button.tsx                # Course enrollment CTA
 │   │   ├── lesson-complete-button.tsx       # Mark complete + XP award
-│   │   ├── lesson-content.tsx               # Markdown renderer + video player + end screen
-│   │   └── paywall-banner.tsx               # Premium course gate
+│   │   └── lesson-content.tsx               # Markdown renderer + video player + end screen + BMaC/Book Call footer
 │   ├── gamification/
 │   │   ├── module-quiz.tsx                  # Multiple choice quiz (premium courses)
 │   │   ├── terminal-quiz.tsx                # Terminal-style spec-writing quiz (M4-M5)
