@@ -391,6 +391,9 @@ export function ForumView({
       .eq("post_id", postId)
       .order("created_at");
 
+    const TEAM_ACCOUNT_USER_ID = "386c403d-cf7e-4e99-8b91-56da3d72a860";
+    const TEAM_PROFILE = { full_name: "Orchestrator Academy Team", avatar_url: null };
+
     const authorIds = Array.from(new Set((rawReplies ?? []).map((r: any) => r.user_id)));
     const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null }>();
     if (authorIds.length) {
@@ -405,7 +408,9 @@ export function ForumView({
 
     const hydrated = (rawReplies ?? []).map((r: any) => ({
       ...r,
-      profiles: profileByUserId.get(r.user_id) ?? null,
+      profiles: r.user_id === TEAM_ACCOUNT_USER_ID
+        ? TEAM_PROFILE
+        : profileByUserId.get(r.user_id) ?? null,
     }));
     setReplies((prev) => ({ ...prev, [postId]: hydrated }));
   }

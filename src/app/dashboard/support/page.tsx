@@ -46,18 +46,16 @@ export default async function SupportPage() {
     profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username });
   }
 
-  // Announcements are published under the brand, not the individual admin
-  const announcementsCategoryId = (categories ?? []).find(
-    (c: { slug: string; id: string }) => c.slug === "announcements"
-  )?.id;
+  // Posts authored by the primary admin (erik@snapsonic.com) render under
+  // the brand — they are community-wide, not personal.
+  const TEAM_ACCOUNT_USER_ID = "386c403d-cf7e-4e99-8b91-56da3d72a860";
   const TEAM_LABEL = "Orchestrator Academy Team";
+  const TEAM_PROFILE = { full_name: TEAM_LABEL, avatar_url: null, username: "orchestratoracademy" };
 
-  const posts = (rawPosts ?? []).map((post: { user_id: string; category_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => {
-    const baseProfile = profileByUserId.get(post.user_id) ?? null;
-    const isAnnouncement = post.category_id === announcementsCategoryId;
-    const profile = isAnnouncement
-      ? { full_name: TEAM_LABEL, avatar_url: null, username: "orchestratoracademy" }
-      : baseProfile;
+  const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => {
+    const profile = post.user_id === TEAM_ACCOUNT_USER_ID
+      ? TEAM_PROFILE
+      : profileByUserId.get(post.user_id) ?? null;
     return {
       ...post,
       profiles: profile,
