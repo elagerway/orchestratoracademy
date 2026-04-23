@@ -24,16 +24,31 @@ export default async function SupportPage() {
     .select("*")
     .order("order");
 
-  // Fetch posts with profile + counts in a single query
+  // Fetch posts + counts. The profile join is done separately below because
+  // forum_posts.user_id has no FK to profiles, so the PostgREST embed fails
+  // silently and drops every row.
   const { data: rawPosts } = await supabase
     .from("forum_posts")
-    .select("*, profiles:user_id(full_name, avatar_url, username), forum_replies(count), forum_reactions(count)")
+    .select("*, forum_replies(count), forum_reactions(count)")
     .order("pinned", { ascending: false })
     .order("created_at", { ascending: false });
 
-  const posts = (rawPosts ?? []).map((post: any) => ({
+  const authorIds = Array.from(new Set((rawPosts ?? []).map((p: { user_id: string }) => p.user_id)));
+  const { data: authorProfiles } = authorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url, username")
+        .in("user_id", authorIds)
+    : { data: [] as { user_id: string; full_name: string | null; avatar_url: string | null; username: string | null }[] };
+
+  const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; username: string | null }>();
+  for (const p of authorProfiles ?? []) {
+    profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username });
+  }
+
+  const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => ({
     ...post,
-    profiles: post.profiles,
+    profiles: profileByUserId.get(post.user_id) ?? null,
     reply_count: post.forum_replies?.[0]?.count ?? 0,
     reaction_count: post.forum_reactions?.[0]?.count ?? 0,
   }));

@@ -385,12 +385,29 @@ export function ForumView({
 
   async function loadReplies(postId: string) {
     const supabase = createClient();
-    const { data } = await supabase
+    const { data: rawReplies } = await supabase
       .from("forum_replies")
-      .select("*, profiles:user_id(full_name, avatar_url)")
+      .select("*")
       .eq("post_id", postId)
       .order("created_at");
-    setReplies((prev) => ({ ...prev, [postId]: data ?? [] }));
+
+    const authorIds = Array.from(new Set((rawReplies ?? []).map((r: any) => r.user_id)));
+    const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null }>();
+    if (authorIds.length) {
+      const { data: authorProfiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", authorIds);
+      for (const p of authorProfiles ?? []) {
+        profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url });
+      }
+    }
+
+    const hydrated = (rawReplies ?? []).map((r: any) => ({
+      ...r,
+      profiles: profileByUserId.get(r.user_id) ?? null,
+    }));
+    setReplies((prev) => ({ ...prev, [postId]: hydrated }));
   }
 
   async function handleReaction(postId: string) {
