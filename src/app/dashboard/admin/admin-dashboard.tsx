@@ -346,9 +346,11 @@ function UserDetail({
   const [editFullName, setEditFullName] = useState((profile.full_name as string) || "");
   const [editCompanyName, setEditCompanyName] = useState((profile.company_name as string) || "");
   const [editCompanyRole, setEditCompanyRole] = useState((profile.company_role as string) || "");
+  const [editPostAsTeam, setEditPostAsTeam] = useState(Boolean(profile.post_as_team));
   const displayedFullName = (profile.full_name as string) || "";
   const displayedCompanyName = (profile.company_name as string) || "";
   const displayedCompanyRole = (profile.company_role as string) || "";
+  const displayedPostAsTeam = Boolean(profile.post_as_team);
 
   async function handleSaveEdit() {
     setSaving(true);
@@ -362,6 +364,7 @@ function UserDetail({
           full_name: editFullName,
           company_name: editCompanyName,
           company_role: editCompanyRole,
+          post_as_team: editPostAsTeam,
         },
       }),
     });
@@ -455,6 +458,21 @@ function UserDetail({
                   />
                 </div>
               </div>
+              <label className="mt-1 flex cursor-pointer items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={editPostAsTeam}
+                  onChange={(e) => setEditPostAsTeam(e.target.checked)}
+                  className="mt-0.5 size-4 accent-emerald-accent"
+                />
+                <span>
+                  <span className="font-medium">Post as Orchestrator Academy Team</span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    When on, this user&rsquo;s forum posts and replies display the team brand
+                    instead of their personal name + avatar. DB still records the real author.
+                  </span>
+                </span>
+              </label>
               {saveError && <p className="text-xs text-destructive">{saveError}</p>}
               <div className="flex gap-2 pt-1">
                 <button
@@ -471,6 +489,7 @@ function UserDetail({
                     setEditFullName(displayedFullName);
                     setEditCompanyName(displayedCompanyName);
                     setEditCompanyRole(displayedCompanyRole);
+                    setEditPostAsTeam(displayedPostAsTeam);
                   }}
                   disabled={saving}
                   className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:opacity-50"

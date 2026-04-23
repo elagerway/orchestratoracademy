@@ -391,27 +391,35 @@ export function ForumView({
       .eq("post_id", postId)
       .order("created_at");
 
-    const TEAM_ACCOUNT_USER_ID = "386c403d-cf7e-4e99-8b91-56da3d72a860";
     const TEAM_PROFILE = { full_name: "Orchestrator Academy Team", avatar_url: null };
 
     const authorIds = Array.from(new Set((rawReplies ?? []).map((r: any) => r.user_id)));
-    const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null }>();
+    const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; post_as_team: boolean }>();
     if (authorIds.length) {
       const { data: authorProfiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url")
+        .select("user_id, full_name, avatar_url, post_as_team")
         .in("user_id", authorIds);
       for (const p of authorProfiles ?? []) {
-        profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url });
+        profileByUserId.set(p.user_id, {
+          full_name: p.full_name,
+          avatar_url: p.avatar_url,
+          post_as_team: p.post_as_team,
+        });
       }
     }
 
-    const hydrated = (rawReplies ?? []).map((r: any) => ({
-      ...r,
-      profiles: r.user_id === TEAM_ACCOUNT_USER_ID
-        ? TEAM_PROFILE
-        : profileByUserId.get(r.user_id) ?? null,
-    }));
+    const hydrated = (rawReplies ?? []).map((r: any) => {
+      const author = profileByUserId.get(r.user_id);
+      return {
+        ...r,
+        profiles: author?.post_as_team
+          ? TEAM_PROFILE
+          : author
+            ? { full_name: author.full_name, avatar_url: author.avatar_url }
+            : null,
+      };
+    });
     setReplies((prev) => ({ ...prev, [postId]: hydrated }));
   }
 

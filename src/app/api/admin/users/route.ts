@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 
-const ALLOWED_FIELDS = ["full_name", "company_name", "company_role"] as const;
-type AllowedField = (typeof ALLOWED_FIELDS)[number];
+const STRING_FIELDS = ["full_name", "company_name", "company_role"] as const;
+const BOOLEAN_FIELDS = ["post_as_team"] as const;
+const ALLOWED_FIELDS = [...STRING_FIELDS, ...BOOLEAN_FIELDS] as const;
+type StringField = (typeof STRING_FIELDS)[number];
+type BooleanField = (typeof BOOLEAN_FIELDS)[number];
+type AllowedField = StringField | BooleanField;
 
 export async function PATCH(request: Request) {
   const supabase = await createClient();
@@ -33,12 +37,14 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Missing updates" }, { status: 400 });
   }
 
-  // Whitelist + normalize: only allow known columns, strings only, trim
-  const patch: Record<string, string | null> = {};
+  // Whitelist + normalize: strings are trimmed, booleans are coerced.
+  const patch: Record<string, string | boolean | null> = {};
   for (const key of Object.keys(updates) as AllowedField[]) {
     if (!ALLOWED_FIELDS.includes(key)) continue;
     const v = updates[key];
-    if (v === null || typeof v === "string") {
+    if ((BOOLEAN_FIELDS as readonly string[]).includes(key)) {
+      if (typeof v === "boolean") patch[key] = v;
+    } else if (v === null || typeof v === "string") {
       patch[key] = typeof v === "string" ? v.trim() : null;
     }
   }
@@ -56,7 +62,7 @@ export async function PATCH(request: Request) {
     .from("profiles")
     .update(patch)
     .eq("user_id", user_id)
-    .select("user_id, full_name, company_name, company_role")
+    .select("user_id, full_name, company_name, company_role, post_as_team")
     .single();
 
   if (error) {

@@ -37,25 +37,30 @@ export default async function SupportPage() {
   const { data: authorProfiles } = authorIds.length
     ? await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, username")
+        .select("user_id, full_name, avatar_url, username, post_as_team")
         .in("user_id", authorIds)
-    : { data: [] as { user_id: string; full_name: string | null; avatar_url: string | null; username: string | null }[] };
+    : { data: [] as { user_id: string; full_name: string | null; avatar_url: string | null; username: string | null; post_as_team: boolean }[] };
 
-  const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; username: string | null }>();
+  const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; username: string | null; post_as_team: boolean }>();
   for (const p of authorProfiles ?? []) {
-    profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username });
+    profileByUserId.set(p.user_id, {
+      full_name: p.full_name,
+      avatar_url: p.avatar_url,
+      username: p.username,
+      post_as_team: p.post_as_team,
+    });
   }
 
-  // Posts authored by the primary admin (erik@snapsonic.com) render under
-  // the brand — they are community-wide, not personal.
-  const TEAM_ACCOUNT_USER_ID = "386c403d-cf7e-4e99-8b91-56da3d72a860";
-  const TEAM_LABEL = "Orchestrator Academy Team";
-  const TEAM_PROFILE = { full_name: TEAM_LABEL, avatar_url: null, username: "orchestratoracademy" };
+  // Profiles with post_as_team=true render under the brand.
+  const TEAM_PROFILE = { full_name: "Orchestrator Academy Team", avatar_url: null, username: "orchestratoracademy" };
 
   const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => {
-    const profile = post.user_id === TEAM_ACCOUNT_USER_ID
+    const author = profileByUserId.get(post.user_id);
+    const profile = author?.post_as_team
       ? TEAM_PROFILE
-      : profileByUserId.get(post.user_id) ?? null;
+      : author
+        ? { full_name: author.full_name, avatar_url: author.avatar_url, username: author.username }
+        : null;
     return {
       ...post,
       profiles: profile,
