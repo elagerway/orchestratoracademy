@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.4] - 2026-04-23
+
+### Changed
+- **`/book/confirmed` swaps heading after booking** — heading ownership moved from the server page into the client embed component so it can react to Cal.com's `bookingSuccessfulV2` postMessage. Pre-booking shows "Payment received / You're in — now pick a slot". Post-booking flips to "Session booked / See you then / Calendar invite sent to …". Also listens for the deprecated `bookingSuccessful` as a fallback
+- `getCalApi` is now called with `{ namespace: "consult-paid" }` to match the `<Cal>` instance — the default-namespace listener was silently dropping events because Cal.com's action manager is per-namespace. Verified end-to-end in the browser: booking a slot flips the heading live
+
 ## [0.15.3] - 2026-04-23
 
 ### Added
