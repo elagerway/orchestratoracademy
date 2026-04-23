@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const URL_PATTERN = /(https?:\/\/[^\s]+)/g;
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg|bmp|avif)(\?[^\s]*)?$/i;
@@ -120,31 +122,29 @@ export function RichText({
       : "text-emerald-accent hover:text-emerald-accent/80";
 
   function renderBody() {
-    if (!urls.length) {
-      return <p className="whitespace-pre-wrap">{text}</p>;
-    }
-
-    const parts = text.split(urlRegex());
     return (
-      <p className="whitespace-pre-wrap break-words">
-        {parts.map((part, i) => {
-          if (urlRegex().test(part)) {
-            return (
+      <div className="prose prose-sm max-w-none break-words dark:prose-invert prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:mb-2 prose-headings:mt-4 prose-pre:my-2">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ href, children }) => (
               <a
-                key={i}
-                href={part}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-0.5 underline decoration-1 underline-offset-2 ${linkColor}`}
+                href={href}
+                target={href?.startsWith("/") ? undefined : "_blank"}
+                rel={href?.startsWith("/") ? undefined : "noopener noreferrer"}
+                className={`inline-flex items-baseline gap-0.5 underline decoration-1 underline-offset-2 ${linkColor}`}
               >
-                {part.length > 50 ? part.slice(0, 50) + "..." : part}
-                <ExternalLink className="inline size-3 shrink-0" />
+                {children}
+                {!href?.startsWith("/") && (
+                  <ExternalLink className="inline size-3 shrink-0 self-center" />
+                )}
               </a>
-            );
-          }
-          return <span key={i}>{part}</span>;
-        })}
-      </p>
+            ),
+          }}
+        >
+          {text}
+        </ReactMarkdown>
+      </div>
     );
   }
 

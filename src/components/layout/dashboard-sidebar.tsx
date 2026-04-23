@@ -24,6 +24,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/app/auth/actions";
 import { BuyMeCoffeeButton } from "@/components/buy-me-coffee";
 import { BookCallButton } from "@/components/book-call";
+import { createClient } from "@/lib/supabase/client";
+
+const FORUM_LAST_SEEN_KEY = "forum-last-seen";
 
 const sidebarLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -31,7 +34,7 @@ const sidebarLinks = [
   { href: "/dashboard/achievements", label: "Achievements", icon: Trophy },
   { href: "/dashboard/certificates", label: "Certificates", icon: Award },
   { href: "/dashboard/messages", label: "Messages", icon: Inbox },
-  { href: "/dashboard/support", label: "Community", icon: MessageCircle },
+  { href: "/dashboard/support", label: "Community", icon: MessageCircle, trackKey: "community" as const },
 ];
 
 interface DashboardSidebarProps {
@@ -62,11 +65,48 @@ export function DashboardSidebar({ isAdmin, user, latestPost }: DashboardSidebar
 
   const [dark, setDark] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [communityUnread, setCommunityUnread] = useState(0);
 
   useEffect(() => {
     setMounted(true);
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
+
+  // Count forum posts newer than last-seen, and clear on visit.
+  useEffect(() => {
+    let cancelled = false;
+    const onCommunityPage = pathname.startsWith("/dashboard/support");
+
+    if (onCommunityPage) {
+      localStorage.setItem(FORUM_LAST_SEEN_KEY, new Date().toISOString());
+      setCommunityUnread(0);
+      return;
+    }
+
+    const lastSeen = localStorage.getItem(FORUM_LAST_SEEN_KEY);
+    // First ever view: treat "now" as the baseline so we don't show a huge
+    // backlog count to new users. Any post after this point counts as unread.
+    if (!lastSeen) {
+      localStorage.setItem(FORUM_LAST_SEEN_KEY, new Date().toISOString());
+      setCommunityUnread(0);
+      return;
+    }
+
+    (async () => {
+      const supabase = createClient();
+      const { count, error } = await supabase
+        .from("forum_posts")
+        .select("*", { count: "exact", head: true })
+        .gt("created_at", lastSeen);
+      if (!cancelled && !error && typeof count === "number") {
+        setCommunityUnread(count);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   // Close menu on outside click
   useEffect(() => {
@@ -109,6 +149,7 @@ export function DashboardSidebar({ isAdmin, user, latestPost }: DashboardSidebar
       <nav className="flex-1 space-y-1 p-3">
         {sidebarLinks.map((link) => {
           const active = isActive(link.href, link.exact);
+          const unread = link.trackKey === "community" ? communityUnread : 0;
           return (
             <Link
               key={link.href}
@@ -120,7 +161,12 @@ export function DashboardSidebar({ isAdmin, user, latestPost }: DashboardSidebar
               }`}
             >
               <link.icon className="size-4" />
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {unread > 0 && (
+                <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-emerald-accent px-1.5 text-[11px] font-semibold leading-5 text-emerald-accent-foreground">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
             </Link>
           );
         })}

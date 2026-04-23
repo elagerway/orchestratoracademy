@@ -46,12 +46,25 @@ export default async function SupportPage() {
     profileByUserId.set(p.user_id, { full_name: p.full_name, avatar_url: p.avatar_url, username: p.username });
   }
 
-  const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => ({
-    ...post,
-    profiles: profileByUserId.get(post.user_id) ?? null,
-    reply_count: post.forum_replies?.[0]?.count ?? 0,
-    reaction_count: post.forum_reactions?.[0]?.count ?? 0,
-  }));
+  // Announcements are published under the brand, not the individual admin
+  const announcementsCategoryId = (categories ?? []).find(
+    (c: { slug: string; id: string }) => c.slug === "announcements"
+  )?.id;
+  const TEAM_LABEL = "Orchestrator Academy Team";
+
+  const posts = (rawPosts ?? []).map((post: { user_id: string; category_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => {
+    const baseProfile = profileByUserId.get(post.user_id) ?? null;
+    const isAnnouncement = post.category_id === announcementsCategoryId;
+    const profile = isAnnouncement
+      ? { full_name: TEAM_LABEL, avatar_url: null, username: "orchestratoracademy" }
+      : baseProfile;
+    return {
+      ...post,
+      profiles: profile,
+      reply_count: post.forum_replies?.[0]?.count ?? 0,
+      reaction_count: post.forum_reactions?.[0]?.count ?? 0,
+    };
+  });
 
   // Fetch recent active members
   const { data: recentProfiles } = await supabase
