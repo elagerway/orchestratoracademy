@@ -19,23 +19,20 @@ export function BookCallButton({
     return (
       <Link
         href={BOOK_PATH}
-        className="group block rounded-xl border border-border bg-card p-5 transition-colors hover:border-emerald-accent/40"
+        className="group block rounded-xl border border-border bg-card p-4 transition-colors hover:border-emerald-accent/40"
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-accent/10">
-            <CalendarClock className="size-5 text-emerald-accent" />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-accent/10">
+            <CalendarClock className="size-4 text-emerald-accent" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold">
-              {label || "Work with Erik — $220 / hour"}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">
+              {label || "1:1 Coaching"}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {subtitle || "1-hour 1:1 consult. Pick a slot this week and book in one step."}
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {subtitle || "1-hour paid consult — $220"}
             </p>
           </div>
-          <span className="text-xs font-medium text-emerald-accent group-hover:underline">
-            Book &rarr;
-          </span>
         </div>
       </Link>
     );

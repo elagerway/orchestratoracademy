@@ -154,12 +154,17 @@ export default async function MyCoursesPage() {
                     <CardTitle className="leading-snug">
                       {course.title}
                     </CardTitle>
-                    {progressPercent === 100 && (
-                      <Badge variant="secondary">
-                        <CheckCircle2 className="mr-1 size-3" />
-                        Done
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <Badge variant="secondary" className="bg-emerald-accent/10 text-emerald-accent">
+                        Free
                       </Badge>
-                    )}
+                      {progressPercent === 100 && (
+                        <Badge variant="secondary">
+                          <CheckCircle2 className="mr-1 size-3" />
+                          Done
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <CardDescription className="line-clamp-2">
                     {course.description}
@@ -212,13 +217,9 @@ export default async function MyCoursesPage() {
                       <CardTitle className="leading-snug">
                         {course.title}
                       </CardTitle>
-                      {course.is_free ? (
-                        <Badge variant="secondary" className="bg-emerald-accent/10 text-emerald-accent">
-                          Free
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Pro</Badge>
-                      )}
+                      <Badge variant="secondary" className="bg-emerald-accent/10 text-emerald-accent">
+                        Free
+                      </Badge>
                     </div>
                     <CardDescription className="line-clamp-2">
                       {course.description}

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.2] - 2026-04-23
+
+### Changed
+- **Compact BMaC + Book Call cards** — shrank icon (size-10 → size-9), padding (p-5 → p-4), dropped the trailing "Book →" / "Tip →" CTA text that was wrapping the titles to 4 lines in the narrow dashboard sidebar (w-60). Titles and subtitles now `truncate` so they always stay on one line regardless of container width
+- **New default copy**: "1:1 Coaching" / "1-hour paid consult — $220" (was "Work with Erik — $220 / hour" / "1-hour 1:1 consult. Pick a slot this week and book in one step."); "Buy Team a Coffee" / "Help keep the lessons free" (was "Found this useful?" / "The Academy is free. If it helped, buy us a coffee.")
+- **`/book` page title** — "Book a 1-hour session with Erik" → "Book a 1-hour session with our team"
+- **`/book` embed wrapper** — dropped the outer `rounded-xl border border-border bg-card` container so the Cal.com embed's own chrome isn't double-framed
+- **Free badge on every enrolled course card** — `/dashboard` and `/dashboard/courses` now render a consistent emerald-tinted `Free` badge on every course (paired with the existing `Done` badge when a course is 100% complete)
+- **Dashboard "Recommended Next" badge** — dropped the dead `is_free ? Free : Pro` ternary; all courses are free so the Pro branch was unreachable. Always shows the emerald `Free` badge now
+
 ## [0.15.1] - 2026-04-22
 
 ### Added

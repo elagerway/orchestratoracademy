@@ -19,23 +19,20 @@ export function BuyMeCoffeeButton({
         href={BMAC_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="group block rounded-xl border border-border bg-card p-5 transition-colors hover:border-amber-500/40"
+        className="group block rounded-xl border border-border bg-card p-4 transition-colors hover:border-amber-500/40"
       >
         <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
-            <Coffee className="size-5 text-amber-500" />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+            <Coffee className="size-4 text-amber-500" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold">
-              {label || "Found this useful?"}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">
+              {label || "Buy Team a Coffee"}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {subtitle || "The Academy is free. If it helped, buy us a coffee."}
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {subtitle || "Help keep the lessons free"}
             </p>
           </div>
-          <span className="text-xs font-medium text-amber-500 group-hover:underline">
-            Tip &rarr;
-          </span>
         </div>
       </a>
     );

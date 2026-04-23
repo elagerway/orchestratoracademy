@@ -33,7 +33,7 @@ export default function BookPage() {
           1:1 consultation
         </div>
         <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl">
-          Book a 1-hour session with Erik
+          Book a 1-hour session with our team
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
           One hour, focused on your project. We work through your specific AI orchestration
@@ -74,7 +74,7 @@ export default function BookPage() {
       </div>
 
       {/* Cal.com inline booking */}
-      <div className="mx-auto max-w-4xl overflow-hidden rounded-xl border border-border bg-card">
+      <div className="mx-auto max-w-4xl">
         {mounted ? (
           <Cal
             namespace="consult"
