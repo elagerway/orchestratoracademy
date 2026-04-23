@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.5] - 2026-04-23
+
+### Added
+- **Admin SMS alert on new signups** via Magpipe. Fires once per user from `auth/callback/route.ts` in the existing `!profile.signup_ip` branch (so only on first confirmed login, not every session). `src/lib/magpipe/client.ts` is a thin POST to `https://api.magpipe.ai/functions/v1/send-user-sms`. Fire-and-forget so SMS never blocks auth
+- Env vars: `MAGPIPE_API_KEY`, `MAGPIPE_SERVICE_NUMBER` (+16044123888 — "Erik's Assistant"), `ADMIN_SIGNUP_NOTIFY_PHONE` (+16045628647). Set on Vercel Production + `.env.local`
+- **Blog post + YouTube video: "Claude Routines vs n8n vs Make.com"** — shipped the full companion: blog at `/blog/claude-routines-vs-n8n-vs-make` with featured image matching YouTube thumbnail, video at `youtube.com/watch?v=ocKapEL1qww`, forum Announcement posts for both free-courses and routines-vs-n8n topics
+- **Remotion compositions**: `RoutinesKnobs` (natural-language-vs-knobs split panel with typewriter + wiring diagram) and `RoutinesDecision` (4-card decision tree fading in on narration beats) at `video-pipeline/src/compositions/`
+
+### Changed
+- **Auth popover formatting** — the user-menu dropdown in the header had `DropdownMenuContent` at default width, which truncated long emails mid-character (`erik@snapsonic.co` instead of `erik@snapsonic.com`). Now `min-w-[16rem]` with `truncate` on the email lines — fits the full domain, falls back to ellipsis if still too long
+
 ## [0.15.4] - 2026-04-23
 
 ### Changed

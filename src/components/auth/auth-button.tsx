@@ -89,13 +89,13 @@ export function AuthButton() {
           <AvatarFallback>{getInitials(user)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={8}>
-        <div className="px-1.5 py-1.5">
-          <p className="text-sm font-medium">
+      <DropdownMenuContent align="end" sideOffset={8} className="min-w-[16rem]">
+        <div className="px-2 py-1.5">
+          <p className="truncate text-sm font-medium">
             {user.user_metadata?.full_name || user.email}
           </p>
           {user.user_metadata?.full_name && (
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           )}
         </div>
         <DropdownMenuSeparator />

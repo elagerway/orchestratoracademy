@@ -2,6 +2,8 @@ import React from "react";
 import { Composition, staticFile } from "remotion";
 import { BrandIntro } from "./compositions/BrandIntro";
 import { ModuleVideo } from "./compositions/ModuleVideo";
+import { RoutinesKnobs } from "./compositions/RoutinesKnobs";
+import { RoutinesDecision } from "./compositions/RoutinesDecision";
 
 export const Root: React.FC = () => {
   return (
@@ -26,6 +28,29 @@ export const Root: React.FC = () => {
         fps={25}
         width={1920}
         height={1080}
+      />
+      {/* Claude Routines vs n8n vs Make — blog companion video */}
+      <Composition
+        id="RoutinesKnobs"
+        component={RoutinesKnobs}
+        durationInFrames={Math.round(33.34 * 25)}
+        fps={25}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          voiceoverUrl: staticFile("claude-routines-vs-n8n-vs-make/voiceover1.mp3"),
+        }}
+      />
+      <Composition
+        id="RoutinesDecision"
+        component={RoutinesDecision}
+        durationInFrames={Math.round(33.02 * 25)}
+        fps={25}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          voiceoverUrl: staticFile("claude-routines-vs-n8n-vs-make/voiceover2.mp3"),
+        }}
       />
       <Composition
         id="M8L1-Code1"

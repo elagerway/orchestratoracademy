@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { sendSms } from "@/lib/magpipe/client";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -50,6 +51,18 @@ export async function GET(request: Request) {
           .from("profiles")
           .update({ signup_ip: ip, signup_region: region })
           .eq("user_id", data.user.id);
+
+        // Admin signup alert — fire-and-forget so auth never blocks on SMS
+        const notifyPhone = process.env.ADMIN_SIGNUP_NOTIFY_PHONE;
+        const serviceNumber = process.env.MAGPIPE_SERVICE_NUMBER;
+        if (notifyPhone && serviceNumber && process.env.MAGPIPE_API_KEY) {
+          const name = (profile.full_name ?? "").trim() || "(no name)";
+          const email = data.user.email ?? "(no email)";
+          const message = `New OA signup: ${name} <${email}> from ${region}`;
+          sendSms({ serviceNumber, contactPhone: notifyPhone, message }).catch((err) => {
+            console.error("Magpipe signup-alert failed:", err);
+          });
+        }
       }
 
       const name = (profile?.full_name ?? "").trim();
