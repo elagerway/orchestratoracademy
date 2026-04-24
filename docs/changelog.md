@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.15.6] - 2026-04-23
+
+### Added
+- **Job submission intake form** at `/jobs/submit` — Cloudflare Turnstile-protected public form with every jobs-table field plus submitter name + email. Form posts to `/api/jobs/submit`, which verifies the token via Cloudflare `siteverify`, whitelists + length-caps every field, enum-checks `employment_type` / `seniority`, rejects non-http apply URLs, then inserts to `public.jobs` with `active=false` so admins review before publish. RLS stays locked — client writes still denied; the API route uses service role on sanitized input only. Replaces the earlier `/contact` 404 link on `/jobs`
+- **Per-profile team-brand toggle** — new `profiles.post_as_team boolean not null default false` column (migration `018_post_as_team.sql`, pre-set to `true` for the primary admin). Admin user-edit UI has a checkbox ("Post as Orchestrator Academy Team"). When on, that user's forum posts + replies render as the brand (name override + `orchestratoracademy` username, no avatar) — real author still recorded on the row. Replaces the hardcoded `erik@snapsonic.com` user_id check
+- **Forum markdown rendering** — `RichText` component used to be plain-text-only (URL autolinking + image previews). Swapped the body path to `react-markdown` + `remark-gfm` so `**bold**`, lists, and `[link text](url)` actually render across every forum post and reply. Link + image preview cards still run after the markdown pass
+- **Community nav badge** — localStorage-tracked `forum-last-seen` timestamp. On each sidebar mount, count `forum_posts` with `created_at > last_seen` and render a green pill next to "Community". Clears on `/dashboard/support` visit. First-time visitors get a `now` baseline so no backlog count
+- Migration `019_jobs_submitter.sql` — adds `jobs.submitter_name` + `jobs.submitter_email`. Already applied to prod via Supabase Management API
+- Admin API `/api/admin/users` whitelist split into `STRING_FIELDS` + `BOOLEAN_FIELDS` so the new boolean `post_as_team` gets type-coerced properly
+
+### Fixed
+- **Zero forum posts rendered** — the server query on `/dashboard/support` used `.select("*, profiles:user_id(...)")` which needs a FK between `forum_posts.user_id` and `profiles.user_id`. No such FK exists in prod (both columns reference `auth.users`) so PostgREST returned `PGRST200` and `supabase-js` swallowed it, yielding an empty array. **The entire forum has been rendering zero posts, not just the new announcements.** Replaced the embed with a manual join in code (fetch posts → collect unique user_ids → fetch profiles → map by user_id). Same fix applied to the reply loader
+
+### Notes
+- **Supabase migration tracking is effectively disabled on prod** — `api.supabase.com/v1/projects/.../database/migrations` returns 0 applied, but the schema has every table. Migrations have been applied out-of-band (dashboard SQL editor / psql). New schema changes now go through the Supabase Management API `POST /database/query` endpoint using the CLI's cached PAT. Migration files in `supabase/migrations/` stay as the canonical diff, but don't run `supabase db push` — it would try to re-apply all 17 existing migrations
+
 ## [0.15.5] - 2026-04-23
 
 ### Added

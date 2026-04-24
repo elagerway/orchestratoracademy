@@ -42,7 +42,10 @@ src/
 │   │   ├── admin/
 │   │   │   ├── social/route.ts              # POST: Manual X/LinkedIn posting from admin
 │   │   │   ├── jobs/route.ts                # Admin CRUD for job listings (POST/PATCH/DELETE/GET)
+│   │   │   ├── users/route.ts               # PATCH: admin-only profile editor (full_name, company_*, post_as_team)
 │   │   │   └── ...
+│   │   ├── jobs/
+│   │   │   └── submit/route.ts              # POST: public job submission (Turnstile-verified, inserts active=false)
 │   │   ├── cron/
 │   │   │   ├── publish-scheduled/route.ts   # GET: Hourly blog publish + YouTube public + X auto-post
 │   │   │   └── drip-campaign/route.ts       # GET: Daily drip email cron (Vercel cron)
@@ -84,7 +87,9 @@ src/
 │   │       ├── page.tsx                      # Server-verifies Stripe session, renders Cal.com embed
 │   │       └── embed.tsx                     # Client embed component (Cal.com)
 │   └── jobs/
-│       └── page.tsx                          # Public job board (admin-curated listings)
+│       ├── page.tsx                          # Public job board (admin-curated listings)
+│       └── submit/
+│           └── page.tsx                      # Public intake form (Turnstile-gated), inserts active=false drafts
 ├── components/
 │   ├── auth/
 │   │   └── auth-button.tsx                   # Auth state-aware header button
@@ -137,6 +142,8 @@ src/
 │   │   └── client.ts                         # HeyGen API (avatars, video gen)
 │   ├── elevenlabs/
 │   │   └── client.ts                         # ElevenLabs TTS
+│   ├── magpipe/
+│   │   └── client.ts                         # Magpipe SMS (send-user-sms) — admin signup alerts
 │   ├── data/
 │   │   └── lab-challenges.json              # Lab challenge definitions per lesson
 │   ├── types/
@@ -196,7 +203,9 @@ supabase/
 │   ├── 006_b2b_assess_train_deploy.sql      # Team assessments, lab verifications, deploy completions
 │   ├── 007_drip_campaign_log.sql            # Drip email tracking
 │   ├── 008_leaderboard_display_preferences.sql  # Username + leaderboard display preference
-│   └── 017_jobs.sql                         # Job board table (RLS: public read active, no direct writes)
+│   ├── 017_jobs.sql                         # Job board table (RLS: public read active, no direct writes)
+│   ├── 018_post_as_team.sql                 # profiles.post_as_team — render user's forum activity as brand
+│   └── 019_jobs_submitter.sql               # jobs.submitter_name + submitter_email for intake-form contact
 ├── seed.sql                                  # Free course content (7 original modules)
 ├── seed_foundations_expanded.sql             # Modules 8-20 (APIs, MCP, Claude Code, etc.)
 ├── seed_foundations_infra.sql                # Modules 21-28 (Next.js, Supabase, Vercel, etc.)
@@ -207,8 +216,23 @@ supabase/
 └── update_*.sql                             # Content expansion scripts
 ```
 
+## Database Migration Reality
+Supabase migration tracking is **not** in use on the prod project. `supabase/migrations/<N>_*.sql` files are the canonical record of schema changes, but the remote `supabase_migrations.schema_migrations` table is empty — every migration has been applied out-of-band (dashboard SQL editor or ad-hoc `ALTER`s). Do **not** run `supabase db push` — it would try to re-apply every migration against a schema that already has the tables, and break.
+
+New schema changes should be written as a migration file in this repo **and** applied directly via the Supabase Management API:
+
+```bash
+TOKEN=$(security find-generic-password -s "Supabase CLI" -w | sed 's/go-keyring-base64://' | base64 -d)
+curl -sS -X POST "https://api.supabase.com/v1/projects/oxsiajjnbnedimblidrs/database/query" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "alter table ..."}'
+```
+
+That way the repo stays self-documenting while the remote schema stays consistent.
+
 ## Database Schema
-- **profiles**: User profiles + XP, level, streak, username, leaderboard_display, company info (auto-created on signup)
+- **profiles**: User profiles + XP, level, streak, username, leaderboard_display, company info, `post_as_team` (auto-created on signup). When `post_as_team=true` the user's forum posts + replies render as "Orchestrator Academy Team" — real author still recorded on the row
 - **courses**: Course catalog (title, slug, description, is_free, price, level [entry/intermediate/advanced])
 - **modules**: Course modules (ordered within a course)
 - **lessons**: Module lessons (video, text, interactive, quiz content types)
@@ -234,7 +258,7 @@ supabase/
 - **forum_replies**: Threaded replies on forum posts
 - **forum_reactions**: Emoji reactions on forum posts (unique per user+post+emoji)
 - **direct_messages**: Private DMs between users (sender, recipient, read status)
-- **jobs**: Admin-curated job listings (title, company, salary range, remote, employment_type, seniority, apply_url, active). Public SELECT on `active=true` via RLS; writes only via admin API (service role)
+- **jobs**: Admin-curated job listings (title, company, salary range, remote, employment_type, seniority, apply_url, active, `submitter_name`, `submitter_email`). Public SELECT on `active=true` via RLS; writes only via admin API + public intake form at `/api/jobs/submit` (both use service role — RLS denies all client writes)
 
 ## Course Content
 All courses are now free (`is_free=true`). Revenue comes from Buy Me a Coffee tips and paid 1:1 consults via `/book`. Existing Stripe subscribers are grandfathered.
@@ -317,9 +341,16 @@ All courses are now free (`is_free=true`). Revenue comes from Buy Me a Coffee ti
 ## Job Board
 - **Route**: `/jobs` (public, admin-curated V1)
 - **Admin**: Jobs tab in `/dashboard/admin` + `/api/admin/jobs` (POST/PATCH/DELETE/GET, service-role-bypassed RLS)
-- **Schema**: `jobs` table with active/posted_at indexes, RLS allows public `SELECT` on `active=true`, all client writes denied
+- **Public submission**: `/jobs/submit` — Turnstile-gated intake form (name, email, company, role, salary range, description, apply URL). Server route at `/api/jobs/submit` verifies the Turnstile token via Cloudflare `siteverify`, whitelists + length-caps every field, enum-checks `employment_type` / `seniority`, then inserts to `jobs` with `active=false`. Admin reviews in the Jobs tab and flips `active=true` to publish
+- **Schema**: `jobs` table with active/posted_at indexes, `submitter_name` + `submitter_email` for intake-form contact, RLS allows public `SELECT` on `active=true`, all client writes denied
 - **Dark mode**: course thumbnails + hero rotator use the `dark:invert dark:hue-rotate-180` filter pattern from the home page
-- **V2 (planned)**: applications, featured paid posts, AI matching, employer self-serve
+- **V2 (planned)**: applications, featured paid posts, AI matching, employer self-serve dashboard
+
+## Admin Signup Alerts (SMS)
+- **Trigger**: first confirmed login per user, inside `src/app/auth/callback/route.ts`'s existing `!profile.signup_ip` branch (same spot that captures IP/region). Fire-and-forget so SMS never blocks auth
+- **Client**: `src/lib/magpipe/client.ts` — thin POST to `https://api.magpipe.ai/functions/v1/send-user-sms`
+- **Env**: `MAGPIPE_API_KEY`, `MAGPIPE_SERVICE_NUMBER`, `ADMIN_SIGNUP_NOTIFY_PHONE` (all E.164)
+- **Message format**: `New OA signup: {name} <{email}> from {city, region, country}`
 
 ## Social Publishing
 - **X (Twitter)**: Auto-posts via X API v2 (OAuth 1.0a) when cron publishes a blog post
