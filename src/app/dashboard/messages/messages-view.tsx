@@ -16,6 +16,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { RichText } from "@/components/rich-text";
+import { displayName } from "@/lib/display-name";
 
 function timeAgo(date: string) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -30,10 +31,6 @@ function timeAgo(date: string) {
     month: "short",
     day: "numeric",
   });
-}
-
-function displayName(profile: any) {
-  return profile?.full_name || profile?.username || "Anonymous";
 }
 
 function MessageBubble({

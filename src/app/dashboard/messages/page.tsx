@@ -30,7 +30,7 @@ export default async function MessagesPage() {
   if (partnerIds.size > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("user_id, full_name, username, avatar_url")
+      .select("user_id, full_name, username, avatar_url, leaderboard_display, post_as_team")
       .in("user_id", Array.from(partnerIds));
     for (const p of profiles ?? []) {
       partnerProfiles[p.user_id] = p;
@@ -64,7 +64,7 @@ export default async function MessagesPage() {
   // Fetch all profiles for "new message" search
   const { data: allProfiles } = await supabase
     .from("profiles")
-    .select("user_id, full_name, username, avatar_url")
+    .select("user_id, full_name, username, avatar_url, leaderboard_display, post_as_team")
     .neq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);

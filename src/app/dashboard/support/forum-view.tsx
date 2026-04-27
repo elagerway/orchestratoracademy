@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/rich-text";
+import { displayName, displayInitials } from "@/lib/display-name";
 import {
   MessageSquare,
   ThumbsUp,
@@ -69,10 +70,10 @@ function MemberModal({
 
   useEffect(() => {
     const supabase = createClient();
-    // Fetch full profile
+    // Fetch full profile — leaderboard_display + post_as_team govern privacy
     supabase
       .from("profiles")
-      .select("full_name, username, avatar_url, bio, company_name, company_role, xp, level, created_at")
+      .select("full_name, username, avatar_url, bio, company_name, company_role, xp, level, created_at, leaderboard_display, post_as_team")
       .eq("user_id", member.user_id)
       .single()
       .then(({ data }) => setProfile(data));
@@ -121,7 +122,7 @@ function MemberModal({
     loadMessages();
   }
 
-  const displayName = profile?.full_name || profile?.username || member.full_name || member.username || "Anonymous";
+  const memberName = displayName(profile ?? member);
 
   return (
     <div
@@ -133,7 +134,7 @@ function MemberModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
           <h3 className="font-heading text-lg font-semibold">
-            {showChat ? `Chat with ${displayName}` : "Member Profile"}
+            {showChat ? `Chat with ${memberName}` : "Member Profile"}
           </h3>
           <button
             onClick={onClose}
@@ -157,8 +158,8 @@ function MemberModal({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-lg font-semibold">{displayName}</p>
-                {profile?.username && profile?.full_name && (
+                <p className="text-lg font-semibold">{memberName}</p>
+                {profile?.username && profile.username !== memberName && (
                   <p className="text-sm text-muted-foreground">@{profile.username}</p>
                 )}
               </div>
@@ -391,35 +392,35 @@ export function ForumView({
       .eq("post_id", postId)
       .order("created_at");
 
-    const TEAM_PROFILE = { full_name: "Orchestrator Academy Team", avatar_url: null };
-
     const authorIds = Array.from(new Set((rawReplies ?? []).map((r: any) => r.user_id)));
-    const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; post_as_team: boolean }>();
+    type ReplyAuthor = {
+      full_name: string | null;
+      avatar_url: string | null;
+      username: string | null;
+      post_as_team: boolean;
+      leaderboard_display: string | null;
+    };
+    const profileByUserId = new Map<string, ReplyAuthor>();
     if (authorIds.length) {
       const { data: authorProfiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, post_as_team")
+        .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
         .in("user_id", authorIds);
-      for (const p of authorProfiles ?? []) {
+      for (const p of (authorProfiles ?? []) as (ReplyAuthor & { user_id: string })[]) {
         profileByUserId.set(p.user_id, {
           full_name: p.full_name,
           avatar_url: p.avatar_url,
+          username: p.username,
           post_as_team: p.post_as_team,
+          leaderboard_display: p.leaderboard_display,
         });
       }
     }
 
-    const hydrated = (rawReplies ?? []).map((r: any) => {
-      const author = profileByUserId.get(r.user_id);
-      return {
-        ...r,
-        profiles: author?.post_as_team
-          ? TEAM_PROFILE
-          : author
-            ? { full_name: author.full_name, avatar_url: author.avatar_url }
-            : null,
-      };
-    });
+    const hydrated = (rawReplies ?? []).map((r: any) => ({
+      ...r,
+      profiles: profileByUserId.get(r.user_id) ?? null,
+    }));
     setReplies((prev) => ({ ...prev, [postId]: hydrated }));
   }
 
@@ -617,7 +618,7 @@ export function ForumView({
                         <AvatarImage src={author.avatar_url} />
                       )}
                       <AvatarFallback className="text-xs">
-                        {getInitials(author?.full_name || "?")}
+                        {displayInitials(author)}
                       </AvatarFallback>
                     </Avatar>
 
@@ -631,7 +632,7 @@ export function ForumView({
                         </span>
                       </div>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {author?.full_name || author?.username || "Anonymous"} &middot;{" "}
+                        {displayName(author)} &middot;{" "}
                         {timeAgo(post.created_at)}
                       </p>
                     </div>
@@ -699,15 +700,13 @@ export function ForumView({
                                   />
                                 )}
                                 <AvatarFallback className="text-[10px]">
-                                  {getInitials(
-                                    reply.profiles?.full_name || "?"
-                                  )}
+                                  {displayInitials(reply.profiles)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="text-xs">
                                   <span className="font-medium">
-                                    {reply.profiles?.full_name || reply.profiles?.username || "Anonymous"}
+                                    {displayName(reply.profiles)}
                                   </span>{" "}
                                   <span className="text-muted-foreground">
                                     &middot; {timeAgo(reply.created_at)}
@@ -780,7 +779,7 @@ export function ForumView({
                   </AvatarFallback>
                 </Avatar>
                 <span className="truncate text-sm">
-                  {member.full_name || member.username || "Anonymous"}
+                  {displayName(member)}
                 </span>
               </button>
             ))}

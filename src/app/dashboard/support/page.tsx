@@ -34,45 +34,44 @@ export default async function SupportPage() {
     .order("created_at", { ascending: false });
 
   const authorIds = Array.from(new Set((rawPosts ?? []).map((p: { user_id: string }) => p.user_id)));
+  type AuthorRow = {
+    user_id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+    post_as_team: boolean;
+    leaderboard_display: string | null;
+  };
   const { data: authorProfiles } = authorIds.length
     ? await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, username, post_as_team")
+        .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
         .in("user_id", authorIds)
-    : { data: [] as { user_id: string; full_name: string | null; avatar_url: string | null; username: string | null; post_as_team: boolean }[] };
+    : { data: [] as AuthorRow[] };
 
-  const profileByUserId = new Map<string, { full_name: string | null; avatar_url: string | null; username: string | null; post_as_team: boolean }>();
-  for (const p of authorProfiles ?? []) {
+  type AuthorProfile = Omit<AuthorRow, "user_id">;
+  const profileByUserId = new Map<string, AuthorProfile>();
+  for (const p of (authorProfiles ?? []) as AuthorRow[]) {
     profileByUserId.set(p.user_id, {
       full_name: p.full_name,
       avatar_url: p.avatar_url,
       username: p.username,
       post_as_team: p.post_as_team,
+      leaderboard_display: p.leaderboard_display,
     });
   }
 
-  // Profiles with post_as_team=true render under the brand.
-  const TEAM_PROFILE = { full_name: "Orchestrator Academy Team", avatar_url: null, username: "orchestratoracademy" };
+  const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => ({
+    ...post,
+    profiles: profileByUserId.get(post.user_id) ?? null,
+    reply_count: post.forum_replies?.[0]?.count ?? 0,
+    reaction_count: post.forum_reactions?.[0]?.count ?? 0,
+  }));
 
-  const posts = (rawPosts ?? []).map((post: { user_id: string; forum_replies?: { count: number }[]; forum_reactions?: { count: number }[] }) => {
-    const author = profileByUserId.get(post.user_id);
-    const profile = author?.post_as_team
-      ? TEAM_PROFILE
-      : author
-        ? { full_name: author.full_name, avatar_url: author.avatar_url, username: author.username }
-        : null;
-    return {
-      ...post,
-      profiles: profile,
-      reply_count: post.forum_replies?.[0]?.count ?? 0,
-      reaction_count: post.forum_reactions?.[0]?.count ?? 0,
-    };
-  });
-
-  // Fetch recent active members
+  // Fetch recent active members — leaderboard_display drives privacy in the UI
   const { data: recentProfiles } = await supabase
     .from("profiles")
-    .select("user_id, full_name, avatar_url, username")
+    .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
     .order("created_at", { ascending: false })
     .limit(6);
 
