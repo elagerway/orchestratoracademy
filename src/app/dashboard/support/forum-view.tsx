@@ -159,7 +159,7 @@ function MemberModal({
               </Avatar>
               <div>
                 <p className="text-lg font-semibold">{memberName}</p>
-                {profile?.username && profile.username !== memberName && (
+                {profile?.username && profile.leaderboard_display === "username" && (
                   <p className="text-sm text-muted-foreground">@{profile.username}</p>
                 )}
               </div>

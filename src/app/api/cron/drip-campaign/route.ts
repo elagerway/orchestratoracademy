@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email/client";
 import { day3Email, day7Email, day14Email, type AnnouncementEntry } from "@/lib/email/templates";
+import { displayName } from "@/lib/display-name";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const ANNOUNCEMENTS_CATEGORY_ID = "771a903d-9f65-4aeb-acb2-7b9309469513";
@@ -107,20 +108,8 @@ export async function GET(request: Request) {
     completedByUser.get(p.user_id)!.add(p.lesson_id);
   }
 
-  // Helper to compute display name from profile (matches src/lib/display-name.ts).
-  // Privacy default = auto_alias.
-  function getDisplayName(p: {
-    full_name: string;
-    username: string | null;
-    auto_alias: string | null;
-    post_as_team: boolean | null;
-    leaderboard_display: string;
-  }) {
-    if (p.post_as_team) return "Orchestrator Academy Team";
-    if (p.leaderboard_display === "full_name" && p.full_name) return p.full_name;
-    if (p.leaderboard_display === "username" && p.username) return p.username;
-    return p.auto_alias || p.username || "Member";
-  }
+  // Use the shared helper so the drip leaderboard matches every other surface.
+  const getDisplayName = displayName;
 
   // Build leaderboard (profiles already sorted by XP desc)
   const leaderboard = (profiles ?? [])
