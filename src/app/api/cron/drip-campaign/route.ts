@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   // Get all users with their last XP log activity
   const { data: profiles } = await supa
     .from("profiles")
-    .select("user_id, full_name, username, leaderboard_display, last_activity_date, xp, level")
+    .select("user_id, full_name, username, auto_alias, post_as_team, leaderboard_display, last_activity_date, xp, level")
     .order("xp", { ascending: false });
 
   // Get auth users for emails
@@ -107,14 +107,19 @@ export async function GET(request: Request) {
     completedByUser.get(p.user_id)!.add(p.lesson_id);
   }
 
-  // Helper to compute display name from profile
-  function getDisplayName(p: { full_name: string; username: string | null; leaderboard_display: string }) {
-    if (p.leaderboard_display === "username" && p.username) return p.username;
+  // Helper to compute display name from profile (matches src/lib/display-name.ts).
+  // Privacy default = auto_alias.
+  function getDisplayName(p: {
+    full_name: string;
+    username: string | null;
+    auto_alias: string | null;
+    post_as_team: boolean | null;
+    leaderboard_display: string;
+  }) {
+    if (p.post_as_team) return "Orchestrator Academy Team";
     if (p.leaderboard_display === "full_name" && p.full_name) return p.full_name;
-    const parts = (p.full_name || "").split(" ");
-    const first = parts[0] || "Anonymous";
-    const lastInit = parts.slice(1).join(" ").charAt(0);
-    return lastInit ? `${first} ${lastInit}.` : first;
+    if (p.leaderboard_display === "username" && p.username) return p.username;
+    return p.auto_alias || p.username || "Member";
   }
 
   // Build leaderboard (profiles already sorted by XP desc)

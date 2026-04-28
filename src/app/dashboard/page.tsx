@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CourseProgress } from "@/components/courses/course-progress";
 import { Badge } from "@/components/ui/badge";
+import { displayName } from "@/lib/display-name";
 import {
   BookOpen,
   CheckCircle2,
@@ -56,7 +57,7 @@ export default async function DashboardPage() {
   // Leaderboard: top 10 by XP
   const { data: leaderboard } = await supabase
     .from("profiles")
-    .select("user_id, full_name, username, leaderboard_display, xp, level, avatar_url")
+    .select("user_id, full_name, username, auto_alias, post_as_team, leaderboard_display, xp, level, avatar_url")
     .gt("xp", 0)
     .order("xp", { ascending: false })
     .limit(10);
@@ -156,17 +157,7 @@ export default async function DashboardPage() {
               {(leaderboard ?? []).map((entry, i) => {
                 const isCurrentUser = entry.user_id === user.id;
                 const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
-                const nameParts = (entry.full_name || "").split(" ");
-                const first = nameParts[0] || "Anonymous";
-                const lastInit = nameParts.slice(1).join(" ").charAt(0);
-                const displayName =
-                  entry.leaderboard_display === "username" && entry.username
-                    ? entry.username
-                    : entry.leaderboard_display === "full_name" && entry.full_name
-                    ? entry.full_name
-                    : lastInit
-                    ? `${first} ${lastInit}.`
-                    : first;
+                const name = displayName(entry);
 
                 return (
                   <div
@@ -180,7 +171,7 @@ export default async function DashboardPage() {
                     </span>
                     <div className="flex-1">
                       <span className={`text-sm font-medium ${isCurrentUser ? "text-emerald-accent" : ""}`}>
-                        {displayName}
+                        {name}
                         {isCurrentUser && (
                           <span className="ml-1.5 text-xs text-emerald-accent/70">(you)</span>
                         )}

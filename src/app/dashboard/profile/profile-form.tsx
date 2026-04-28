@@ -15,6 +15,7 @@ interface ProfileData {
   company_name: string | null;
   company_role: string | null;
   username: string | null;
+  auto_alias: string | null;
   leaderboard_display: string;
   xp: number;
   level: number;
@@ -91,17 +92,13 @@ export function ProfileForm({
     setTimeout(() => setSaved(false), 3000);
   }
 
-  // Preview what the leaderboard will show
-  const firstName = fullName.split(" ")[0] || "—";
-  const lastInitial = fullName.split(" ").slice(1).join(" ").charAt(0);
+  // Preview what the public surfaces (Members, leaderboard, forum) will show
   const previewName =
     leaderboardDisplay === "full_name"
       ? fullName || "—"
       : leaderboardDisplay === "username"
       ? username || "—"
-      : lastInitial
-      ? `${firstName} ${lastInitial}.`
-      : firstName;
+      : profile.auto_alias || "—";
 
   return (
     <div className="max-w-lg space-y-6">
@@ -170,9 +167,11 @@ export function ProfileForm({
 
         {/* Leaderboard display preference */}
         <div className="rounded-lg border border-border p-4 space-y-3">
-          <label className="block text-sm font-medium">Leaderboard Display</label>
+          <label className="block text-sm font-medium">Public display name</label>
           <p className="text-xs text-muted-foreground">
-            Choose how your name appears on the public leaderboard.
+            How you appear to other members across the leaderboard, forum, and members list.
+            By default we use a private alias — only choose another option if you want your
+            real name or chosen username to be visible.
           </p>
 
           <div className="space-y-2">
@@ -185,7 +184,12 @@ export function ProfileForm({
                 onChange={() => setLeaderboardDisplay("first_initial")}
                 className="accent-emerald-500"
               />
-              <span className="text-sm">First name + last initial</span>
+              <span className="text-sm">
+                Private alias{" "}
+                {profile.auto_alias && (
+                  <span className="text-muted-foreground">({profile.auto_alias})</span>
+                )}
+              </span>
             </label>
 
             <label className="flex items-center gap-3 cursor-pointer">

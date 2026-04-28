@@ -73,7 +73,7 @@ function MemberModal({
     // Fetch full profile — leaderboard_display + post_as_team govern privacy
     supabase
       .from("profiles")
-      .select("full_name, username, avatar_url, bio, company_name, company_role, xp, level, created_at, leaderboard_display, post_as_team")
+      .select("full_name, username, auto_alias, avatar_url, bio, company_name, company_role, xp, level, created_at, leaderboard_display, post_as_team")
       .eq("user_id", member.user_id)
       .single()
       .then(({ data }) => setProfile(data));
@@ -397,6 +397,7 @@ export function ForumView({
       full_name: string | null;
       avatar_url: string | null;
       username: string | null;
+      auto_alias: string | null;
       post_as_team: boolean;
       leaderboard_display: string | null;
     };
@@ -404,13 +405,14 @@ export function ForumView({
     if (authorIds.length) {
       const { data: authorProfiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
+        .select("user_id, full_name, avatar_url, username, auto_alias, post_as_team, leaderboard_display")
         .in("user_id", authorIds);
       for (const p of (authorProfiles ?? []) as (ReplyAuthor & { user_id: string })[]) {
         profileByUserId.set(p.user_id, {
           full_name: p.full_name,
           avatar_url: p.avatar_url,
           username: p.username,
+          auto_alias: p.auto_alias,
           post_as_team: p.post_as_team,
           leaderboard_display: p.leaderboard_display,
         });

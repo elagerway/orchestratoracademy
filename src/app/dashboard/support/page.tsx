@@ -39,13 +39,14 @@ export default async function SupportPage() {
     full_name: string | null;
     avatar_url: string | null;
     username: string | null;
+    auto_alias: string | null;
     post_as_team: boolean;
     leaderboard_display: string | null;
   };
   const { data: authorProfiles } = authorIds.length
     ? await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
+        .select("user_id, full_name, avatar_url, username, auto_alias, post_as_team, leaderboard_display")
         .in("user_id", authorIds)
     : { data: [] as AuthorRow[] };
 
@@ -56,6 +57,7 @@ export default async function SupportPage() {
       full_name: p.full_name,
       avatar_url: p.avatar_url,
       username: p.username,
+      auto_alias: p.auto_alias,
       post_as_team: p.post_as_team,
       leaderboard_display: p.leaderboard_display,
     });
@@ -71,7 +73,7 @@ export default async function SupportPage() {
   // Fetch recent active members — leaderboard_display drives privacy in the UI
   const { data: recentProfiles } = await supabase
     .from("profiles")
-    .select("user_id, full_name, avatar_url, username, post_as_team, leaderboard_display")
+    .select("user_id, full_name, avatar_url, username, auto_alias, post_as_team, leaderboard_display")
     .order("created_at", { ascending: false })
     .limit(6);
 
