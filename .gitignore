@@ -58,3 +58,6 @@ video-pipeline/output/
 
 # YouTube OAuth token
 video-pipeline/scripts/.youtube-token.json
+
+# Supabase CLI local cache (versions, project ref, pooler URL — environment-specific)
+supabase/.temp/
