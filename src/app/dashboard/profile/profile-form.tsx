@@ -42,8 +42,11 @@ export function ProfileForm({
   const [companyName, setCompanyName] = useState(profile.company_name ?? "");
   const [companyRole, setCompanyRole] = useState(profile.company_role ?? "");
   const [username, setUsername] = useState(profile.username ?? "");
+  // Fallback matches the DB column default (`first_initial`) so a user
+  // with no explicit preference never gets silently flipped to username
+  // display on save. Privacy default = auto_alias via the helper.
   const [leaderboardDisplay, setLeaderboardDisplay] = useState<LeaderboardDisplay>(
-    (profile.leaderboard_display as LeaderboardDisplay) ?? "username"
+    (profile.leaderboard_display as LeaderboardDisplay) ?? "first_initial"
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
